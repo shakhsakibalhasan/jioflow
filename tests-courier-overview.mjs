@@ -10,7 +10,7 @@ let pending=[];bindCourierOverview({root,context:{section:'new',shop:{id:'s'}},c
 console.log('Courier history passed: blank-number hiding, valid-phone auto checks, no unconnected boxes, own/overall/provider cards, safe autofill and stale response suppression.');
 
 const missing=courierCards({own:{total:0,delivered:0,cancelled:0},providers:[{id:'steadfast',connected:true,status:'unavailable',name:'Steadfast',error:'Limited'}]});
-assert.ok(missing.includes('No matching orders in this business.'));assert.ok(missing.includes('History unavailable · not zero'));assert.ok(missing.includes('steadfast-logo.svg'));assert.ok(!missing.includes('<dd>0</dd>'));
+assert.ok(missing.includes('No matching orders in this business.'));assert.ok(missing.includes('History temporarily unavailable'));assert.ok(missing.includes('steadfast-logo.svg'));assert.ok(!missing.includes('<dd>0</dd>'));
 
 let historyCalls=0,epoch=1;const cachedClient={sessionVersion:()=>epoch,courierHistory:async()=>{historyCalls++;return data}};
 await Promise.all([customerCourierHistory(cachedClient,'s','01712345678'),customerCourierHistory(cachedClient,'s','01712345678')]);assert.equal(historyCalls,1);
@@ -18,3 +18,5 @@ await customerCourierHistory(cachedClient,'s','01712345678');assert.equal(histor
 await customerCourierHistory(cachedClient,'other-shop','01712345678');assert.equal(historyCalls,2);
 epoch++;await customerCourierHistory(cachedClient,'s','01712345678');assert.equal(historyCalls,3);
 await customerCourierHistory(cachedClient,'s','01712345678',true);assert.equal(historyCalls,4);
+
+phone.value='01712345678';phone.dispatchEvent(new document.defaultView.Event('input'));assert.equal(root.querySelector('[data-phone-call]').getAttribute('href'),'tel:+8801712345678');assert.equal(root.querySelector('[data-phone-whatsapp]').getAttribute('href'),'https://wa.me/8801712345678');
