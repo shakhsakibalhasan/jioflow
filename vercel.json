@@ -1,1 +1,13 @@
-{"buildCommand":"npm run build","outputDirectory":"dist","framework":null}
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": null,
+  "functions": {
+    "api/steadfast.mjs": {
+      "maxDuration": 60
+    },
+    "api/steadfast-poll.mjs": {
+      "maxDuration": 60
+    }
+  }
+}
