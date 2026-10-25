@@ -9,3 +9,5 @@ Creator can activate/deactivate non-Creator accounts after a confirmation. Deact
 Reset email now displays a confirmation that a reset was requested. This is not proof of delivery. SMTP and mail-provider setup remain external requirements.
 
 This release completes account activation only. The remaining order/import/courier/reporting integrations are not represented as completed. Creator sign-in has no one-device restriction; email/password are verified by Supabase Auth. Legacy browser-local passwords do not automatically become Supabase credentials.
+
+this file is edited.
