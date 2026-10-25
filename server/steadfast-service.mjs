@@ -1,6 +1,6 @@
 // Server only. Never include server/ or environment files in dist/.
 import {openKeys,sealKeys} from './courier-secrets.mjs';
-import {randomUUID,timingSafeEqual} from 'node:crypto';
+import {randomUUID,timingSafeEqual,createHash} from 'node:crypto';
 import {configuration,RequestError} from './account-service.mjs';
 const BASE='https://portal.packzy.com/api/v1';
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
@@ -18,7 +18,8 @@ export function historyResult(data){
  const percent=v=>Number.isFinite(v)&&v>=0&&v<=100?v:null;
  return {id:'steadfast',name:'Steadfast',connected:true,status:'ready',delivered:count(data.delivered_count),cancelled:count(data.cancelled_count),delivery_ratio:percent(data.delivery_ratio),cancellation_ratio:percent(data.cancellation_ratio),total_reports:count(data.total_reports),volume_range:typeof data.volume_range==='string'?data.volume_range:null};
 }
-export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Date.now()}={}){
+const historyCache=new Map();
+export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Date.now(),cache=historyCache}={}){
  const c=configuration(env);
  async function rpc(name,body,token,server=false){
   const key=server?c.secret:c.publicKey,auth=server?c.secret:token;
@@ -64,14 +65,27 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
   if(!access.shipment?.method_id&&input.method_id&&!methods.methods.some(m=>m.id===input.method_id&&m.active))throw new RequestError('Choose an active courier method.',403);
   const keys=access.shipment?.consignment_id&&!access.shipment.method_id?credentials(env,input.shop_id):await selectedKey(input.shop_id,selectedId,methods);
   if(input.action==='info')return {configured:!!keys,booking_enabled:keys?.booking_enabled===true,can_book:access.can_book,methods:methods.methods.filter(m=>m.active),selected_method_id:keys?.id||null,shop_id:input.shop_id,polling_enabled:env.JIOFLOW_POLL_ENABLED==='true',...(access.can_configure?{callback_mode:'polling',shop_reference:input.shop_id}:{}),...(access.order?{order:access.order,shipment:access.shipment}:{})};
-  if(await rpc('jf_courier_rate',{target_shop:input.shop_id},token)!==true)throw new RequestError('Please wait a minute before making more courier requests.',429);
   if(input.action==='history'){
    const local=await rpc('jf_phone_courier_overview',{target_shop:input.shop_id,phone:String(input.phone||'')},token);
    if(!keys)return {...local,providers:[],own:await rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token)};
    const phone=String(input.phone||'').replace(/^\+?88/,'');if(!/^01\d{9}$/.test(phone))throw new RequestError('Enter an eleven-digit Bangladesh phone number.');
-   let p;try{p=historyResult(await provider(keys,'/fraud_check/score/'+phone))}catch(e){p={id:'steadfast',name:'Steadfast',connected:true,status:'unavailable',error:e.message}}
+   const cacheKey=createHash('sha256').update(JSON.stringify([input.shop_id,keys.id||'',keys.api_key,keys.secret_key,phone])).digest('hex');
+   let entry=cache.get(cacheKey);
+   if(!entry||entry.until<=now()){
+    for(const [key,value]of cache)if(value.until<=now())cache.delete(key);
+    if(cache.size>=500)cache.delete(cache.keys().next().value);
+    entry={until:now()+60000};
+    entry.promise=(async()=>{
+     if(await rpc('jf_courier_rate',{target_shop:input.shop_id},token)!==true)return {id:'steadfast',name:'Steadfast',connected:true,status:'unavailable',error:'Please wait one minute before checking again.',retry_at:new Date(now()+60000).toISOString()};
+     try{return {...historyResult(await provider(keys,'/fraud_check/score/'+phone)),checked_at:new Date(now()).toISOString()}}
+     catch(e){return {id:'steadfast',name:'Steadfast',connected:true,status:'unavailable',error:e.status===429?'Steadfast temporarily limited history checks. Try again after one minute.':e.message,...(e.status===429?{retry_at:new Date(now()+60000).toISOString()}:{} )}}
+    })();cache.set(cacheKey,entry);
+    entry.promise.catch(()=>{if(cache.get(cacheKey)===entry)cache.delete(cacheKey)});
+   }
+   const p=await entry.promise;
    return {...local,own:await rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token),providers:[p]};
   }
+  if(await rpc('jf_courier_rate',{target_shop:input.shop_id},token)!==true)throw new RequestError('Please wait a minute before making more courier requests.',429);
   if(!keys)throw new RequestError('Steadfast is not configured for this business.',503);
   if(input.action==='book'){
    if(!access.can_book)throw new RequestError('Courier booking permission required.',403);
