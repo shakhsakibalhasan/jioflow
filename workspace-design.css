@@ -103,3 +103,9 @@ html[data-mode=dark] #app #view :is(.metric-icon,.insight-tile .metric-indicator
 .courier-subnav{margin:0 0 6px 22px;padding-left:12px;border-left:1px solid var(--accent-edge)}
 .nav .courier-subnav button{font-size:12px;min-height:36px;padding:9px 12px;border-radius:10px}
 .courier-subnav svg{width:15px;height:15px}
+
+.courier-own-brand,.courier-overall-brand{display:flex;align-items:center;gap:7px}
+.courier-own-brand img{object-fit:contain}.courier-wordmark{display:block;width:118px;height:29px;object-fit:contain;background:#fff;border-radius:5px;padding:3px}
+.courier-empty-record{font-size:12px;line-height:1.6;margin:16px 0;color:var(--text)}
+.courier-unavailable{font-size:11px;line-height:1.5;margin:8px 0;color:var(--text);font-weight:600}
+.courier-history-refresh:disabled{opacity:.45;cursor:wait}

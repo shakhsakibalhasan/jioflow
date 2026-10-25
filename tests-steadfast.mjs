@@ -23,7 +23,7 @@ const fetcher=async(url,options)=>{const body=options.body?JSON.parse(options.bo
  if(url.includes('/status_by_cid/'))return response({status:200,delivery_status:rawStatus});
  throw Error('Unexpected request '+url);
 };
-const service=()=>createSteadfastService({env,fetcher});
+const service=()=>createSteadfastService({env,fetcher,cache:new Map()});
 assert.equal(credentials(env,'33333333-3333-4333-8333-333333333333'),null);
 assert.equal(historyResult({delivery_ratio:null,cancellation_ratio:null}).delivery_ratio,null);
 assert.equal(historyResult({delivery_ratio:101}).delivery_ratio,null);assert.equal(sameSecret('abc','abd'),false);assert.equal(sameSecret('é','a'),false);
@@ -41,3 +41,14 @@ let r=res();await createHandler({env,fetcher})({method:'POST',headers:{origin:'h
 r=res();await createPollHandler({env,fetcher})({method:'POST',headers:{authorization:'Bearer wrong'}},r);assert.equal(r.code,401);
 r=res();await createPollHandler({env,fetcher})({method:'POST',headers:{authorization:'Bearer '+env.JIOFLOW_POLL_SECRET}},r);assert.equal(r.code,200);assert.equal(r.headers['Cache-Control'],'no-store');
 console.log('Steadfast tests passed: shop-bound secrets, private server writes, permissions, booking idempotency, nullable history, safe errors, status validation, polling gate and no webhook mutation.');
+
+const cachedService=createSteadfastService({env,fetcher,cache:new Map()});calls=[];
+await Promise.all([cachedService.execute('user-token',{action:'history',shop_id:shop,phone:'01712345678'}),cachedService.execute('user-token',{action:'history',shop_id:shop,phone:'01712345678'})]);
+assert.equal(calls.filter(c=>c.url.includes('/fraud_check/score/')).length,1);
+assert.equal(calls.filter(c=>c.url.includes('/rpc/jf_phone_own_record')).length,2);
+
+let clock=100000;const limitedService=createSteadfastService({env,fetcher,cache:new Map(),now:()=>clock});providerCode=429;calls=[];
+const limited=await limitedService.execute('user-token',{action:'history',shop_id:shop,phone:'01712345678'});
+assert.equal(limited.providers[0].status,'unavailable');assert.ok(limited.providers[0].retry_at);assert.equal(limited.providers[0].delivered,undefined);
+await limitedService.execute('user-token',{action:'history',shop_id:shop,phone:'01712345678'});assert.equal(calls.filter(c=>c.url.includes('/fraud_check/score/')).length,1);
+clock+=60001;providerCode=200;const recovered=await limitedService.execute('user-token',{action:'history',shop_id:shop,phone:'01712345678'});assert.equal(recovered.providers[0].delivered,58);assert.equal(calls.filter(c=>c.url.includes('/fraud_check/score/')).length,2);

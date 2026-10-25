@@ -8,3 +8,6 @@ section.querySelector('[data-courier-autofill]').click();assert.equal(root.query
 phone.value='';phone.dispatchEvent(new document.defaultView.Event('input'));assert.equal(section.hidden,true);assert.equal(root.querySelectorAll('.courier-history-card').length,0);
 let pending=[];bindCourierOverview({root,context:{section:'new',shop:{id:'s'}},client:{courierHistory:(_,n)=>new Promise(r=>pending.push({r,n}))}});phone.value='01711111111';const a=check.onclick();phone.value='01722222222';const b=check.onclick();pending[1].r({...data,own:{...data.own,total:22}});await b;pending[0].r({...data,own:{...data.own,total:11}});await a;assert.ok(root.querySelector('.courier-own-record').textContent.includes('22'));assert.ok(!root.querySelector('.courier-own-record').textContent.includes('11'));
 console.log('Courier history passed: blank-number hiding, valid-phone auto checks, no unconnected boxes, own/overall/provider cards, safe autofill and stale response suppression.');
+
+const missing=courierCards({own:{total:0,delivered:0,cancelled:0},providers:[{id:'steadfast',connected:true,status:'unavailable',name:'Steadfast',error:'Limited'}]});
+assert.ok(missing.includes('No matching orders in this business.'));assert.ok(missing.includes('History unavailable · not zero'));assert.ok(missing.includes('steadfast-logo.svg'));assert.ok(!missing.includes('<dd>0</dd>'));
