@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {sealKeys,openKeys} from './server/courier-secrets.mjs';
+import {createSteadfastService} from './server/steadfast-service.mjs';
+const shop='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-8222-222222222222';
+const env={SUPABASE_URL:'https://db.test',SUPABASE_PUBLISHABLE_KEY:'public-key',SUPABASE_SECRET_KEY:'sb_secret_test_root',JIOFLOW_APP_ORIGIN:'https://crm.test'};
+const values={api_key:'synthetic-api-key',secret_key:'synthetic-secret-key'};
+const encrypted=sealKeys(env,shop,other,values);assert.ok(!encrypted.includes(values.api_key));assert.deepEqual(openKeys(env,shop,other,encrypted),values);assert.notEqual(encrypted,sealKeys(env,shop,other,values));assert.throws(()=>openKeys(env,other,other,encrypted));assert.throws(()=>openKeys(env,shop,shop,encrypted));assert.throws(()=>openKeys({...env,SUPABASE_SECRET_KEY:'different'},shop,other,encrypted));
+let stored=null,calls=[],allow=true;
+const response=(x,status=200)=>({ok:status<300,status,json:async()=>x});
+const fetcher=async(url,o)=>{const body=JSON.parse(o.body||'{}');calls.push({url,body});
+ if(url.includes('jf_courier_rate'))return response(true);
+ if(url.includes('jf_courier_access'))return response({can_configure:allow,can_book:true});
+ if(url.includes('jf_delivery_method_save')){stored={id:body.method_id,shop_id:shop,sealed:body.encrypted_keys,...body.details};return response(stored.id)}
+ if(url.includes('jf_delivery_methods'))return response({can_configure:allow,has_methods:!!stored,methods:stored?[Object.fromEntries(Object.entries(stored).filter(([k])=>k!=='sealed'))]:[]});
+ if(url.includes('jf_delivery_method_secrets'))return response([stored]);
+ if(url.includes('jf_delivery_method_checked'))return response(true);
+ if(url.endsWith('/get_balance'))return response({status:200,current_balance:0});
+ throw Error('Unexpected call '+url);
+};
+const service=createSteadfastService({env,fetcher});
+const saved=await service.execute('token',{action:'method_save',shop_id:shop,api_key:values.api_key,secret_key:values.secret_key,details:{name:'My courier',provider:'steadfast',active:true,preferred:true,booking_enabled:false}});
+assert.ok(saved.id);assert.deepEqual(openKeys(env,shop,saved.id,stored.sealed),values);assert.ok(!JSON.stringify(saved).includes('synthetic'));assert.ok(!calls.some(c=>c.url.includes('packzy.com')));
+const listing=await service.execute('token',{action:'methods',shop_id:shop});assert.equal(listing.methods[0].sealed,undefined);
+await service.execute('token',{action:'method_check',shop_id:shop,method_id:saved.id});assert.ok(calls.some(c=>c.url.endsWith('/get_balance')));assert.ok(!calls.some(c=>c.url.endsWith('/create_order')));
+calls=[];allow=false;await assert.rejects(()=>service.execute('agent-token',{action:'method_save',shop_id:shop,api_key:'x',secret_key:'y',details:{}}));assert.equal(calls.length,1);
+console.log('In-app courier setup passed: authenticated encryption, shop/method binding, encrypted save, masked metadata, permission denial and explicit non-booking connection check.');

@@ -8,6 +8,8 @@ const response=(data,status=200)=>({ok:status>=200&&status<300,status,json:async
 let calls=[],already=false,denied=false,providerCode=200,rawStatus='delivered',rows=[],bookingEnabled=true;
 const fetcher=async(url,options)=>{const body=options.body?JSON.parse(options.body):{};calls.push({url,options,body});
  if(url.includes('/rpc/jf_courier_access'))return denied?response({code:'42501'},403):response({can_book:true,order:{id:order,total:1000,advance:200},shipment:{id:'s',shop_id:shop,courier:'steadfast',consignment_id:'123',status:'booked'}});
+ if(url.includes('/rpc/jf_delivery_methods'))return response({can_configure:true,methods:[],has_methods:false});
+ if(url.includes('/rpc/jf_phone_own_record'))return response({total:0,rows:[]});
  if(url.includes('/rpc/jf_courier_rate'))return response(true);
  if(url.includes('/rpc/jf_courier_reject'))return response(true);
  if(url.includes('/rpc/jf_phone_courier_overview'))return response({providers:[{id:'steadfast',connected:false},{id:'pathao',connected:false}],local:[]});
@@ -29,7 +31,7 @@ let result=await service().execute('user-token',{action:'history',shop_id:shop,p
 calls=[];denied=true;await assert.rejects(()=>service().execute('outsider',{action:'book',shop_id:shop,order_id:order}));assert.equal(calls.filter(c=>c.url.includes('packzy.com')).length,0);denied=false;
 calls=[];result=await service().execute('user-token',{action:'book',shop_id:shop,order_id:order});assert.equal(result.consignment_id,'123');assert.equal(calls.filter(c=>c.url.endsWith('/create_order')).length,1);assert.ok(calls.some(c=>c.url.includes('jf_courier_apply')&&c.options.headers.apikey==='sb_secret_server'&&!c.options.headers.Authorization));
 already=true;calls=[];await service().execute('user-token',{action:'book',shop_id:shop,order_id:order});assert.equal(calls.filter(c=>c.url.endsWith('/create_order')).length,0);already=false;
-env.STEADFAST_BOOKING_ENABLED='false';calls=[];await assert.rejects(()=>service().execute('user-token',{action:'book',shop_id:shop,order_id:order}));assert.equal(calls.length,2);env.STEADFAST_BOOKING_ENABLED='true';
+env.STEADFAST_BOOKING_ENABLED='false';calls=[];await assert.rejects(()=>service().execute('user-token',{action:'book',shop_id:shop,order_id:order}));assert.equal(calls.length,3);env.STEADFAST_BOOKING_ENABLED='true';
 rawStatus='invented-status';calls=[];await assert.rejects(()=>service().execute('user-token',{action:'sync',shop_id:shop,order_id:order}));assert.equal(calls.filter(c=>c.url.includes('jf_courier_apply')).length,0);rawStatus='delivered';
 providerCode=401;calls=[];result=await service().execute('user-token',{action:'history',shop_id:shop,phone:'01712345678'});assert.equal(result.providers[0].status,'unavailable');assert.equal(calls.filter(c=>c.url.includes('packzy.com')).length,1);providerCode=200;
 rows=[{id:'s',shop_id:shop,consignment_id:'123'}];calls=[];result=await service().poll();assert.equal(result.checked,1);assert.equal(result.changed,1);assert.ok(!calls.some(c=>c.url.includes('webhook')||c.url.endsWith('/create_order')));
