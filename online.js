@@ -5,7 +5,6 @@ import {bindAppearance,applyAppearance,readAppearance} from './appearance.mjs';
 import {loadingMarkup,showLoading,isAuthenticationError} from './loading.mjs';
 import {bindPlatformLayout} from './platform-layout.mjs';
 import {bindCourierOverview} from './courier-overview.mjs';
-import {bindHistoricalImport} from './historical-import.mjs';
 import {bindWorkspaceTools} from './workspace-tools.mjs';
 import {bindEcoryCatalog} from './product-images.mjs';
 import {createAccountRecovery} from './account-recovery.mjs';
@@ -23,7 +22,7 @@ let refreshInFlight=false,panelFilter=null,firstWorkspaceRender=true;
 applyAppearance(readAppearance());
 const operations=createOperations({client,openForm,afterChange:loadData});let operationsReady=null;
 function ensureOperations(){return operationsReady||(operationsReady=Promise.resolve(mountOperations()))}
-const originalSections=createOriginalSections({client,navigate,onLiveAction:async(action,id)=>{await ensureOperations();return operations.open(action,id)},onReady:(root,context)=>{if(context.section==='agentreports'){bindAgentReports({root,context,client,navigate,openForm});return}accountActions.bind(root);queueMicrotask(()=>bindHistoricalImport({root,context,client}));bindWorkspaceTools({root,context,client,openForm,reload:loadData,navigate,openRecord:async(action,id)=>{await ensureOperations();return operations.open(action,id)}});bindEcoryCatalog({root,context,client,openForm,reload:loadData});bindCreatorRecords({root,context,client,openForm,reload:loadData});bindLiveOrders({root,context,client,openForm,reload:loadData,navigate,canEdit:operationPermission('assign')});bindCourierOverview({root,context,client,openForm,navigate});bindSteadfastPanel({root,context,client,openForm})}});
+const originalSections=createOriginalSections({client,navigate,onLiveAction:async(action,id)=>{await ensureOperations();return operations.open(action,id)},onReady:(root,context)=>{if(context.section==='agentreports'){bindAgentReports({root,context,client,navigate,openForm});return}accountActions.bind(root);bindWorkspaceTools({root,context,client,openForm,reload:loadData,navigate,openRecord:async(action,id)=>{await ensureOperations();return operations.open(action,id)}});bindEcoryCatalog({root,context,client,openForm,reload:loadData});bindCreatorRecords({root,context,client,openForm,reload:loadData});bindLiveOrders({root,context,client,openForm,reload:loadData,navigate,canEdit:operationPermission('assign')});bindCourierOverview({root,context,client,openForm,navigate});bindSteadfastPanel({root,context,client,openForm})}});
 const accountRecovery=createAccountRecovery({client,openForm,reload:loadData,navigate,shops:()=>scopedShops(),preferredRole:()=>section==='admins'?'admin':section==='agents'?'agent':'owner'});
 const accountActions=createAccountActions({client,openForm,reload:loadData,profiles:()=>profiles,current:()=>identity?.profile,shops:()=>shops,members:()=>members});
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
