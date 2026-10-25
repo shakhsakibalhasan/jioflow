@@ -1,5 +1,6 @@
 // Server only. Never include server/ or environment files in dist/.
-import {timingSafeEqual} from 'node:crypto';
+import {openKeys,sealKeys} from './courier-secrets.mjs';
+import {randomUUID,timingSafeEqual} from 'node:crypto';
 import {configuration,RequestError} from './account-service.mjs';
 const BASE='https://portal.packzy.com/api/v1';
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
@@ -23,7 +24,7 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
   const key=server?c.secret:c.publicKey,auth=server?c.secret:token;
   const response=await fetcher(c.url+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:key,'Content-Type':'application/json',...(!auth.startsWith('sb_secret_')?{Authorization:'Bearer '+auth}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(7000)});
   const data=await response.json().catch(()=>null);
-  if(!response.ok)throw new RequestError(data?.code==='PGRST202'?'Database update 025 is required.':data?.code==='42501'?'Courier access denied.':data?.message?.startsWith('Confirm the order')?'Confirm the order before booking.':data?.message?.startsWith('Booking is already')?'Booking is processing. Check again after 90 seconds.':data?.message?.startsWith('Check recipient')?'Check recipient name, phone, address, note and COD amount.':'Courier records could not be updated.',response.status===401?401:data?.code==='42501'?403:409);
+  if(!response.ok)throw new RequestError(data?.code==='PGRST202'?'Database update 026 is required.':data?.code==='42501'?'Courier access denied.':data?.message?.startsWith('Confirm the order')?'Confirm the order before booking.':data?.message?.startsWith('Booking is already')?'Booking is processing. Check again after 90 seconds.':data?.message?.startsWith('Check recipient')?'Check recipient name, phone, address, note and COD amount.':/^(Check the courier|This method has open shipments|Choose an active courier|This order already uses another delivery method|Courier method unavailable|Enter both API keys)/.test(data?.message||'')?data.message:'Courier records could not be updated.',response.status===401?401:data?.code==='42501'?403:409);
   return data;
  }
  async function provider(keys,path,body){
@@ -34,25 +35,48 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
  }
  async function apply(shop,id,data){return rpc('jf_courier_apply',{target_shop:shop,shipment_id:id,provider_data:data},null,true)}
  async function status(keys,s){const data=await provider(keys,'/status_by_cid/'+encodeURIComponent(s.consignment_id));if(!STATUSES.has(data.delivery_status))throw new RequestError('Unrecognized courier status. The previous status was kept.',502);return apply(s.shop_id,s.id,data)}
+ async function savedMethods(shop,token){return rpc('jf_delivery_methods',{target_shop:shop},token)}
+ async function savedKey(shop,id){const rows=await rpc('jf_delivery_method_secrets',{target_shop:shop,target_method:id},null,true),m=rows.find(x=>x.id===id);if(!m)throw new RequestError('Courier method unavailable.',404);return {...m,...openKeys(env,shop,id,m.sealed)}}
+ async function selectedKey(shop,id,methods){if(id)return savedKey(shop,id);const active=methods.methods.filter(m=>m.active);const m=active.find(m=>m.preferred)||active[0];return m?savedKey(shop,m.id):methods.has_methods?null:credentials(env,shop)}
  async function execute(token,input){
   if(!uuid.test(input.shop_id||''))throw new RequestError('Choose a business.');
-  if(!['info','history','book','sync'].includes(input.action))throw new RequestError('Unsupported courier action.');
+  if(!['info','history','book','sync','methods','method_save','method_remove','method_check'].includes(input.action))throw new RequestError('Unsupported courier action.');
   if(['book','sync'].includes(input.action)&&!uuid.test(input.order_id||''))throw new RequestError('Choose a saved order.');
-  const access=await rpc('jf_courier_access',{target_shop:input.shop_id,target_order:input.order_id||null},token),keys=credentials(env,input.shop_id);
-  if(input.action==='info')return {configured:!!keys,booking_enabled:keys?.booking_enabled===true,can_book:access.can_book,shop_id:input.shop_id,polling_enabled:env.JIOFLOW_POLL_ENABLED==='true',...(access.can_configure?{callback_mode:'polling',shop_reference:input.shop_id}:{}),...(access.order?{order:access.order,shipment:access.shipment}:{})};
+  const access=await rpc('jf_courier_access',{target_shop:input.shop_id,target_order:input.order_id||null},token);
+  if(input.action==='methods')return savedMethods(input.shop_id,token);
+  if(input.action.startsWith('method_')){
+   if(access.can_configure!==true)throw new RequestError('Integration permission required.',403);
+   if(input.method_id&&!uuid.test(input.method_id))throw new RequestError('Choose a courier method.');
+   if(input.action==='method_save'){
+    const id=input.method_id||randomUUID(),api=String(input.api_key||'').trim(),secret=String(input.secret_key||'').trim();let sealed=null;
+    if(api||secret){if(!api||!secret||api.length>512||secret.length>512||/[\r\n]/.test(api+secret))throw new RequestError('Enter both API Key and Secret (up to 512 characters each).');sealed=sealKeys(env,input.shop_id,id,{api_key:api,secret_key:secret});}
+    if(!input.method_id&&!sealed)throw new RequestError('Enter both API Key and Secret.');
+    const saved=await rpc('jf_delivery_method_save',{target_shop:input.shop_id,method_id:id,details:input.details,encrypted_keys:sealed},token);return {id:saved,message:'Courier method saved.'};
+   }
+   if(!input.method_id)throw new RequestError('Choose a courier method.');
+   if(input.action==='method_remove'){await rpc('jf_delivery_method_remove',{target_shop:input.shop_id,method_id:input.method_id},token);return {message:'Courier removed from available delivery methods. Existing parcel tracking is preserved.'};}
+   const method=(await savedMethods(input.shop_id,token)).methods.find(m=>m.id===input.method_id);if(!method)throw new RequestError('Courier method unavailable.',404);
+   if(await rpc('jf_courier_rate',{target_shop:input.shop_id},token)!==true)throw new RequestError('Please wait a minute before more connection checks.',429);
+   const k=await savedKey(input.shop_id,input.method_id);try{await provider(k,'/get_balance');await rpc('jf_delivery_method_checked',{target_shop:input.shop_id,target_method:input.method_id,result:'verified'},null,true);return {message:'Connection verified. No parcel was booked.'}}catch(e){await rpc('jf_delivery_method_checked',{target_shop:input.shop_id,target_method:input.method_id,result:'failed'},null,true);throw e}
+  }
+  const methods=await savedMethods(input.shop_id,token),preferred=methods.methods.find(m=>m.id===access.order?.preferred_method_id&&m.active),selectedId=access.shipment?.method_id||input.method_id||preferred?.id;
+  if(input.method_id&&!uuid.test(input.method_id))throw new RequestError('Choose a courier method.');
+  if(!access.shipment?.method_id&&input.method_id&&!methods.methods.some(m=>m.id===input.method_id&&m.active))throw new RequestError('Choose an active courier method.',403);
+  const keys=access.shipment?.consignment_id&&!access.shipment.method_id?credentials(env,input.shop_id):await selectedKey(input.shop_id,selectedId,methods);
+  if(input.action==='info')return {configured:!!keys,booking_enabled:keys?.booking_enabled===true,can_book:access.can_book,methods:methods.methods.filter(m=>m.active),selected_method_id:keys?.id||null,shop_id:input.shop_id,polling_enabled:env.JIOFLOW_POLL_ENABLED==='true',...(access.can_configure?{callback_mode:'polling',shop_reference:input.shop_id}:{}),...(access.order?{order:access.order,shipment:access.shipment}:{})};
   if(await rpc('jf_courier_rate',{target_shop:input.shop_id},token)!==true)throw new RequestError('Please wait a minute before making more courier requests.',429);
   if(input.action==='history'){
    const local=await rpc('jf_phone_courier_overview',{target_shop:input.shop_id,phone:String(input.phone||'')},token);
-   if(!keys)return local;
+   if(!keys)return {...local,providers:[],own:await rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token)};
    const phone=String(input.phone||'').replace(/^\+?88/,'');if(!/^01\d{9}$/.test(phone))throw new RequestError('Enter an eleven-digit Bangladesh phone number.');
    let p;try{p=historyResult(await provider(keys,'/fraud_check/score/'+phone))}catch(e){p={id:'steadfast',name:'Steadfast',connected:true,status:'unavailable',error:e.message}}
-   return {...local,providers:[p,...(local.providers||[]).filter(p=>p.id!=='steadfast')]};
+   return {...local,own:await rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token),providers:[p]};
   }
   if(!keys)throw new RequestError('Steadfast is not configured for this business.',503);
   if(input.action==='book'){
    if(!access.can_book)throw new RequestError('Courier booking permission required.',403);
    if(keys.booking_enabled!==true)throw new RequestError('Live booking is disabled. Your administrator can enable it after setup.',403);
-   const reservation=await rpc('jf_courier_reserve',{target_shop:input.shop_id,target_order:input.order_id},token);
+   const reservation=await rpc('jf_courier_reserve',{target_shop:input.shop_id,target_order:input.order_id,...(keys.id?{target_method:keys.id}:{})},token);
    if(reservation.already_booked)return {message:'This order is already booked.',shipment:reservation.shipment};
    let data;try{data=await provider(keys,'/create_order',reservation.payload)}catch(e){if(e.definitiveRejection)await rpc('jf_courier_reject',{target_shop:input.shop_id,shipment_id:reservation.shipment_id},null,true);throw e}
    if(String(data.consignment?.invoice)!==reservation.payload.invoice||!/^\d+$/.test(String(data.consignment?.consignment_id||'')))throw new RequestError('Booking response could not be verified. Check this invoice in Steadfast before retrying.',502);
@@ -66,7 +90,7 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
  async function poll(){
   if(env.JIOFLOW_POLL_ENABLED!=='true')return {enabled:false,checked:0,changed:0,failed:0,message:'Scheduled polling is disabled until setup is complete.'};
   const start=now(),rows=await rpc('jf_courier_poll_claim',{batch_size:20},null,true);let checked=0,changed=0,failed=0,index=0,blocked=new Map();
-  await Promise.all(Array.from({length:Math.min(4,rows.length)},async()=>{while(index<rows.length&&now()-start<35000){const s=rows[index++];try{const keys=credentials(env,s.shop_id);if(!keys)throw new RequestError('Courier credentials missing for this business.',503);if(blocked.has(s.shop_id))throw new RequestError('Courier credentials or rate limit require attention.',503);let result;try{result=await status(keys,s)}catch(e){if([401,403,429].includes(e.status))blocked.set(s.shop_id,true);throw e}checked++;if(result.changed)changed++;}catch(e){failed++;await rpc('jf_courier_poll_error',{target_shop:s.shop_id,shipment_id:s.id,error_message:e instanceof RequestError?e.message:'Status refresh failed.'},null,true).catch(()=>{})}}}));
+  await Promise.all(Array.from({length:Math.min(4,rows.length)},async()=>{while(index<rows.length&&now()-start<35000){const s=rows[index++];try{const keys=s.method_id?await savedKey(s.shop_id,s.method_id):credentials(env,s.shop_id);if(!keys)throw new RequestError('Courier credentials missing for this business.',503);if(blocked.has(s.shop_id))throw new RequestError('Courier credentials or rate limit require attention.',503);let result;try{result=await status(keys,s)}catch(e){if([401,403,429].includes(e.status))blocked.set(s.shop_id,true);throw e}checked++;if(result.changed)changed++;}catch(e){failed++;await rpc('jf_courier_poll_error',{target_shop:s.shop_id,shipment_id:s.id,error_message:e instanceof RequestError?e.message:'Status refresh failed.'},null,true).catch(()=>{})}}}));
   return {enabled:true,checked,changed,failed,batch_size:20,has_more:rows.length===20};
  }
  return {execute,poll,origin:c.origin};
