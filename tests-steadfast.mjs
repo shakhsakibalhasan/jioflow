@@ -51,4 +51,5 @@ let clock=100000;const limitedService=createSteadfastService({env,fetcher,cache:
 const limited=await limitedService.execute('user-token',{action:'history',shop_id:shop,phone:'01712345678'});
 assert.equal(limited.providers[0].status,'unavailable');assert.ok(limited.providers[0].retry_at);assert.equal(limited.providers[0].delivered,undefined);
 await limitedService.execute('user-token',{action:'history',shop_id:shop,phone:'01712345678'});assert.equal(calls.filter(c=>c.url.includes('/fraud_check/score/')).length,1);
-clock+=60001;providerCode=200;const recovered=await limitedService.execute('user-token',{action:'history',shop_id:shop,phone:'01712345678'});assert.equal(recovered.providers[0].delivered,58);assert.equal(calls.filter(c=>c.url.includes('/fraud_check/score/')).length,2);
+await limitedService.execute('user-token',{action:'history',shop_id:shop,phone:'01799999999'});assert.equal(calls.filter(c=>c.url.includes('/fraud_check/score/')).length,1);
+clock+=3600001;providerCode=200;const recovered=await limitedService.execute('user-token',{action:'history',shop_id:shop,phone:'01712345678'});assert.equal(recovered.providers[0].delivered,58);assert.equal(calls.filter(c=>c.url.includes('/fraud_check/score/')).length,2);

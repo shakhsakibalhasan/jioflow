@@ -3,3 +3,8 @@ const{parseHTML}=await import(process.env.LINKEDOM_MODULE||'linkedom');const{doc
 for(const[id,value]of [['order-name','Customer <img>'],['order-phone','01711112222'],['order-address','Dhaka address']]){const input=root.querySelector('#'+id);input.value=value;input.dispatchEvent(new Event('input'))}
 const summary=root.querySelector('.order-summary-customer');assert.ok(summary);assert.ok(summary.textContent.includes('Customer <img>'));assert.ok(summary.textContent.includes('01711112222'));assert.ok(summary.textContent.includes('Dhaka address'));assert.equal(summary.querySelector('img'),null);
 console.log('Order summary passed: customer name/phone/address/area update on input and remain escaped.');
+
+assert.equal(root.querySelector('.order-workbench-panels').children.length,3);
+assert.ok(root.querySelector('.order-workbench-panels').lastElementChild.classList.contains('order-products-panel'));
+assert.equal(root.querySelector('.order-customer-panel').parentElement.id,'order-form');
+assert.ok(root.querySelector('.order-grand-total'));assert.ok(root.querySelector('.order-panel-body #order-note'));

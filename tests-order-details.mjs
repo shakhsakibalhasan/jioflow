@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';import {bindLiveOrders}from './online-orders.mjs';
+const {parseHTML}=await import(process.env.LINKEDOM_MODULE||'linkedom');
+const {document}=parseHTML('<body><main><button data-original-preview="showOrder" data-original-id="o">Details</button></main></body>');globalThis.confirm=()=>true;
+const root=document.querySelector('main');let calls=[],reloaded=0;
+const openForm=(title,body,submit)=>{const d=document.createElement('dialog');d.innerHTML='<div class="online-dialog-header"><h2>'+title+'</h2><button class="online-dialog-close">×</button></div><form>'+body+'<p role="alert"></p><div class="online-dialog-actions"><button type="submit">Save</button></div></form>';d.close=()=>d.remove();document.body.append(d);return d};
+const order={id:'o',order_number:'ORDER-1',status:'confirmed',recipient_name:'Buyer',recipient_phone:'01711112222',delivery_address:'Dhaka',total:590};
+const client={query:async()=>[],rpc:async(n,p)=>calls.push({n,p})};
+bindLiveOrders({root,context:{section:'orders',shop:{id:'s'},records:{orders:[order]}},client,openForm,reload:async()=>reloaded++,canEdit:true});
+await root.querySelector('button').onclick();let d=document.querySelector('dialog');assert.ok(d.querySelector('[name=status]').disabled);assert.equal(d.querySelector('[type=submit]').hidden,true);assert.ok(d.querySelector('[data-order-detail-edit]'));assert.ok(d.querySelector('[data-order-cancel]'));
+d.querySelector('[data-order-detail-edit]').onclick();assert.equal(d.querySelector('[name=status]').disabled,false);assert.equal(d.querySelector('[type=submit]').hidden,false);
+await d.querySelector('[data-order-cancel]').onclick();assert.equal(calls[0].n,'jf_update_order');assert.equal(calls[0].p.details.status,'cancelled');assert.equal(reloaded,1);
+order.status='booked';await root.querySelector('button').onclick();d=document.querySelector('dialog');assert.equal(d.querySelector('[data-order-cancel]'),null);assert.equal(d.querySelector('[data-order-detail-edit]'),null);
+console.log('Order details: read first, explicit permission/status-gated edit and cancel, saved via existing guarded RPC.');

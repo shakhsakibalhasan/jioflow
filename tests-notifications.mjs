@@ -6,3 +6,7 @@ const business=businessForm({name:'<shop>'});assert.ok(business.includes('&lt;sh
 console.log('Notification, password and business form checks passed: escaped/scoped inbox, approval/read actions, Creator/Owner/Admin current-password forms, Agent request only, structured business fields.');
 
 await document.querySelector('[data-notification-read-all]').onclick();assert.equal(calls.at(-1).n,'jf_notification_action');assert.deepEqual(calls.at(-1).p,{action:'read_all',notification:null,target_shop:'a'});await document.querySelector('[data-notification-delete]').onclick();assert.deepEqual(calls.at(-1).p,{action:'delete',notification:'n1',target_shop:'a'});assert.ok(html.includes('Mark all as read'));console.log('Inbox controls passed: mark-all and personal delete use the selected business scope.');
+
+const {document:clickDoc}=parseHTML('<main>'+notificationBar({feed:{items:[{id:'clicked',kind:'order',title:'Order ready',created_at:now}]}})+'</main>');let readCalls=[],target='';
+bindNotifications({root:clickDoc.querySelector('main'),client:{rpc:async(n,p)=>readCalls.push({n,p})},reload:async()=>{},navigate:s=>target=s});
+clickDoc.querySelector('[data-notification-orders]').click();await Promise.resolve();assert.equal(target,'orders');assert.equal(readCalls[0].n,'jf_notification_read');assert.equal(readCalls[0].p.notification,'clicked');

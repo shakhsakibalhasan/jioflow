@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';import {courierCards,bindCourierOverview} from './courier-overview.mjs';
+import assert from 'node:assert/strict';import {courierCards,bindCourierOverview,customerCourierHistory} from './courier-overview.mjs';
 const {parseHTML}=await import(process.env.LINKEDOM_MODULE||'linkedom');const{document}=parseHTML('<main><div class="original-restored-view"><section><form><div class="form-grid"><input id="order-phone"><input id="order-name"><textarea id="order-address"></textarea><button data-workspace-action="historyCheck()" disabled>Check</button></div></form></section></div></main>');const root=document.querySelector('main');let calls=[];
 const data={own:{total:3,delivered:2,cancelled:1,rows:[],customer:{full_name:'Buyer',address:'Dhaka'}},providers:[{id:'steadfast',name:'Steadfast',connected:true,status:'ready',delivered:58,cancelled:5,delivery_ratio:92},{id:'pathao',name:'Pathao',connected:false}]};
 assert.ok(!courierCards(data).includes('Pathao'));assert.ok(courierCards(data).includes('92%'));assert.ok(courierCards(data).includes('Overall'));assert.ok(!courierCards({providers:[{id:'x',name:'<img>',connected:true}]}).includes('<img>'));
@@ -6,8 +6,15 @@ bindCourierOverview({root,context:{section:'new',shop:{id:'s'}},client:{rpc:asyn
 const phone=root.querySelector('#order-phone'),check=root.querySelector('button[data-workspace-action]');phone.value='123';await check.onclick();assert.equal(calls.length,0);assert.equal(section.hidden,true);phone.value='০১৭১২৩৪৫৬৭৮';await check.onclick();assert.equal(calls[0].args.phone,'+8801712345678');assert.equal(section.hidden,false);assert.equal(root.querySelectorAll('.courier-history-card').length,3);assert.ok(!section.textContent.includes('Pathao'));
 section.querySelector('[data-courier-autofill]').click();assert.equal(root.querySelector('#order-name').value,'Buyer');root.querySelector('#order-name').value='Manual name';section.querySelector('[data-courier-autofill]').click();assert.equal(root.querySelector('#order-name').value,'Manual name');
 phone.value='';phone.dispatchEvent(new document.defaultView.Event('input'));assert.equal(section.hidden,true);assert.equal(root.querySelectorAll('.courier-history-card').length,0);
-let pending=[];bindCourierOverview({root,context:{section:'new',shop:{id:'s'}},client:{courierHistory:(_,n)=>new Promise(r=>pending.push({r,n}))}});phone.value='01711111111';const a=check.onclick();phone.value='01722222222';const b=check.onclick();pending[1].r({...data,own:{...data.own,total:22}});await b;pending[0].r({...data,own:{...data.own,total:11}});await a;assert.ok(root.querySelector('.courier-own-record').textContent.includes('22'));assert.ok(!root.querySelector('.courier-own-record').textContent.includes('11'));
+let pending=[];bindCourierOverview({root,context:{section:'new',shop:{id:'s'}},client:{courierHistory:(_,n)=>new Promise(r=>pending.push({r,n}))}});phone.value='01711111111';const a=check.onclick();phone.value='01722222222';const b=check.onclick();await Promise.resolve();pending[1].r({...data,own:{...data.own,total:22}});await b;pending[0].r({...data,own:{...data.own,total:11}});await a;assert.ok(root.querySelector('.courier-own-record').textContent.includes('22'));assert.ok(!root.querySelector('.courier-own-record').textContent.includes('11'));
 console.log('Courier history passed: blank-number hiding, valid-phone auto checks, no unconnected boxes, own/overall/provider cards, safe autofill and stale response suppression.');
 
 const missing=courierCards({own:{total:0,delivered:0,cancelled:0},providers:[{id:'steadfast',connected:true,status:'unavailable',name:'Steadfast',error:'Limited'}]});
 assert.ok(missing.includes('No matching orders in this business.'));assert.ok(missing.includes('History unavailable · not zero'));assert.ok(missing.includes('steadfast-logo.svg'));assert.ok(!missing.includes('<dd>0</dd>'));
+
+let historyCalls=0,epoch=1;const cachedClient={sessionVersion:()=>epoch,courierHistory:async()=>{historyCalls++;return data}};
+await Promise.all([customerCourierHistory(cachedClient,'s','01712345678'),customerCourierHistory(cachedClient,'s','01712345678')]);assert.equal(historyCalls,1);
+await customerCourierHistory(cachedClient,'s','01712345678');assert.equal(historyCalls,1);
+await customerCourierHistory(cachedClient,'other-shop','01712345678');assert.equal(historyCalls,2);
+epoch++;await customerCourierHistory(cachedClient,'s','01712345678');assert.equal(historyCalls,3);
+await customerCourierHistory(cachedClient,'s','01712345678',true);assert.equal(historyCalls,4);

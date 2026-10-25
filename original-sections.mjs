@@ -28,7 +28,7 @@ export function createOriginalSections({client,navigate,onLiveAction=()=>false,o
  return {supports:section=>supported.has(section),clear(){generation++},async mount({root,section,shop,profile,shops,profiles,members,accountRole,canFinance,recordFilter=null,progressive=false,fullLoading=false}){
   const current=++generation;if(!supported.has(section))return;
   if(!shop&&!['profile','platformsettings'].includes(section)){root.innerHTML='<section class="card"><h2>Select a business</h2><p>Select a shop above to open its original workspace screen.</p></section>';return}
-  const directPanel=progressive&&(['orders','courier','customers','followups','permanent','agentreports'].includes(section)||Boolean(recordFilter?.entity));
+  const directPanel=progressive&&(['new','orders','courier','customers','followups','permanent','agentreports'].includes(section)||Boolean(recordFilter?.entity));
   root.classList.add('page-enter');const finishLoading=fullLoading?showLoading({scope:root}):()=>{};
   try{
    if(directPanel){const original=bridge();if(!original)throw new Error('Screen assets could not be loaded. Refresh to retry.');viewContext={section,shop,profile,shops,profiles,members,records:{},accountRole,recordFilter,fullLoading};root.innerHTML=original.render(section,viewContext);root.querySelectorAll('.metric-tile,.insight-tile,.overview-tile').forEach(el=>{const value=el.querySelector('strong');if(value)value.textContent='—';const foot=el.querySelector('.metric-context');if(foot)foot.textContent='Updating totals…';const badge=el.querySelector('.change-badge');if(badge)badge.textContent='—'});bind(root);return}
