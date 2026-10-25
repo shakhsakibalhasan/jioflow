@@ -1,0 +1,13 @@
+{
+  "name": "jioflow-crm-demo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node tests.mjs",
+    "test:upgrade": "node tests-upgrade.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,4 @@
+// Memory only, partitioned by authenticated client/session and exact query scope.
+const caches=new WeakMap();
+export function invalidateRecordPages(client){caches.delete(client)}
+export async function recordPage(client,args){let cache=caches.get(client);if(!cache){cache=new Map();caches.set(client,cache)}const key=JSON.stringify([client.sessionVersion?.()??null,args]),old=cache.get(key);if(old&&old.until>Date.now())return old.promise;const entry={until:Date.now()+15000};entry.promise=client.rpc('jf_workspace_page',args).then(value=>{if(!value||!Array.isArray(value.rows)||!Number.isFinite(Number(value.total)))throw Error('Invalid record response. Refresh and check the database update.');return value}).catch(error=>{if(cache.get(key)===entry)cache.delete(key);throw error});cache.set(key,entry);while(cache.size>30)cache.delete(cache.keys().next().value);return entry.promise}

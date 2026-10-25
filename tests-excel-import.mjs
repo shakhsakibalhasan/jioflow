@@ -1,0 +1,4 @@
+import assert from 'node:assert/strict';import{createRequire}from'node:module';import{readImportFile,excelCellText,bindCustomerImport}from'./live-customer-import.mjs';
+const require=createRequire(import.meta.url),Excel=require('/tmp/jioflow-excel/node_modules/exceljs');
+const book=new Excel.Workbook(),sheet=book.addWorksheet('Customers');sheet.addRow(['Customer Name','Phone Number','Address']);sheet.addRow(['বাংলা নাম','01712345678','Dhaka']);const bytes=await book.xlsx.writeBuffer();const rows=await readImportFile({name:'customers.xlsx',arrayBuffer:async()=>bytes},Excel);assert.equal(rows[1][0],'বাংলা নাম');assert.equal(rows[1][1],'01712345678');assert.equal(excelCellText({value:{formula:'1+1',result:2}}),'2');assert.throws(()=>excelCellText({value:{formula:'1+1'}}),/saved values/);
+console.log('Real XLSX workbook, Bangla/phone preservation and formula safety passed.');

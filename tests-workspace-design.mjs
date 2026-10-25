@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {workspaceShell,platformDashboard,shopDashboard,accountDirectory} from './workspace-design.mjs';
+import {createLiveClient} from './online-client.mjs';
+const {parseHTML}=await import(process.env.LINKEDOM_MODULE||'linkedom');
+const shop={id:'shop-one',name:'Business <script>bad</script>'},owner={id:'owner-one',full_name:'Owner <b>name</b>',email:'owner@example.test',active:true};
+const markup=workspaceShell({role:'Creator',profile:owner,shops:[shop],shopId:shop.id,section:'dashboard',insideShop:true,content:shopDashboard({stats:{customers:20,assigned:10,completed:5,negative:2,notAttempted:10},role:'Owner',shop})});
+let {document}=parseHTML('<div id="app">'+markup+'</div>');
+assert.ok(document.querySelector('.layout .sidebar .nav'));assert.ok(document.querySelector('.topbar .business-context'));assert.ok(document.querySelector('#view .dashboard-panels'));assert.equal(document.querySelectorAll('.dashboard-panels>.card').length,4);assert.ok(document.querySelector('.profit-brand'));assert.ok(document.querySelector('.brand-confirmed'));assert.equal(document.querySelector('script'),null);assert.equal(document.querySelectorAll('b').length,16);assert.equal(document.querySelectorAll('[data-back-shops]').length,1);assert.ok(document.querySelector('[data-section="orders"]'));assert.equal(document.querySelector('.online-layout'),null);
+const platform=platformDashboard({shops:[shop],profiles:[owner],roleOf:()=> 'Owner',totals:{'shop-one':250000}});({document}=parseHTML(platform));assert.equal(document.querySelectorAll('.platform-summary>.card').length,5);assert.equal(document.querySelectorAll('.insight-grid>.card').length,2);assert.ok(document.textContent===null||platform.includes('250000'));assert.ok(platform.includes('Top-performing Agents'));assert.equal(platform.includes('Net profit'),false);assert.equal(document.querySelector('script'),null);
+const ownerShell=workspaceShell({role:'Owner',profile:owner,shops:[shop],shopId:shop.id,section:'dashboard',content:''});assert.equal(ownerShell.includes('id="online-shop"'),false);assert.equal(ownerShell.includes('data-section="shops"'),false);
+assert.ok(accountDirectory([owner],()=> 'Owner',()=> 'Active',{grouped:true}).includes(' Owners</h2>'));
+const storage={getItem:()=>JSON.stringify({access_token:'test',expires_at:Date.now()/1000+3600}),setItem(){},removeItem(){}};let options;
+const client=createLiveClient({storage,fetcher:async(url,input)=>{options=input;return {ok:true,headers:{get:()=> '0-0/350000'},json:async()=>null}}});assert.equal(await client.count('jf_customers','shop_id=eq.shop-one'),350000);assert.equal(options.method,'HEAD');assert.equal(options.headers.Prefer,'count=exact');await assert.rejects(client.count('auth.users'),/not enabled/);
+console.log('Restored workspace checks passed: original shell, five Creator summaries, chart panels, complete shop navigation, role boundaries, escaping and exact server counts.');

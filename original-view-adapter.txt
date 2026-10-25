@@ -1,0 +1,115 @@
+let originalScreen='',originalContext=null;
+const liveStatus=s=>({draft:'Pending',confirmed:'Confirmed',ready_to_book:'Ready to Book',booked:'Booked',in_transit:'In Transit',delivered:'Delivered',partial_delivery:'Partial Delivery',returned:'Returned',cancelled:'Cancelled',exchange:'Exchange',replacement:'Replacement',pending:'Pending',callback:'Call Back',completed:'Completed'}[s]||s||'Pending');
+const liveCall=s=>({not_attempted:'',not_connected:'Not Connected',no_answer:'Not Connected',busy:'Not Connected',connected:'Connected',positive:'Connected',negative:'Connected',intermediate:'Connected'}[s]||'');
+function applyOriginalContext(context){
+ const {profile,shop,shops,profiles,members,records,accountRole}=context;
+ db=blankStore(shop?.name||'All Shops');db.groups=[];db.sessions=[];db.settings.hero=false;
+ authDirectory={accounts:profiles.map(p=>{const owned=shops.find(s=>s.owner_id===p.id),m=members.find(m=>m.user_id===p.id);return {id:p.id,name:p.full_name,email:p.email,phone:p.phone,title:p.job_title,address:p.address,code:p.user_code,image:p.avatar_path,active:p.active,accountType:p.platform_role==='creator'?'Creator':owned?'Owner':m?.role==='admin'?'Admin':'Agent',role:p.platform_role==='creator'||owned||m?.role==='admin'?'Admin':'Agent',storeId:owned?.id||m?.shop_id,memberId:m?.id,deletedAt:p.deleted_at}}),stores:shops.map(s=>({...s,owner:s.owner_id})),creatorId:profiles.find(p=>p.platform_role==='creator')?.id,sessions:[]};
+ const a=authDirectory.accounts.find(p=>p.id===profile.id);sessionAccount={...a};role=accountRole==='Agent'?'Agent':'Admin';activeStoreId=shop?.id||null;creatorSelectedShop=shop?.id||'all';insideShopWorkspace=!!shop;signedIn=true;
+ db.agents=members.filter(m=>m.shop_id===shop?.id).map(m=>{const p=profiles.find(p=>p.id===m.user_id)||{};return {id:m.id,name:p.full_name||'User',email:p.email,phone:p.phone,role:m.role==='admin'?'Admin':'Agent',active:p.active!==false&&!['disabled','removed'].includes(m.status),permissions:m.permissions||{},sources:[],code:p.user_code||'',image:p.avatar_path||'',requireApproval:true}});
+ agentId=a?.memberId||db.agents[0]?.id||'';
+ db.products=(records.products||[]).map(p=>({id:p.id,name:p.name,sku:p.sku||'',variant:p.variant||'',price:Number(p.sale_price),active:p.active,featured:p.featured===true,cost:records.costs?.find(c=>c.product_id===p.id)?.unit_cost??null,image:p.image_path||'',category:'Products'}));
+ db.customers=(records.customers||[]).map(c=>{const f=records.followups?.find(f=>f.customer_id===c.id);return {id:c.id,name:c.full_name,phone:c.phone,address:c.address||'',source:c.source||'manual',agent:c.assigned_membership_id||'',permanent:c.permanent,status:liveStatus(f?.status),call:liveCall(f?.call_outcome),response:['positive','negative','intermediate'].includes(f?.call_outcome)?f.call_outcome[0].toUpperCase()+f.call_outcome.slice(1):'',callback:f?.callback_at||'',notes:[],tag:c.unassignment_tag||'',workflowLabel:c.workflow_label||''}});
+ db.orders=(records.orders||[]).map(o=>({id:o.order_number||o.id,externalId:o.external_order_id||'',customer:o.customer_id,agent:o.assigned_membership_id||'',items:(records.items||[]).filter(x=>x.order_id===o.id).map(x=>({product:x.product_id,name:x.product_name,qty:x.quantity,price:Number(x.unit_price)})),discount:Number(o.discount),advance:(records.payments||[]).filter(p=>p.order_id===o.id&&!['rejected','refunded'].includes(p.status)).reduce((n,p)=>n+Number(p.amount),0),method:'COD',delivery:Number(o.delivery_charge),status:liveStatus(o.status),courier:'',shipment:['draft','confirmed','ready_to_book'].includes(o.status)?'Not Booked':liveStatus(o.status),tracking:'',created:o.created_at,source:o.source||'manual',note:o.shipping_note||'',events:[],isDemo:false}));
+ for(const o of records.orders||[]){const saved=records.finance?.find(f=>f.order_id===o.id),mapped=db.orders.find(x=>x.id===(o.order_number||o.id));if(saved&&mapped){mapped.finance={courierCost:Number(saved.courier_charge),codFee:Number(saved.cod_fee),packaging:Number(saved.packaging_cost),returnFee:Number(saved.return_cost),otherCost:Number(saved.other_cost),settled:Number(saved.cod_received)};const quantity=mapped.items.reduce((n,x)=>n+x.qty,0);for(const item of mapped.items)item.cost=quantity?Number(saved.product_cost)/quantity:0}}
+ // Recipient snapshots keep historic orders readable even outside the current customer page.
+ for(const o of records.orders||[])if(!db.customers.some(c=>c.id===o.customer_id))db.customers.push({id:o.customer_id,name:o.recipient_name,phone:o.recipient_phone,address:o.delivery_address,agent:o.assigned_membership_id||'',status:'Pending',notes:[],source:o.source||'manual'});
+ window.callFilter=window.responseFilter=window.funnelFilter=window.customerSource='';followAgentFilter=followSourceFilter=followCallFilter=followResponseFilter='';range='all';rangeOffset=0;if(context.recordFilter?.report_start&&context.recordFilter?.report_end){range='custom';customStart=new Date(Date.parse(context.recordFilter.report_start)+21600000).toISOString().slice(0,10);customEnd=new Date(Date.parse(context.recordFilter.report_end)-1+21600000).toISOString().slice(0,10)}page=originalScreen;query='';subtab='All';selected.clear();cart=[];pageNo=1;
+}
+function renderOriginal(section,context,reset=true){
+ if(reset){originalScreen=section;originalContext=context;applyOriginalContext(context)}
+ page=section==='followups'?'customers':section;
+ const views={dashboard:dashboardView,products:productsView,customers:customersView,followups:customersView,permanent:customersView,team:teamView,profile:profileView,shop:storesView,orders:ordersView,new:newOrderView,import:importView,courier:courierView,profit:profitView,agentreports:agentReportsView,agentdetail:agentDetailView,profitdetail:()=>originalDetailHTML,settings:settingsView,platformsettings:platformSettingsView};
+ let html=(views[section]||ordersView)();const holder=document.createElement('div');holder.innerHTML=html;
+ // Keep queue and completion summaries visible before secondary metrics.
+ if(['dashboard','customers','followups','permanent','orders','courier','agentreports'].includes(section)){
+  let summary=holder.querySelector('.stats');
+  if(!summary){summary=document.createElement('div');summary.className='stats section-overview';holder.prepend(summary)}
+  const cards=()=>[...holder.querySelectorAll('.metric-tile,.insight-tile,.overview-tile')];
+  const label=el=>(el.querySelector('.label,.tile-label')?.textContent||'').replace('↗','').trim();
+  let completed=cards().find(el=>/^Completed$/i.test(label(el)));
+  if(!completed){
+   const delivery=['orders','courier'].includes(section),value=delivery?visibleOrders().filter(inRange).filter(o=>o.status==='Delivered').length:visibleCustomers().filter(c=>c.status==='Completed').length;
+   const fragment=document.createElement('div');fragment.innerHTML=summaryTile('Completed',value,delivery?'Delivered orders · loaded records':'Completed follow-ups · loaded profiles',delivery?"dashboardOrders('Delivered')":"dashboardCustomers('completed')");completed=fragment.firstElementChild;
+  }
+  const confirmed=[...summary.children].find(el=>/^Confirmed( Orders| customers)?$/i.test(label(el)));
+  if(confirmed){summary.prepend(confirmed);confirmed.after(completed)}else summary.prepend(completed);
+  let unassigned=cards().find(el=>/^Unassigned$/i.test(label(el)));
+  if(!unassigned){const fragment=document.createElement('div');fragment.innerHTML=summaryTile('Unassigned',visibleCustomers().filter(c=>!c.agent).length,'Customers without an agent · loaded profiles',"dashboardCustomers('Unassigned')");unassigned=fragment.firstElementChild}
+  completed.after(unassigned);
+ }
+ const heading=holder.querySelector('.heading'),headingActions=heading?.querySelector('.row');if(headingActions){headingActions.classList.add('original-header-actions');heading.replaceWith(headingActions)}else heading?.remove();
+ holder.querySelectorAll('script,iframe').forEach(e=>e.remove());holder.querySelectorAll('img').forEach(img=>{if(!img.getAttribute('src')){const span=document.createElement('span');span.className='avatar';span.innerHTML=ico('products');img.replaceWith(span)}});
+ holder.querySelectorAll('*').forEach(el=>{
+  const click=el.getAttribute('onclick')||'',change=el.getAttribute('onchange')||'',input=el.getAttribute('oninput')||'';
+  if(click)el.dataset.workspaceAction=click;
+  for(const attr of [...el.attributes])if(attr.name.startsWith('on'))el.removeAttribute(attr.name);
+  if(el.tagName==='FORM')el.setAttribute('data-original-form','');
+  const liveMatch=click.match(/^(productForm|customerForm|followupForm|toggleProduct|showCustomer)\('([^']*)'(?:,'([^']*)')?\)/),addLive=click==='productForm()'||click==='customerForm()';
+  if(liveMatch&&(['productForm','customerForm','followupForm','showCustomer'].includes(liveMatch[1])||liveMatch[1]==='toggleProduct'&&liveMatch[3]==='active')){el.dataset.originalLive=liveMatch[1];el.dataset.originalId=liveMatch[2]}else if(addLive)el.dataset.originalLive=click.split('(')[0];
+  const noteAction=click.match(/^editRecordNote\('(customer|order)','([^']+)'\)$/),assignOrder=click.match(/^assignFromOrder\('([^']+)'\)$/);
+  if(noteAction){if(noteAction[1]==='customer'){el.dataset.originalLive='followupForm';el.dataset.originalId=noteAction[2]}else{el.dataset.originalPreview='showOrder';el.dataset.originalId=noteAction[2]}}
+  if(assignOrder){const order=db.orders.find(o=>o.id===assignOrder[1]);if(order){el.dataset.originalPreview='showOrder';el.dataset.originalId=order.id}}
+  const readAction=parseOriginalReadAction(click);
+
+  const navMatch=click.match(/nav\(['"]([^'"]+)['"]\)/),tab=click.match(/subtab='([^']+)'/);
+  if(el.dataset.originalLive||el.dataset.originalPreview){}
+  else if(readAction)el.dataset.originalAction=JSON.stringify(readAction);
+  else if(/^chartSource='[^']*';render\(\)$/.test(click))el.dataset.originalChart=click.match(/'([^']*)'/)[1];
+  else if(navMatch)el.dataset.originalNav=navMatch[1];
+  else if(tab)el.dataset.originalTab=tab[1];
+  else if(/^(selectOrderOverview|selectFollowOverview)\('[^']*'\)$/.test(click))el.dataset.originalTab=click.match(/'([^']*)'/)[1];
+  else if(/^shiftRange\(-?1\)$/.test(click))el.dataset.originalShift=click.includes('-')?'-1':'1';
+  else if(click==='exportOrders()'||click==='exportProducts()')el.dataset.originalExport=click.includes('Products')?'products':'orders';
+  else if(/^setCustomerTab\(\d+\)$/.test(click))el.dataset.originalTab=['All','Unassigned','Assigned','Permanent','Due Today',...db.settings.statuses][Number(click.match(/\d+/)[0])];
+  else if(click==='pageNo++;render()'||click==='pageNo--;render()')el.dataset.originalPage=click.includes('++')?'1':'-1';
+  else if(click==='filters=!filters;render()')el.dataset.originalFilters='';
+  else if(click&&el.tagName==='BUTTON'){const preview=click.match(/^(agentForm|groupForm|assignDialog|showOrder|showCustomer|addOption|productCSVDialog)\((?:'([^']*)')?\)$/);if(preview){el.dataset.originalPreview=preview[1];el.dataset.originalId=preview[2]||'';el.title='View details'}else{el.disabled=true;el.title='Currently unavailable.'}}
+  if(input.includes('query=this.value')||change.includes('query=this.value'))el.dataset.originalSearch='';
+  else if(['INPUT','SELECT','TEXTAREA'].includes(el.tagName)){el.disabled=true;el.title='Read only while this action is being connected.'}
+  if(change==='changeRange(this.value)'){el.dataset.originalRange='';el.disabled=false}
+  const filterMatch=change.match(/^(productStatus|productCategory|productFeatured|productSort|followAgentFilter|followSourceFilter|followCallFilter|followResponseFilter|performerRanking|orderSourceFilter|orderCallFilter|orderResponseFilter|orderTagFilter|userStatus|window\.courierFilter|window\.orderAgentFilter)=this.value/);if(filterMatch){el.dataset.originalFilter=filterMatch[1];el.disabled=false}
+  if(change.includes('rowsPerPage=Number(this.value)')){el.dataset.originalRows='';el.disabled=false}
+  if(change==='selectReportFilter(this.value,reportSection)'){el.dataset.originalFilter='reportFilter';el.disabled=false}
+  if(change.includes('reportSearch=this.value')){el.dataset.originalFilter='reportSearch';el.disabled=false}
+  if(change||input)el.removeAttribute('required');
+ });
+ holder.querySelectorAll('.metric-tile,.insight-tile,.overview-tile').forEach(el=>{
+  if(!Object.keys(el.dataset).some(k=>k.startsWith('original'))){el.disabled=false;el.removeAttribute('title');el.dataset.originalSummary=el.querySelector('.label,.tile-label')?.textContent?.replace('↗','').trim()||'Summary'}
+ });
+ holder.querySelectorAll('form button[type=submit],form button:not([type])').forEach(button=>{button.disabled=true;button.title='Currently unavailable.'});
+ holder.querySelectorAll('h2').forEach(h=>{if(h.textContent.trim()==='Demo data')h.closest('section')?.remove()});holder.querySelectorAll('p,label').forEach(el=>{if(el.textContent.includes('this browser demo'))el.textContent=el.textContent.replace(/Each scheduled slot[^.]*\./,'Live scheduling is not connected yet.');if(el.textContent.includes('(sample default)'))el.textContent=el.textContent.replace('(sample default)','(preview default)')});
+ holder.querySelector('[aria-label="Refresh page"]')?.remove();
+ holder.querySelectorAll('p,.notice,.auth-demo,.role-banner').forEach(el=>{if(/demo|prototype|browser-local|simulate|not connected yet|backend connection|preview default/i.test(el.textContent))el.remove()});
+ if(context.accountRole==='Creator'||context.accountRole==='Owner'||context.accountRole==='Admin'&&context.members.some(m=>m.user_id===context.profile.id&&m.shop_id===context.shop?.id&&m.permissions?.users))holder.querySelectorAll('[data-original-preview="agentForm"]').forEach(el=>{const member=context.members.find(m=>m.id===el.dataset.originalId);if(member){delete el.dataset.originalPreview;el.dataset.accountEdit=member.user_id;el.disabled=false}});
+ if(section==='team'&&context.accountRole==='Creator')holder.querySelectorAll('[data-original-preview=agentForm]').forEach(button=>{const account=authDirectory.accounts.find(a=>a.memberId===button.dataset.originalId);if(account)button.closest('.compact-user')?.insertAdjacentHTML('beforeend',`<div class="row account-row-actions"><button data-account-edit="${esc(account.id)}">Edit account</button><button data-account-logout="${esc(account.id)}">Force Logout</button><button class="danger" data-account-remove="${esc(account.id)}">Remove</button></div>`)});
+ holder.querySelectorAll('.metric-tile,.insight-tile,.stat,.overview-tile').forEach(el=>{const label=el.querySelector('.label,.tile-label')?.textContent?.trim()||'';el.dataset.tone='neutral';if(!el.querySelector('.metric-icon'))el.insertAdjacentHTML('beforeend','<span class="metric-icon">'+ico(iconForLabel(label))+'</span>');if(/^(Profit|Net profit)$/.test(label))el.classList.add('profit-brand');if(/^Confirmed( Orders)?$/.test(label))el.classList.add('brand-confirmed')});
+ const records=context.records||{},limited=['dashboard','products','customers','followups','permanent','orders','profit','agentreports','courier'].includes(section);
+ return `<p class="original-record-scope small muted" ${limited?'':'hidden'}>Latest ${section==='products'?(records.products||[]).length:section==='customers'||section==='followups'||section==='permanent'?(records.customers||[]).length:(records.orders||[]).length} records</p><p class="original-connection-notice" role="status" hidden></p><div class="original-restored-view">${holder.innerHTML}</div>`;
+}
+
+let originalDetailHTML='';
+function originalProfitDetails(type,key){
+ if(!financialAccess())return;
+ const orders=visibleOrders().filter(inRange).filter(o=>type==='delivered'?o.shipment==='Delivered':confirmedStatus(o.status)).filter(o=>!['agent','source','product'].includes(type)||type==='agent'&&o.agent===key||type==='source'&&o.source===key||type==='product'&&o.items.some(x=>x.product===key));
+ originalDetailHTML=heading(type==='delivered'?'Delivered COD records':'Profit details','Loaded records · selected reporting period',`<button onclick="nav('profit')">Back to profit</button>`)+profitOrderTable(orders);page='profitdetail';
+}
+const originalReadActions={dashboardOrders,dashboardCustomers,openFunnel,openStatus,sourceQueue,ordersForProduct,setFollowCall,setFollowUnattempted,openAgentReport,openAgentMetric,selectReportFilter,selectOrderOverview,selectFollowOverview,resetFollowFilters,profitDetail:originalProfitDetails,openCourierBalance:()=>originalProfitDetails('delivered','')};
+function parseOriginalReadAction(click){
+ const m=click.match(/^([A-Za-z]+)\((.*)\)$/);if(!m||!Object.hasOwn(originalReadActions,m[1]))return null;
+ const args=[];let rest=m[2].trim();while(rest){const token=rest.match(/^(?:'([^'\\]*)'|("(?:[^"\\]|\\.)*")|(-?\d+))(?:\s*,\s*|$)/);if(!token)return null;args.push(token[1]!==undefined?token[1]:token[2]?JSON.parse(token[2]):Number(token[3]));rest=rest.slice(token[0].length)}
+ return {name:m[1],args};
+}
+function originalReadAction(action){
+ if(!action||!Object.hasOwn(originalReadActions,action.name))return;
+ const savedNav=nav,savedRender=render;
+ try{render=()=>{};nav=p=>{page=p;subtab='All';query='';pageNo=1;selected.clear();window.callFilter='';window.responseFilter='';window.funnelFilter='';window.customerSource=''};originalReadActions[action.name](...action.args);originalScreen=page==='customers'?'followups':page}
+ finally{nav=savedNav;render=savedRender}
+}
+function originalSummaryDetails(label){
+ const os=visibleOrders().filter(inRange),cs=visibleCustomers();
+ const content=`<p>Summary for the records loaded in this workspace. Customer and order lists may show different totals.</p><h3>Customer profiles (${cs.length})</h3><div class="table-wrap"><table><thead><tr><th>Customer</th><th>Phone</th><th>Status</th><th>Agent</th></tr></thead><tbody>${cs.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${esc(c.status)}</td><td>${esc(agentName(c.agent))}</td></tr>`).join('')||'<tr><td colspan="4">No customer records loaded.</td></tr>'}</tbody></table></div><h3>Orders (${os.length})</h3><div class="table-wrap"><table><thead><tr><th>Order</th><th>Status</th><th>Total</th></tr></thead><tbody>${os.map(o=>`<tr><td>${esc(o.id)}</td><td>${esc(o.status)}</td><td>${money(orderTotal(o))}</td></tr>`).join('')||'<tr><td colspan="3">No order records loaded.</td></tr>'}</tbody></table></div>`;
+ modal(label,'Loaded record overview',content);const d=document.getElementById('modal');d?.querySelector('.dialog-close')?.addEventListener('click',()=>d.close());
+}
+
+window.JioFlowOriginalViews={render:renderOriginal,currentSection:()=>originalScreen,reportWindow:()=>{const r=rangeBounds();return Number.isFinite(r.start)&&Number.isFinite(r.end)?{report_start:new Date(r.start).toISOString(),report_end:new Date(r.end).toISOString()}:null},summary:originalSummaryDetails,action(action){originalReadAction(action);return renderOriginal(originalScreen,originalContext,false)},export(kind){if(kind==='products')exportProducts();else if(kind==='orders')exportOrders()},preview(kind,id){const previews={agentForm,groupForm,assignDialog,showOrder,showCustomer,addOption,productCSVDialog};if(!previews[kind])return;previews[kind](id||undefined);const dialog=document.getElementById('modal');if(!dialog)return;dialog.querySelectorAll('*').forEach(el=>{for(const a of [...el.attributes])if(a.name.startsWith('on'))el.removeAttribute(a.name);if(['INPUT','SELECT','TEXTAREA'].includes(el.tagName))el.disabled=true;if(el.tagName==='BUTTON'&&!el.classList.contains('dialog-close'))el.disabled=true});if(kind==='showCustomer')dialog.querySelector('.dialog-header')?.insertAdjacentHTML('afterend',`<div class="row section-gap"><button data-original-live="customerForm" data-original-id="${esc(id)}">Edit customer</button><button data-original-live="followupForm" data-original-id="${esc(id)}">Record follow-up</button><button data-original-live="showCustomer" data-original-id="${esc(id)}">Notes & history</button></div>`);dialog.querySelector('form')?.addEventListener('submit',e=>e.preventDefault());dialog.querySelector('.dialog-close')?.addEventListener('click',()=>dialog.close());dialog.querySelector('.dialog-header')?.insertAdjacentHTML('afterend','<p class="notice">Original form preview. Currently unavailable.</p>')},interact(type,value){if(type==='chart'){chartSource=value}else if(type==='tab'){subtab=value;pageNo=1}else if(type==='filters')filters=!filters;else if(type==='search'){query=value;pageNo=1}else if(type==='range'){range=value;rangeOffset=0}else if(type==='shift'){if(range!=='all')rangeOffset+=Number(value)}else if(type==='filter'){const {key,value:val}=value;if(key==='productStatus')productStatus=val;else if(key==='productCategory')productCategory=val;else if(key==='productFeatured')productFeatured=val;else if(key==='productSort')productSort=val;else if(key==='followAgentFilter')followAgentFilter=val;else if(key==='followSourceFilter')followSourceFilter=val;else if(key==='followCallFilter')followCallFilter=val;else if(key==='followResponseFilter')followResponseFilter=val;else if(key==='performerRanking')performerRanking=val;else if(key==='reportFilter'){reportFilter=val;reportPage=1}else if(key==='reportSearch'){reportSearch=val;reportPage=1}else if(key==='orderSourceFilter')orderSourceFilter=val;else if(key==='orderCallFilter')orderCallFilter=val;else if(key==='orderResponseFilter')orderResponseFilter=val;else if(key==='orderTagFilter')orderTagFilter=val;else if(key==='userStatus')userStatus=val;else if(key==='window.courierFilter')window.courierFilter=val;else if(key==='window.orderAgentFilter')window.orderAgentFilter=val;pageNo=1}else if(type==='page')pageNo=Math.max(1,pageNo+Number(value));else if(type==='rows'){rowsPerPage=Number(value);pageNo=1}return renderOriginal(originalScreen,originalContext,false)}};

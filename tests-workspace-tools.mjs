@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {bindWorkspaceTools} from './workspace-tools.mjs';
+const {parseHTML}=await import(process.env.LINKEDOM_MODULE||'linkedom');
+const {document}=parseHTML('<html><body><p id="online-data-error"></p><main id="region"></main></body></html>');globalThis.document=document;
+const root=document.getElementById('region'),calls=[];let form;
+const context={section:'products',shop:{id:'shop',name:'Business'},profile:{id:'creator'},accountRole:'Creator',members:[],profiles:[],records:{products:[{id:'p',name:'Product'}]}};
+const client={async rpc(name,input){calls.push({name,...input});if(input.tool==='load')return {settings:{},layout:{},groups:[]};return {saved:true,count:1}},query:async()=>[]};
+const openForm=(title,body,submit)=>{const el=document.createElement('dialog');el.innerHTML='<form>'+body+'<button type="submit">Save</button></form>';document.body.append(el);el.close=()=>el.remove();form={title,body,submit,el};return el};
+const base=()=>{root.innerHTML='<div class="original-restored-view"><section class="card"><h2>Products</h2><table><tbody><tr><td>Product</td><td><button data-original-live="productForm" data-original-id="p">Edit</button></td></tr></tbody></table></section></div>'};
+base();await bindWorkspaceTools({root,context,client,openForm,reload:async()=>{},navigate:()=>{}});
+const box=root.querySelector('[data-tools-select]');assert.ok(box);box.checked=true;box.onchange();root.querySelector('[data-tools-inactive]').click();assert.equal(form.title,'Update selected products');await form.submit();assert.deepEqual(calls.at(-1).details,{ids:['p'],action:'deactivate'});
+root.querySelector('[data-tools-widget]').click();await form.submit(new Map([['title','<Widget>'],['text','My instructions']]));assert.equal(calls.at(-1).tool,'save_layout');assert.equal(calls.at(-1).details.value.widgets[0].title,'<Widget>');
+base();await bindWorkspaceTools({root,context:{...context,accountRole:'Agent'},client,openForm,reload:async()=>{},navigate:()=>{}});assert.equal(root.querySelector('[data-tools-layout]'),null);assert.equal(root.querySelector('[data-tools-inactive]'),null);
+base();await bindWorkspaceTools({root,context:{...context,section:'settings'},client,openForm,reload:async()=>{},navigate:()=>{}});root.querySelector('[data-tools-settings]').click();assert.equal(form.title,'Edit business settings');await form.submit(new Map([['inside','70'],['outside','130'],['pull_count','10'],['statuses','Interested\nCall later'],['tags','Return'],['sources','website'],['pull_sources','website'],['return_policy','same']]));assert.equal(calls.at(-1).tool,'save_settings');assert.deepEqual(calls.at(-1).details.value.statuses,['Interested','Call later']);
+console.log('Workspace tools passed: product selection/bulk save, durable widget payload, Agent editing restrictions, business settings save.');
