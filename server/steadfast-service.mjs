@@ -31,7 +31,7 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
  async function provider(keys,path,body){
   let response;try{response=await fetcher(BASE+path,{method:body?'POST':'GET',headers:{'Api-Key':keys.api_key,'Secret-Key':keys.secret_key,'Content-Type':'application/json',Accept:'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(6500)})}catch{throw new RequestError(body?'Booking outcome is uncertain. Retry this same saved order after 90 seconds; never create a replacement order.':'Steadfast did not respond. Please try again later.',503)}
   const data=await response.json().catch(()=>null);
-  if(!response.ok||data?.status!==200){const code=response.ok?Number(data?.status):response.status;const error=new RequestError(code===401?'Steadfast rejected the API keys. Ask your administrator to update them.':code===403?'Steadfast has restricted booking/access. Complete ownership details in the merchant panel.':code===429?'Steadfast rate limit reached. Stop retries and try later.':body?'Steadfast did not confirm this booking. Check the same invoice in the merchant panel before retrying.':'Steadfast could not return this record.',[401,403,429].includes(code)?code:502);error.definitiveRejection=[401,403,422].includes(code);throw error}
+  if(!response.ok||data?.status!==200){const code=response.ok?Number(data?.status):response.status;const error=new RequestError(code===401?'Steadfast rejected the API keys. Ask your administrator to update them.':code===403?'Steadfast has restricted booking/access. Complete ownership details in the merchant panel.':code===429?'Steadfast rate limit reached. Stop retries and try later.':body?'Steadfast did not confirm this booking. Check the same invoice in the merchant panel before retrying.':'Steadfast could not return this record.',[401,403,429].includes(code)?code:502);if(code===429){const header=response.headers?.get?.('retry-after');const delay=header&&/^\d+$/.test(header)?Number(header):header?Math.ceil((Date.parse(header)-now())/1000):3600;error.retryAfter=Math.max(60,Math.min(3600,Number.isFinite(delay)?delay:3600));}error.definitiveRejection=[401,403,422].includes(code);throw error}
   return data;
  }
  async function apply(shop,id,data){return rpc('jf_courier_apply',{target_shop:shop,shipment_id:id,provider_data:data},null,true)}
@@ -66,10 +66,10 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
   const keys=access.shipment?.consignment_id&&!access.shipment.method_id?credentials(env,input.shop_id):await selectedKey(input.shop_id,selectedId,methods);
   if(input.action==='info')return {configured:!!keys,booking_enabled:keys?.booking_enabled===true,can_book:access.can_book,methods:methods.methods.filter(m=>m.active),selected_method_id:keys?.id||null,shop_id:input.shop_id,polling_enabled:env.JIOFLOW_POLL_ENABLED==='true',...(access.can_configure?{callback_mode:'polling',shop_reference:input.shop_id}:{}),...(access.order?{order:access.order,shipment:access.shipment}:{})};
   if(input.action==='history'){
-   const local=await rpc('jf_phone_courier_overview',{target_shop:input.shop_id,phone:String(input.phone||'')},token);
-   if(!keys)return {...local,providers:[],own:await rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token)};
+   if(!keys)return {providers:[],own:await rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token)};
    const phone=String(input.phone||'').replace(/^\+?88/,'');if(!/^01\d{9}$/.test(phone))throw new RequestError('Enter an eleven-digit Bangladesh phone number.');
-   const cacheKey=createHash('sha256').update(JSON.stringify([input.shop_id,keys.id||'',keys.api_key,keys.secret_key,phone])).digest('hex');
+   const accountKey='account:'+createHash('sha256').update(JSON.stringify([input.shop_id,keys.id||'',keys.api_key,keys.secret_key])).digest('hex');
+   const cacheKey='phone:'+createHash('sha256').update(accountKey+phone).digest('hex');
    let entry=cache.get(cacheKey);
    if(!entry||entry.until<=now()){
     for(const [key,value]of cache)if(value.until<=now())cache.delete(key);
@@ -77,13 +77,14 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
     entry={until:now()+60000};
     entry.promise=(async()=>{
      if(await rpc('jf_courier_rate',{target_shop:input.shop_id},token)!==true)return {id:'steadfast',name:'Steadfast',connected:true,status:'unavailable',error:'Please wait one minute before checking again.',retry_at:new Date(now()+60000).toISOString()};
+     const block=cache.get(accountKey);if(block&&block.until>now())return block.provider;
      try{return {...historyResult(await provider(keys,'/fraud_check/score/'+phone)),checked_at:new Date(now()).toISOString()}}
-     catch(e){return {id:'steadfast',name:'Steadfast',connected:true,status:'unavailable',error:e.status===429?'Steadfast temporarily limited history checks. Try again after one minute.':e.message,...(e.status===429?{retry_at:new Date(now()+60000).toISOString()}:{} )}}
+     catch(e){const wait=(e.retryAfter||3600)*1000,p={id:'steadfast',name:'Steadfast',connected:true,status:'unavailable',error:e.status===429?'Steadfast has temporarily blocked API requests. Check the saved API credentials; repeated authentication failures may block requests for up to 60 minutes.':e.message,...(e.status===429?{error_code:'provider_rate_limit',retry_at:new Date(now()+wait).toISOString()}:{} )};if(e.status===429)cache.set(accountKey,{until:now()+wait,provider:p});return p;}
     })();cache.set(cacheKey,entry);
     entry.promise.catch(()=>{if(cache.get(cacheKey)===entry)cache.delete(cacheKey)});
    }
-   const p=await entry.promise;
-   return {...local,own:await rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token),providers:[p]};
+   const [p,own]=await Promise.all([entry.promise,rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token)]);
+   return {own,providers:[p]};
   }
   if(await rpc('jf_courier_rate',{target_shop:input.shop_id},token)!==true)throw new RequestError('Please wait a minute before making more courier requests.',429);
   if(!keys)throw new RequestError('Steadfast is not configured for this business.',503);
