@@ -56,6 +56,7 @@ function render(){
  if(role==='Agent'&&!['dashboard','followups','permanent','orders','new','courier','profile'].includes(section))section='dashboard';
  const creatorPlatform=role==='Creator'&&!insideShop,scoped=scopedProfiles();let content;
  if(section==='dashboard')content=creatorPlatform?platformDashboard({shops:scopedShops(),profiles:scoped,roleOf,totals:customerTotals,loading:countsLoading,members}):'<div id="original-section"></div>';
+ else if(section==='deliverymethods')content=shop?'<div id="delivery-methods-page"></div>':'<section class="card"><h2>Select a business</h2><p>Select a shop to manage its delivery methods.</p></section>';
  else if(section==='shops')content=shopDirectory(scopedShops(),profiles,customerTotals,members);
  else if(['products','customers','followups','permanent'].includes(section))content='<div id="original-section"></div><div id="online-operations" hidden></div>';
  else if(section==='profile')content=profileDetails(p,role,shop)+'<button class="primary section-gap" data-profile-edit="'+esc(p.id)+'">Edit my profile</button>';
@@ -69,7 +70,7 @@ function render(){
  if(content.includes('id="original-section"')&&!content.includes('id="online-operations"')&&shop&&!['settings','platformsettings','shop','team'].includes(section))content+='<div id="online-operations" hidden></div>';
  if(['accounts','owners','admins','agents'].includes(section)&&shop)content+='<div id="workspace-tools-extra"></div>';
  const actions=(section==='dashboard'&&(!creatorPlatform)?'<button class="dark" data-section="new">+ New Order</button>':'')+(['dashboard','shops','shop','owners','admins','agents','accounts','team'].includes(section)?managementButtons(role):'');
- root.innerHTML=workspaceShell({role,profile:p,shops,shopId:role==='Creator'?shopId:shop?.id,section,insideShop,content,actions});bindAppearance(root);
+ root.innerHTML=workspaceShell({role,profile:p,shops,shopId:role==='Creator'?shopId:shop?.id,section,insideShop,content,actions});bindAppearance(root);if(section==='deliverymethods'&&shop)bindSteadfastPanel({root:root.querySelector('#delivery-methods-page'),context:{section,shop,accountRole:role},client,openForm});
  if(refreshInFlight){const refresh=root.querySelector('#online-refresh');if(refresh){refresh.classList.add('is-refreshing');refresh.disabled=true}}
  root.querySelector('.top-actions .account-pill')?.insertAdjacentHTML('beforebegin',notificationBar(notificationState()));
  root.querySelectorAll('[data-section]').forEach(el=>el.onclick=()=>navigate(el.dataset.section));

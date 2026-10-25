@@ -19,9 +19,9 @@ export async function bindSteadfastOrder({dialog,client,shop,order,reload,method
 }
 // Delivery methods are managed as a list, never fixed provider cards.
 export function bindSteadfastPanel({root,context,client,openForm}){
- if(!context.shop||!['courier','settings'].includes(context.section))return;
+ if(!context.shop||!['courier','deliverymethods'].includes(context.section))return;
  root.querySelectorAll('.courier-cards,.steadfast-settings').forEach(el=>el.remove());
- if(!client.courier||context.accountRole==='Agent')return;
+ if(context.section!=='deliverymethods'||!client.courier||context.accountRole==='Agent')return;
  const shop=context.shop,host=root.ownerDocument.createElement('section');host.className='card section-gap delivery-methods';
  host.innerHTML='<h2>Delivery methods</h2><p role="status">Loading delivery methods…</p>';
  (root.querySelector('.original-restored-view')||root).prepend(host);let methods=[],canConfigure=false,search='',status='all';

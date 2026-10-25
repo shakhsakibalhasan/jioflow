@@ -9,6 +9,14 @@ await bindSteadfastOrder({dialog,shop,order:{id:'o',order_number:'ORDER-1'},relo
 assert.ok(dialog.textContent.includes('800'));assert.ok(dialog.querySelector('[data-steadfast-book]'));await dialog.querySelector('[data-steadfast-book]').onclick();assert.equal(action,'book');assert.equal(closed,true);assert.equal(reloaded,1);
 dialog.querySelector('.steadfast-order').remove();await bindSteadfastOrder({dialog,shop,order:{id:'o'},reload:async()=>{},client:{courier:async()=>({configured:true,can_book:false,booking_enabled:true,order:{total:100,advance:0,status:'booked'},shipment:{consignment_id:'123',provider_status:'pending',tracking_url:'javascript:alert(1)'}})}});assert.equal(dialog.querySelector('a'),null);assert.ok(dialog.querySelector('[data-steadfast-sync]'));assert.equal(dialog.querySelector('[data-steadfast-book]'),null);
 root.innerHTML='<div class="courier-cards"><div>Pathao</div><div>Steadfast</div></div>';
-bindSteadfastPanel({root,context:{shop,section:'courier'},client:{courier:async()=>({can_configure:true,methods:[]})},openForm(){}});await new Promise(r=>setTimeout(r,0));assert.equal(root.querySelector('.courier-cards'),null);assert.ok(root.textContent.includes('No courier added yet'));assert.ok(root.querySelector('[data-method-add]'));assert.ok(!root.textContent.includes('Pathao'));
+bindSteadfastPanel({root,context:{shop,section:'deliverymethods'},client:{courier:async()=>({can_configure:true,methods:[]})},openForm(){}});await new Promise(r=>setTimeout(r,0));assert.equal(root.querySelector('.courier-cards'),null);assert.ok(root.textContent.includes('No courier added yet'));assert.ok(root.querySelector('[data-method-add]'));assert.ok(!root.textContent.includes('Pathao'));
 const empty=courierCards({providers:[{id:'steadfast',connected:true,status:'ready',name:'Steadfast',delivered:null,cancelled:null,delivery_ratio:null,cancellation_ratio:null}]});assert.ok(empty.includes('No finished-parcel rate available'));const emptyDOM=parseHTML('<main>'+empty+'</main>').document;assert.ok(!emptyDOM.querySelector('main').textContent.includes('0%'));assert.ok(!empty.includes('Returned'));
 console.log('Steadfast UI passed: permission-aware booking, displayed COD, successful close/reload, safe tracking URLs, disabled configuration and honest nullable rates.');
+
+root.innerHTML='<div class="courier-cards">Old cards</div>';let methodCalls=0;
+bindSteadfastPanel({root,context:{shop,section:'courier'},client:{courier:async()=>{methodCalls++;return {}}},openForm(){}});
+assert.equal(methodCalls,0);assert.equal(root.querySelector('.courier-cards'),null);assert.equal(root.querySelector('.delivery-methods'),null);
+const {workspaceShell}=await import('./workspace-design.mjs');
+const shell=role=>parseHTML('<main>'+workspaceShell({role,profile:{id:'u',full_name:'User'},shops:[{id:'shop',name:'Ecory'}],shopId:'shop',section:'deliverymethods',insideShop:true,content:''})+'</main>').document;
+assert.ok(shell('Owner').querySelector('.courier-subnav [data-section="deliverymethods"].active'));
+assert.equal(shell('Agent').querySelector('[data-section="deliverymethods"]'),null);
