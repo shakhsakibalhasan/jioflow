@@ -29,6 +29,16 @@ export function createAccountService({env=process.env,fetcher=fetch}={}){
   const p=await call('/rest/v1/jf_profiles?select=id,active,deleted_at&id=eq.'+encodeURIComponent(user.id)+'&limit=1',{token});
   if(!p?.[0]?.active||p[0].deleted_at)throw new RequestError('Your account is inactive.',403);
   const rpc=(name,body)=>call('/rest/v1/rpc/'+name,{method:'POST',token,body});
+  if(input?.action==='account_password_set'){
+   const password=input.new_password,confirm=input.confirm_password;
+   if(typeof password!=='string'||password.length<6||password.length>128||password!==confirm)throw new RequestError('Use 6–128 characters and matching passwords.');
+   if(input.user_id&&!uuid.test(input.user_id)||input.request_id&&!uuid.test(input.request_id)||!input.user_id&&!input.request_id)throw new RequestError('Select an account or reset request.');
+   const operation=await rpc('jf_prepare_password_set',{target_user:input.user_id||null,reset_request:input.request_id||null});
+   if(!uuid.test(operation?.user_id||'')||!uuid.test(operation?.lease_id||''))throw new RequestError('Reset authorization failed.',403);
+   try{await call('/auth/v1/admin/users/'+operation.user_id,{method:'PUT',key:c.secret,token:c.secret,body:{password}})}catch(error){try{await call('/rest/v1/rpc/jf_finish_password_set',{method:'POST',key:c.secret,token:c.secret,body:{lease_id:operation.lease_id,succeeded:false}})}catch{}throw error}
+   try{await call('/rest/v1/rpc/jf_finish_password_set',{method:'POST',key:c.secret,token:c.secret,body:{lease_id:operation.lease_id,succeeded:true}})}catch{return {message:'Password updated. Session cleanup could not be confirmed; use Force Logout for this account.'}}
+   return {message:'Password updated. Previous JioFlow sessions were signed out. The user can sign in with the new password.'};
+  }
   if(input?.action==='agent_reset_send'){
    if(!uuid.test(input.request_id||''))throw new RequestError('Select a password reset request.');
    const target=await rpc('jf_authorize_agent_reset',{request_id:input.request_id});

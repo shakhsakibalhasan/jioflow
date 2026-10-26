@@ -240,3 +240,8 @@ body,button,input,select,textarea,.flow-login,.online-dialog{font-family:'Manrop
 @media(min-width:701px){.order-workbench-panels.layout-free-group:not(:has(.slot-move-controls)){display:grid!important;grid-template-columns:minmax(0,.95fr) minmax(0,1.15fr) minmax(0,1fr)!important}.order-workbench-panels.layout-free-group:not(:has(.slot-move-controls))>.card{width:100%!important;min-width:0!important;grid-column:auto!important}}
 /* Product artwork keeps its alpha background; only the outer card has a surface. */
 .order-workbench .live-product-pick img,.order-workbench .live-product-pick .product-thumb,.order-product-editor .product-thumb,.order-product-editor .selected-item img,.order-workbench .cart-item img,.order-workbench .cart-thumb{background:transparent!important;border:0;box-shadow:none!important}
+/* Soft ash panel surfaces shared by every workspace role. */
+:root{--workspace-panel:#f6f7f5}html[data-mode=dark]{--workspace-panel:#1b211e}
+.layout #view section.card:not(.metric-dark):not(.profit-brand):not(.brand-confirmed):not(.featured),.layout #view .workspace-action-page>form{background:var(--workspace-panel)!important;border:1px solid var(--accent-edge,var(--line));box-shadow:none!important;border-radius:18px}
+.layout #view .order-workbench .product-pick.live-product-pick,.layout #view .order-product-editor .product-pick{background:var(--surface,#fff)!important}
+.layout #view .order-workbench .product-pick.live-product-pick:hover,.layout #view .order-product-editor .product-pick:hover{background:var(--accent-soft,#f2f8e9)!important}

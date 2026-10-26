@@ -1,0 +1,7 @@
+export function openManagedPasswordReset({openForm,client,reload,userId=null,requestId=null,onSaved=()=>{}}){
+ const dialog=openForm('Reset password',`<div class="form-grid"><label class="field">New password<input type="password" name="new_password" minlength="6" maxlength="128" required autocomplete="new-password"></label><label class="field">Confirm password<input type="password" name="confirm_password" minlength="6" maxlength="128" required autocomplete="new-password"></label></div><label><input type="checkbox" data-show-reset-password> Show passwords</label>`,async form=>{
+  const password=String(form.get('new_password')||''),confirm=String(form.get('confirm_password')||'');if(password.length<6||password.length>128)throw Error('Use a password with 6–128 characters.');if(password!==confirm)throw Error('The passwords do not match.');
+  const result=await client.manage({action:'account_password_set',...(userId?{user_id:userId}:{}),...(requestId?{request_id:requestId}:{}),new_password:password,confirm_password:confirm});dialog?.querySelector('form')?.reset();await reload();onSaved(result.message);
+ });
+ dialog?.querySelector('[type=submit]')?.replaceChildren('Save password');dialog?.querySelector('[data-show-reset-password]')?.addEventListener('change',e=>dialog.querySelectorAll('input[name$="password"]').forEach(input=>input.type=e.target.checked?'text':'password'));return dialog;
+}
