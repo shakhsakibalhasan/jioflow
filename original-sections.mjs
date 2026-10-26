@@ -1,3 +1,4 @@
+import {cachedWorkspaceRecords} from './record-cache.mjs';
 import {showLoading} from './loading.mjs';
 import {recordTarget,recordStatus,summaryTarget} from './record-routing.mjs';
 import {bindCustomerImport} from './live-customer-import.mjs';
@@ -5,7 +6,7 @@ const supported=new Set(['dashboard','products','customers','followups','permane
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function createOriginalSections({client,navigate,onLiveAction=()=>false,onReady=()=>{},bridge=()=>window.JioFlowOriginalViews}){
  let generation=0,viewContext=null;
- function bind(root){
+ function bind(root,ready=true){
   const active=bridge().currentSection?.();if(active)viewContext={...viewContext,section:active};
   root.querySelectorAll('[data-original-action]').forEach(b=>b.onclick=()=>{const action=JSON.parse(b.dataset.originalAction);let target=recordTarget(action,viewContext?.section);if(action.name==='openStatus')target={section:'followups',filters:{entity:'customers',status:recordStatus(b.querySelector('span')?.textContent)}};if(action.name==='sourceQueue')target={section:'followups',filters:{entity:'customers',status:'assigned',source:b.querySelector('span')?.textContent||''}};if(target){navigate(target.section,{...(target.section==='agentreports'&&viewContext?.recordFilter?.agent_id?{agent_id:viewContext.recordFilter.agent_id}:{}),...target.filters,...(target.filters.entity==='orders'?bridge().reportWindow?.()||{}:{})});return}root.innerHTML=bridge().action(action);bind(root)});
   root.querySelectorAll('[data-original-summary]').forEach(b=>b.onclick=()=>{const target=summaryTarget(b.dataset.originalSummary,viewContext?.section);navigate(target.section,target.filters)});
@@ -23,7 +24,7 @@ export function createOriginalSections({client,navigate,onLiveAction=()=>false,o
   root.querySelectorAll('[data-original-tab]').forEach(b=>b.onclick=()=>['orders','followups','customers','permanent','courier'].includes(viewContext?.section)?navigate(viewContext.section,{...(viewContext.recordFilter||{}),entity:['orders','courier'].includes(viewContext.section)?'orders':'customers',status:recordStatus(b.dataset.originalTab)}):update('tab',b.dataset.originalTab));
   root.querySelectorAll('[data-original-filters]').forEach(b=>b.onclick=()=>{const panel=root.querySelector('.filter-panel');if(panel&&root.querySelector('[data-live-record-panel]')){panel.hidden=!panel.hidden;b.setAttribute('aria-expanded',String(!panel.hidden));return}update('filters')});
   root.querySelectorAll('[data-original-search]').forEach(input=>{input.onchange=()=>update('search',input.value);input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();update('search',input.value)}}});
-  root.querySelectorAll('[data-original-form]').forEach(form=>form.onsubmit=e=>e.preventDefault());onReady(root,viewContext);bindCustomerImport(root,viewContext,client);
+  root.querySelectorAll('[data-original-form]').forEach(form=>form.onsubmit=e=>e.preventDefault());if(ready){onReady(root,viewContext);bindCustomerImport(root,viewContext,client);}
  }
  return {supports:section=>supported.has(section),clear(){generation++},async mount({root,section,shop,profile,shops,profiles,members,accountRole,canFinance,recordFilter=null,progressive=false,fullLoading=false,workspaceClient=null,supervisorCanLayout=false,supervisorCanWork=false}){
   const current=++generation;if(!supported.has(section))return;
@@ -35,7 +36,8 @@ export function createOriginalSections({client,navigate,onLiveAction=()=>false,o
    if(directPanel){const original=bridge();if(!original)throw new Error('Screen assets could not be loaded. Refresh to retry.');viewContext={section,shop,profile,shops,profiles,members,records:{},accountRole,recordFilter,fullLoading,workspaceClient,supervisorCanLayout,supervisorCanWork};root.innerHTML=original.render(section,viewContext);root.querySelectorAll('.metric-tile,.insight-tile,.overview-tile').forEach(el=>{const value=el.querySelector('strong');if(value)value.textContent='—';const foot=el.querySelector('.metric-context');if(foot)foot.textContent='Updating totals…';const badge=el.querySelector('.change-badge');if(badge)badge.textContent='—'});bind(root);if(section!=='dashboard')return}
    if(!directPanel)root.innerHTML='<div class="page-loading-space" aria-busy="true"></div>';
    let records={};if(shop&&!['settings','platformsettings','import','profile','shop'].includes(section)){
-    const scoped='select=*&shop_id=eq.'+encodeURIComponent(shop.id);
+    records=await cachedWorkspaceRecords(pageClient,{shop:shop.id,finance:canFinance===true},async()=>{
+    let records={};const scoped='select=*&shop_id=eq.'+encodeURIComponent(shop.id);
     const [orders,products,customers]=await Promise.all([pageClient.query('jf_orders',scoped+'&archived_at=is.null&order=created_at.desc&limit=50'),pageClient.query('jf_products',scoped+'&archived_at=is.null&order=created_at.desc&limit=50'),pageClient.query('jf_customers',scoped+'&archived_at=is.null&order=updated_at.desc&limit=50')]);
     records={orders:orders||[],products:products||[],customers:customers||[],items:[],payments:[],followups:[],costs:[],finance:[]};
     const collect=async(table,filter)=>{const rows=[];for(let offset=0;;offset+=1000){const part=await pageClient.query(table,scoped+filter+'&order=id.asc&limit=1000&offset='+offset);rows.push(...(part||[]));if(!part||part.length<1000)break}return rows};
@@ -45,11 +47,18 @@ export function createOriginalSections({client,navigate,onLiveAction=()=>false,o
      records.customers.length?pageClient.query('jf_followups',scoped+'&customer_id=in.('+records.customers.map(c=>c.id).join(',')+')&limit=50'):[],
      canFinance&&records.orders.length?pageClient.query('jf_order_finance',scoped+orderFilter):[],
      canFinance&&records.products.length?pageClient.query('jf_product_costs',scoped+'&product_id=in.('+records.products.map(p=>p.id).join(',')+')&limit=50'):[]]);
-    Object.assign(records,{items:items||[],payments:payments||[],followups:followups||[],finance:finance||[],costs:costs||[]});
+    Object.assign(records,{items:items||[],payments:payments||[],followups:followups||[],finance:finance||[],costs:costs||[]});return records;
+    });
    }
    if(current!==generation||root.querySelector('.slot-layout-controls,.workspace-action-page'))return;
    const original=bridge();if(!original)throw new Error('Original screen assets could not be loaded. Refresh the page.');
-   viewContext={section,shop,profile,shops,profiles,members,records,accountRole,recordFilter,fullLoading,workspaceClient,supervisorCanLayout,supervisorCanWork};root.innerHTML=original.render(section,viewContext);bind(root);
+   viewContext={section,shop,profile,shops,profiles,members,records,accountRole,recordFilter,fullLoading,workspaceClient,supervisorCanLayout,supervisorCanWork};
+   if(directPanel&&section==='dashboard'){
+    // Hydrate chart contents without replacing the live KPI nodes, layout or bindings.
+    const holder=root.ownerDocument.createElement('div');holder.innerHTML=original.render(section,viewContext);
+    const live=root.querySelector('.dashboard-panels'),fresh=holder.querySelector('.dashboard-panels');
+    if(live&&fresh){[...live.children].forEach((card,index)=>{const source=fresh.children[index];if(!source)return;card.innerHTML=source.innerHTML;bind(card,false)})}
+   }else{root.innerHTML=original.render(section,viewContext);bind(root)}
   }catch(error){if(current===generation)root.innerHTML='<section class="card"><h2>Unable to open this screen</h2><p role="alert">'+esc(error.message)+'</p><p>Refresh to try again. No records were changed.</p></section>'}finally{finishLoading()}
  }};
 }

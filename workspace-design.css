@@ -255,3 +255,28 @@ body,button,input,select,textarea,.flow-login,.online-dialog{font-family:'Manrop
 #view .courier-history-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:14px;overflow:visible!important;height:auto;max-height:none;padding:0;align-items:stretch}#view .customer-workspace-columns .table-wrap,#view .workspace-action-page .table-wrap{height:auto;max-height:none;overflow-y:visible}.courier-provider-card>.courier-provider-heading{border-radius:14px 14px 0 0}.agent-workspace-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 20px;background:var(--accent-soft);border:1px solid var(--accent-edge);border-radius:16px;margin-bottom:22px}.agent-workspace-banner p{font-size:12px;margin:5px 0 0}.agent-workspace-banner button{white-space:nowrap}
 @media(max-width:700px){.layout .content{padding:18px 14px}.workspace-action-page>form{padding:16px!important}.agent-workspace-banner{flex-wrap:wrap}.workspace-action-page .workspace-page-header h2{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.layout *,.workspace-action-page{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Update48: stable shared dashboard rows, including layouts saved with fixed widths. */
+@media(min-width:701px){
+ .layout #view .order-workbench-panels:not(:has(.slot-move-controls)){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px!important;justify-content:stretch!important;align-items:stretch!important}
+ .layout #view .order-workbench-panels:not(:has(.slot-move-controls))>.card{width:100%!important;max-width:none!important;margin:0!important;grid-column:auto!important;justify-self:stretch!important;align-self:stretch!important;box-sizing:border-box}
+}
+.layout #view .dashboard-metrics:not(:has(.slot-move-controls)),.layout #view .agent-report-summary{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:16px!important;align-items:stretch;overflow:visible}
+.layout #view .dashboard-metrics:not(:has(.slot-move-controls))>*{width:100%!important;margin:0!important;min-width:0;max-width:none!important;box-sizing:border-box;grid-column:auto!important}
+.layout #view .dashboard-panels:not(:has(.slot-move-controls)){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:18px!important;align-items:stretch!important}
+.layout #view .dashboard-panels:not(:has(.slot-move-controls))>.card{width:100%!important;max-width:none!important;margin:0!important;height:auto!important;overflow:visible!important;box-sizing:border-box;grid-column:auto!important}
+.layout #view .agent-report-summary>.metric-tile{min-height:146px;text-align:left;border-radius:18px;padding:20px!important}
+@media(max-width:1100px){.layout #view .dashboard-metrics:not(:has(.slot-move-controls)),.layout #view .agent-report-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:900px){.layout #view .dashboard-panels:not(:has(.slot-move-controls)){grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:540px){.layout #view .dashboard-metrics:not(:has(.slot-move-controls)),.layout #view .agent-report-summary,.layout #view .dashboard-panels:not(:has(.slot-move-controls)){grid-template-columns:1fr!important}}
+
+/* Courier overview is a separate full-width row above customer fields. */
+.layout #view .order-history-panel{grid-column:1/-1!important;order:-110!important;width:100%!important;max-width:100%!important;margin:0 0 2px!important;padding:18px;border:1px solid var(--accent-edge,var(--line));border-radius:18px;background:var(--soft,#f7f8f5);height:auto!important;max-height:none!important;overflow:visible!important;box-sizing:border-box}
+.layout #view .order-history-panel[hidden]{display:none!important}
+.layout #view .order-history-panel .courier-history-strip{margin:0;padding:0;border:0;overflow:visible!important}
+.layout #view .order-history-panel>[data-courier-status]:empty{display:none}
+
+/* Natural form row heights prevent customer fields overlapping the next row. */
+.layout #view #order-form.order-workbench:not(:has(.slot-layout-controls)){height:auto!important;min-height:0!important;max-height:none!important;grid-auto-rows:max-content!important;align-content:start!important;overflow:visible!important}
+.layout #view .order-workbench>.order-customer-panel:not(:has(.slot-move-controls)){height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;align-self:start!important;position:relative!important;transform:none!important;margin-bottom:0!important;padding-bottom:22px!important}
+.layout #view .order-customer-panel>.form-grid{height:auto!important;max-height:none!important;grid-auto-rows:max-content;align-content:start;position:static!important;overflow:visible!important}

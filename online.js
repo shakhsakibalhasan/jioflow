@@ -43,14 +43,19 @@ async function loadData(){
  if(status?.blocked){renderWorkspacePaused();return}
  if(gate?.is_agent&&gate.status!=='approved'){shops=[];profiles=[identity.profile];members=[];renderAgentPending();return}
  shops=nextShops||[];profiles=nextProfiles||[];members=nextMembers||[];identity.profile=profiles.find(p=>p.id===user)||identity.profile;
- if(!scopeRestored){scopeRestored=true;try{const saved=JSON.parse(sessionStorage.getItem('jioflow.workspace.scope.v1')||'null');if(saved?.userId===user&&shops.some(s=>s.id===saved.shopId)){shopId=saved.shopId;insideShop=saved.insideShop===true}}catch{}}
- if(shopId!=='all'&&!shops.some(s=>s.id===shopId))shopId='all';render();
+ if(!scopeRestored){scopeRestored=true;try{const saved=JSON.parse(sessionStorage.getItem('jioflow.workspace.scope.v1')||'null');if(saved?.userId===user&&shops.some(s=>s.id===saved.shopId)){shopId=saved.shopId;insideShop=saved.insideShop===true;if(saved.section===section&&saved.filters)panelFilter={...saved.filters,...panelFilter}}}catch{}}
+ if(shopId!=='all'&&!shops.some(s=>s.id===shopId))shopId='all';rememberScope();writeNavigation();render();
  // Notifications and platform totals must not delay opening the current page.
  loadNotifications().then(()=>{if(current===revision&&identity?.profile.id===user)refreshNotificationBar()});loadDashboardCounts();
 }
 function currentShop(){return roleOf(identity.profile)==='Creator'?shops.find(s=>s.id===shopId):shops.find(s=>s.owner_id===identity.profile.id||members.some(m=>m.user_id===identity.profile.id&&m.shop_id===s.id))}
-function rememberScope(){try{sessionStorage.setItem('jioflow.workspace.scope.v1',JSON.stringify({userId:identity.profile.id,shopId,insideShop}))}catch{}}
-function navigate(next,filters=null){const inspected=filters?.workspace_agent||panelFilter?.workspace_agent;if(inspected&&agentWorkspaceSections.has(next))filters={...filters,workspace_agent:inspected};section=next;panelFilter=filters;rememberScope();const params=new URLSearchParams();for(const [key,value]of Object.entries(filters||{}))if(value!==null&&value!==undefined&&value!==''&&key!=='search')params.set(key,String(value));history.replaceState(null,'','#'+next+(params.size?'?'+params:''));render()}
+function rememberScope(){try{sessionStorage.setItem('jioflow.workspace.scope.v1',JSON.stringify({userId:identity.profile.id,shopId,insideShop,section,filters:panelFilter}))}catch{}}
+function navigationState(){return {jioflow:true,userId:identity?.profile.id,shopId,insideShop,section,filters:panelFilter}}
+function writeNavigation(push=false){const params=new URLSearchParams();for(const [key,value]of Object.entries(panelFilter||{}))if(value!==null&&value!==undefined&&value!==''&&key!=='search')params.set(key,String(value));const url='#'+section+(params.size?'?'+params:'');const same=JSON.stringify(history.state)===JSON.stringify(navigationState());if(push&&!same&&typeof history.pushState==='function')history.pushState(navigationState(),'',url);else history.replaceState(navigationState(),'',url)}
+function navigate(next,filters=null){const inspected=filters?.workspace_agent||panelFilter?.workspace_agent;if(inspected&&agentWorkspaceSections.has(next))filters={...filters,workspace_agent:inspected};section=next;panelFilter=filters;rememberScope();writeNavigation(true);render()}
+function restoreNavigation(event){if(!identity)return;const state=event.state;if(state?.jioflow&&state.userId===identity.profile.id){shopId=state.shopId==='all'||shops.some(s=>s.id===state.shopId)?state.shopId:'all';insideShop=state.insideShop===true;section=Object.hasOwn(routeTitles,state.section)?state.section:'dashboard';panelFilter=state.filters||null;}else{const [route,parameters='']=location.hash.slice(1).split('?');section=Object.hasOwn(routeTitles,route)?route:'dashboard';panelFilter=parameters?Object.fromEntries(new URLSearchParams(parameters)):null;}rememberScope();render()}
+if(typeof window!=='undefined')window.addEventListener('popstate',restoreNavigation);
+
 function render(){
  const p=identity.profile,role=roleOf(p),shop=currentShop();
  if(role==='Unassigned'){operations.clear();root.innerHTML=`<section class="online-loading card"><p class="flow-eyebrow">${esc(shop?.name||'JioFlow')}</p><h1>${role==='Agent'?'Agent setup pending':'Awaiting assignment'}</h1><p>${role==='Agent'?'Your administrator needs to approve access and device setup before your workspace opens.':'Your administrator needs to assign this account to a shop.'}</p><button id="online-logout">Sign out</button></section>`;bindLogout();return}
@@ -79,7 +84,7 @@ function render(){
  root.querySelector('[data-home]')?.addEventListener('click',e=>{e.preventDefault();navigate('dashboard')});
  root.querySelectorAll('[data-open-shop]').forEach(el=>el.onclick=()=>{shopId=el.dataset.openShop;insideShop=true;navigate('shop');loadDashboardCounts()});
  root.querySelector('[data-back-shops]')?.addEventListener('click',()=>{insideShop=false;navigate('shops')});
- const scope=document.getElementById('online-shop');if(scope)scope.onchange=e=>{shopId=e.target.value;if(panelFilter)panelFilter={...panelFilter,agent_id:null,workspace_agent:null};if(shopId==='all')insideShop=false;rememberScope();render();loadDashboardCounts();loadNotifications().then(refreshNotificationBar)};
+ const scope=document.getElementById('online-shop');if(scope)scope.onchange=e=>{shopId=e.target.value;if(panelFilter)panelFilter={...panelFilter,agent_id:null,workspace_agent:null};if(shopId==='all')insideShop=false;rememberScope();writeNavigation(true);render();loadDashboardCounts();loadNotifications().then(refreshNotificationBar)};
  document.getElementById('workspace-menu')?.addEventListener('click',()=>root.querySelector('.sidebar').classList.toggle('open'));
  document.getElementById('online-refresh').onclick=async()=>{if(refreshInFlight)return;refreshInFlight=true;const finishLoading=()=>{};const button=document.getElementById('online-refresh');button.classList.add('is-refreshing');button.disabled=true;try{await loadData()}catch(error){const note=document.getElementById('online-data-error');if(note)note.textContent=error.message}finally{finishLoading();refreshInFlight=false;const current=document.getElementById('online-refresh');if(current){current.disabled=false;current.classList.remove('is-refreshing')}}};
  document.getElementById('workspace-reset-password')?.addEventListener('click',showRecovery);
