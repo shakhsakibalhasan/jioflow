@@ -280,3 +280,23 @@ body,button,input,select,textarea,.flow-login,.online-dialog{font-family:'Manrop
 .layout #view #order-form.order-workbench:not(:has(.slot-layout-controls)){height:auto!important;min-height:0!important;max-height:none!important;grid-auto-rows:max-content!important;align-content:start!important;overflow:visible!important}
 .layout #view .order-workbench>.order-customer-panel:not(:has(.slot-move-controls)){height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;align-self:start!important;position:relative!important;transform:none!important;margin-bottom:0!important;padding-bottom:22px!important}
 .layout #view .order-customer-panel>.form-grid{height:auto!important;max-height:none!important;grid-auto-rows:max-content;align-content:start;position:static!important;overflow:visible!important}
+
+/* Update49: compact metric hierarchy with brand icon shapes and subtle trends. */
+#app #view .stats :is(.metric-tile,.insight-tile,.overview-tile){position:relative!important;display:block!important;text-align:left;min-height:142px!important;padding:18px 20px!important;transition:border-color .16s ease,background-color .16s ease,transform .16s ease!important}
+#app #view .stats :is(.metric-tile,.insight-tile,.overview-tile):hover{transform:translateY(-2px)!important;border-color:var(--accent)!important}
+#app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) :is(.label,.tile-label){display:block!important;padding-right:44px;max-width:100%;font-size:12px!important;font-weight:550!important;line-height:1.5!important}
+#app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) :is(.metric-balanced,.metric-value-row,.metric-indicators,.summary-indicators){display:contents!important}
+#app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) strong{position:absolute!important;left:20px;bottom:20px;margin:0!important;font-size:26px!important;font-weight:650!important;line-height:1.2!important;max-width:58%;overflow-wrap:anywhere}
+#app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) .metric-icon{position:absolute!important;top:16px!important;right:17px!important;left:auto!important;bottom:auto!important;width:34px!important;height:34px!important;display:grid!important;place-items:center;border-radius:11px!important;background:var(--accent-soft,#eff8e2)!important;color:var(--accent-ink,#365617)!important;border:1px solid var(--accent-edge,var(--line))!important;box-shadow:none!important}
+#app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) .change-badge{position:absolute!important;right:18px;bottom:38px;display:inline-flex!important;align-items:center;padding:3px 7px!important;border:0!important;border-radius:6px!important;font-size:11px!important;font-weight:600!important;line-height:1.3!important;background:#f0f2ef!important;color:#475447!important}
+#app #view .stats .change-badge.trend-up{background:#eaf7ee!important;color:#21854b!important}
+#app #view .stats .change-badge.trend-down{background:#fff0ef!important;color:#bd4944!important}
+#app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) .previous-line{position:absolute!important;right:18px;bottom:17px;display:block!important;margin:0!important;max-width:58%;font-size:10px!important;font-weight:400;line-height:1.4!important;text-align:right}
+#app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) .metric-context{display:none!important}
+html[data-mode=dark] #app #view .stats .change-badge.trend-up{background:#173528!important;color:#8bd6a3!important}
+html[data-mode=dark] #app #view .stats .change-badge.trend-down{background:#3b2425!important;color:#f1a5a1!important}
+@media(prefers-reduced-motion:reduce){#app #view .stats :is(.metric-tile,.insight-tile,.overview-tile):hover{transform:none!important}}
+
+.summary-load-error{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;border-color:#ecd0cc!important;background:#fff6f4!important}.summary-load-error p{margin:0;line-height:1.5}.summary-load-error button{flex:none}html[data-mode=dark] .summary-load-error{background:#302222!important}
+
+#app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) :is(.label,.tile-label){position:absolute!important;top:18px;left:20px;right:58px;padding:0!important;margin:0!important;max-width:none!important}

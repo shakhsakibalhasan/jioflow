@@ -7,7 +7,7 @@ export async function cachedReadRpc(client,name,args){
  if(!['jf_workspace_summary','jf_workspace_tools','jf_agent_workspace_context'].includes(name)||name==='jf_workspace_tools'&&args.tool!=='load')throw Error('Only workspace reads can be cached.');
  let cache=readCaches.get(client);if(!cache){cache=new Map();readCaches.set(client,cache)}
  const key=JSON.stringify([client.sessionVersion?.()??null,name,args]),old=cache.get(key);if(old&&old.until>Date.now())return structuredClone(await old.promise);
- const entry={until:Date.now()+10000};entry.promise=client.rpc(name,args).catch(e=>{if(cache.get(key)===entry)cache.delete(key);throw e});cache.set(key,entry);while(cache.size>30)cache.delete(cache.keys().next().value);return structuredClone(await entry.promise);
+ const entry={until:Date.now()+10000};entry.promise=(name==='jf_workspace_summary'?reportDeadline(client.rpc(name,args)):client.rpc(name,args)).catch(e=>{if(cache.get(key)===entry)cache.delete(key);throw e});cache.set(key,entry);while(cache.size>30)cache.delete(cache.keys().next().value);return structuredClone(await entry.promise);
 }
 
 function countScope(client,args){const filters={...args.filters};delete filters.status;return JSON.stringify([client.sessionVersion?.()??null,args.target_shop,args.entity,Object.fromEntries(Object.entries(filters).sort(([a],[b])=>a.localeCompare(b)))])}
@@ -19,3 +19,5 @@ export async function cachedWorkspaceRecords(client,scope,read){
  const key=JSON.stringify([client.sessionVersion?.()??null,scope]),old=cache.get(key);if(old&&old.until>Date.now())return structuredClone(await old.promise);
  const entry={until:Date.now()+15000};entry.promise=Promise.resolve().then(read).catch(error=>{if(cache.get(key)===entry)cache.delete(key);throw error});cache.set(key,entry);while(cache.size>20)cache.delete(cache.keys().next().value);return structuredClone(await entry.promise);
 }
+
+export function reportDeadline(promise,milliseconds=12000){let timer;return Promise.race([promise,new Promise((resolve,reject)=>{timer=setTimeout(()=>reject(new Error('Reporting request took too long. Retry totals.')),milliseconds)})]).finally(()=>clearTimeout(timer));}
