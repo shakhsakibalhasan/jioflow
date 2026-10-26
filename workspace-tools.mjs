@@ -50,6 +50,8 @@ export async function bindWorkspaceTools({root,context,client,openForm,reload,na
  const previousRenderTask=previousTask?previousTask.then(async result=>{await summaryRenderTask;if(!current()||result.error)return;const old=result.value;root.querySelectorAll('.metric-tile,.insight-tile,.overview-tile').forEach(tile=>{const label=tile.querySelector('.label,.tile-label')?.textContent.replace('↗','').trim(),metric=metrics[label],line=tile.querySelector('.previous-line');if(metric?.[2]==='orders'){if(line)line.textContent=old[metric[0]]==null?'Previous comparison unavailable':'Previous: '+Number(old[metric[0]]).toLocaleString('en-BD');paintMetricTrend(tile,currentSummary?.[metric[0]],old[metric[0]])}})}):null;
  let data;try{data=await cachedReadRpc(client,'jf_workspace_tools',{target_shop:shop.id,tool:'load',details:{page:section}})}catch(e){if(current())notice('Some page settings could not load. Refresh to retry.');data={settings:{},layout:{},groups:[]}}if(!current())return;
  const settings=data.settings||{},groups=data.groups||[];let layout=data.layout||{};
+ // Repair pre-52 dashboard geometry; keep titles/visibility and all business data.
+ if(section==='dashboard'&&layout.dashboard_layout_version!==52){layout={...layout,dashboard_layout_version:52,groups:[],items:Object.fromEntries(Object.entries(layout.items||{}).map(([id,cfg])=>[id,{title:cfg.title,hidden:cfg.hidden}]))};}
  const save=async(tool,details)=>{await run(tool,details);await reload()};
  const agents=members.filter(m=>m.shop_id===shop.id&&m.role==='agent'&&m.status==='active'&&profiles.some(p=>p.id===m.user_id&&p.active));
  const name=id=>profiles.find(p=>p.id===id)?.full_name||'Agent';

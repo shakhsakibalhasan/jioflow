@@ -319,3 +319,7 @@ html[data-mode=dark] #app #view .stats .change-badge.trend-down{background:#3b24
 #app .order-summary-panel .compact-cart-item .cart-quantity-stepper input{width:36px;height:29px;min-height:29px;margin:0;padding:0;border:0;border-radius:0;text-align:center;font-size:12px;appearance:textfield;-moz-appearance:textfield}
 #app .order-summary-panel .compact-cart-item input::-webkit-inner-spin-button{appearance:none}
 #app .order-summary-panel .compact-cart-item .cart-item-remove{position:absolute;right:9px;top:9px;width:25px;height:25px;min-height:25px;padding:0;border:0;border-radius:8px;background:#fff0ef;color:#c44545;font-size:17px}
+
+/* Update 52: dashboard chart content grows naturally instead of nested scrollbars. */
+.dashboard-panels .status-scroll{max-height:none!important;overflow:visible!important}
+.dashboard-panels>.card{height:auto;min-width:0}
