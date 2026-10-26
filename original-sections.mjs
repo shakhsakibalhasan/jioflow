@@ -1,3 +1,4 @@
+import {placeHeaderControls} from './header-controls.mjs';
 import {cachedWorkspaceRecords} from './record-cache.mjs';
 import {showLoading} from './loading.mjs';
 import {recordTarget,recordStatus,summaryTarget} from './record-routing.mjs';
@@ -24,7 +25,7 @@ export function createOriginalSections({client,navigate,onLiveAction=()=>false,o
   root.querySelectorAll('[data-original-tab]').forEach(b=>b.onclick=()=>['orders','followups','customers','permanent','courier'].includes(viewContext?.section)?navigate(viewContext.section,{...(viewContext.recordFilter||{}),entity:['orders','courier'].includes(viewContext.section)?'orders':'customers',status:recordStatus(b.dataset.originalTab)}):update('tab',b.dataset.originalTab));
   root.querySelectorAll('[data-original-filters]').forEach(b=>b.onclick=()=>{const panel=root.querySelector('.filter-panel');if(panel&&root.querySelector('[data-live-record-panel]')){panel.hidden=!panel.hidden;b.setAttribute('aria-expanded',String(!panel.hidden));return}update('filters')});
   root.querySelectorAll('[data-original-search]').forEach(input=>{input.onchange=()=>update('search',input.value);input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();update('search',input.value)}}});
-  root.querySelectorAll('[data-original-form]').forEach(form=>form.onsubmit=e=>e.preventDefault());if(ready){onReady(root,viewContext);bindCustomerImport(root,viewContext,client);}
+  root.querySelectorAll('[data-original-form]').forEach(form=>form.onsubmit=e=>e.preventDefault());if(ready){placeHeaderControls(root,root.querySelector('.original-header-actions'));onReady(root,viewContext);bindCustomerImport(root,viewContext,client);}
  }
  return {supports:section=>supported.has(section),clear(){generation++},async mount({root,section,shop,profile,shops,profiles,members,accountRole,canFinance,recordFilter=null,progressive=false,fullLoading=false,workspaceClient=null,supervisorCanLayout=false,supervisorCanWork=false}){
   const current=++generation;if(!supported.has(section))return;

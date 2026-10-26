@@ -1,3 +1,4 @@
+import {placeHeaderControls} from './header-controls.mjs';
 import {bindRecordPanel} from './record-panel.mjs';
 const generations=new WeakMap(),reportCaches=new WeakMap();
 export function invalidateAgentReports(client){reportCaches.delete(client)}
@@ -33,6 +34,6 @@ export async function bindAgentReports({root,context,client,navigate,openForm}){
  root.querySelectorAll('[data-agent-id]').forEach(b=>b.onclick=()=>b.dataset.agentId?go(b.dataset.agentId,b.dataset.agentEntity,b.dataset.agentStatus):navigate(b.dataset.agentEntity==='orders'?'orders':'followups',{...period,entity:b.dataset.agentEntity,status:b.dataset.agentStatus}));
  root.querySelectorAll('[data-agent-dashboard]').forEach(b=>b.onclick=()=>navigate('dashboard',{workspace_agent:b.dataset.agentDashboard}));root.querySelectorAll('[data-agent-full]').forEach(b=>b.onclick=()=>go(b.dataset.agentFull,'customers','all','report'));
  root.querySelector('[data-agent-period]').onchange=e=>{let dates={};if(e.target.value!=='all'){const now=new Date(),date=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dhaka',year:'numeric',month:'2-digit',day:'2-digit'}).format(now),start=new Date(date+'T00:00:00+06:00');if(e.target.value!=='today')start.setDate(start.getDate()-(Number(e.target.value)-1));dates={report_start:start.toISOString(),report_end:now.toISOString()}}navigate('agentreports',{...filter,report_start:null,report_end:null,...dates})};
- const menu=document.getElementById('workspace-page-options');if(menu)menu.hidden=true;
+ placeHeaderControls(root,root.querySelector('[data-agent-period]')?.closest('label'));const menu=document.getElementById('workspace-page-options');if(menu)menu.hidden=true;
  }catch(error){if(!current())return;root.innerHTML=`<section class="card"><h2>Agent Reports</h2><p role="alert">${esc(error.message)}</p><button data-agent-retry>Try again</button></section>`;root.querySelector('[data-agent-retry]').onclick=()=>bindAgentReports({root,context,client,navigate,openForm})}
 }
