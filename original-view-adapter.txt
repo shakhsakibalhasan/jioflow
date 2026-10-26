@@ -21,6 +21,9 @@ function renderOriginal(section,context,reset=true){
  page=section==='followups'?'customers':section;
  const views={dashboard:dashboardView,products:productsView,customers:customersView,followups:customersView,permanent:customersView,team:teamView,profile:profileView,shop:storesView,orders:ordersView,new:newOrderView,import:importView,courier:courierView,profit:profitView,agentreports:agentReportsView,agentdetail:agentDetailView,profitdetail:()=>originalDetailHTML,settings:settingsView,platformsettings:platformSettingsView};
  let html=(views[section]||ordersView)();const holder=document.createElement('div');holder.innerHTML=html;
+ if(['orders','courier'].includes(section))holder.querySelectorAll('[onclick]').forEach(el=>{if(/subtab='Imported'|selectOrderOverview\('Imported'\)/.test(el.getAttribute('onclick')||''))el.remove()});
+ // Keep every Dashboard KPI together above the charts for all roles.
+ if(section==='dashboard'){const summary=holder.querySelector('.stats.dashboard-metrics')||holder.querySelector('.stats');if(summary)holder.querySelectorAll('.dashboard-actions').forEach(group=>{summary.append(...group.children);group.remove()})}
  // Keep queue and completion summaries visible before secondary metrics.
  if(['dashboard','customers','followups','permanent','orders','courier','agentreports'].includes(section)){
   let summary=holder.querySelector('.stats');
