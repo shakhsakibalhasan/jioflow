@@ -25,7 +25,7 @@ export async function bindWorkspaceTools({root,context,client,openForm,reload,na
  const previousTask=summaryNeeded&&reportWindow.report_start?capture(client.rpc('jf_workspace_summary',{target_shop:shop.id,report_start:new Date(new Date(reportWindow.report_start).getTime()-(new Date(reportWindow.report_end).getTime()-new Date(reportWindow.report_start).getTime())).toISOString(),report_end:reportWindow.report_start})):null;
  const financeTask=['dashboard','profit','profitdetail','agentreports'].includes(section)&&permitted('profit')?capture(client.rpc('jf_finance_totals',{target_shop:shop.id})):null;
  const agentTask=['dashboard','agentreports','agentdetail'].includes(section)&&staff?capture(client.rpc('jf_agent_totals',{target_shop:shop.id})):null;
- let data;try{data=await run('load',{page:section})}catch(e){if(current())notice('Workspace tools: '+e.message);return}if(!current())return;
+ let data;try{data=await run('load',{page:section})}catch(e){if(current())notice('Some page settings could not load. Refresh to retry.');data={settings:{},layout:{},groups:[]}}if(!current())return;
  const settings=data.settings||{},groups=data.groups||[];let layout=data.layout||{};
  const save=async(tool,details)=>{await run(tool,details);await reload()};
  const agents=members.filter(m=>m.shop_id===shop.id&&m.role==='agent'&&m.status==='active'&&profiles.some(p=>p.id===m.user_id&&p.active));
