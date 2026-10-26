@@ -25,30 +25,31 @@ export function createOriginalSections({client,navigate,onLiveAction=()=>false,o
   root.querySelectorAll('[data-original-search]').forEach(input=>{input.onchange=()=>update('search',input.value);input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();update('search',input.value)}}});
   root.querySelectorAll('[data-original-form]').forEach(form=>form.onsubmit=e=>e.preventDefault());onReady(root,viewContext);bindCustomerImport(root,viewContext,client);
  }
- return {supports:section=>supported.has(section),clear(){generation++},async mount({root,section,shop,profile,shops,profiles,members,accountRole,canFinance,recordFilter=null,progressive=false,fullLoading=false}){
+ return {supports:section=>supported.has(section),clear(){generation++},async mount({root,section,shop,profile,shops,profiles,members,accountRole,canFinance,recordFilter=null,progressive=false,fullLoading=false,workspaceClient=null,supervisorCanLayout=false,supervisorCanWork=false}){
   const current=++generation;if(!supported.has(section))return;
   if(!shop&&!['profile','platformsettings'].includes(section)){root.innerHTML='<section class="card"><h2>Select a business</h2><p>Select a shop above to open its original workspace screen.</p></section>';return}
+  const pageClient=workspaceClient||client;
   const directPanel=progressive&&(['dashboard','new','orders','courier','customers','followups','permanent','agentreports'].includes(section)||Boolean(recordFilter?.entity));
   root.classList.add('page-enter');const finishLoading=fullLoading&&!directPanel?showLoading({scope:root}):()=>{};
   try{
-   if(directPanel){const original=bridge();if(!original)throw new Error('Screen assets could not be loaded. Refresh to retry.');viewContext={section,shop,profile,shops,profiles,members,records:{},accountRole,recordFilter,fullLoading};root.innerHTML=original.render(section,viewContext);root.querySelectorAll('.metric-tile,.insight-tile,.overview-tile').forEach(el=>{const value=el.querySelector('strong');if(value)value.textContent='—';const foot=el.querySelector('.metric-context');if(foot)foot.textContent='Updating totals…';const badge=el.querySelector('.change-badge');if(badge)badge.textContent='—'});bind(root);if(section!=='dashboard')return}
+   if(directPanel){const original=bridge();if(!original)throw new Error('Screen assets could not be loaded. Refresh to retry.');viewContext={section,shop,profile,shops,profiles,members,records:{},accountRole,recordFilter,fullLoading,workspaceClient,supervisorCanLayout,supervisorCanWork};root.innerHTML=original.render(section,viewContext);root.querySelectorAll('.metric-tile,.insight-tile,.overview-tile').forEach(el=>{const value=el.querySelector('strong');if(value)value.textContent='—';const foot=el.querySelector('.metric-context');if(foot)foot.textContent='Updating totals…';const badge=el.querySelector('.change-badge');if(badge)badge.textContent='—'});bind(root);if(section!=='dashboard')return}
    if(!directPanel)root.innerHTML='<div class="page-loading-space" aria-busy="true"></div>';
    let records={};if(shop&&!['settings','platformsettings','import','profile','shop'].includes(section)){
     const scoped='select=*&shop_id=eq.'+encodeURIComponent(shop.id);
-    const [orders,products,customers]=await Promise.all([client.query('jf_orders',scoped+'&archived_at=is.null&order=created_at.desc&limit=50'),client.query('jf_products',scoped+'&archived_at=is.null&order=created_at.desc&limit=50'),client.query('jf_customers',scoped+'&archived_at=is.null&order=updated_at.desc&limit=50')]);
+    const [orders,products,customers]=await Promise.all([pageClient.query('jf_orders',scoped+'&archived_at=is.null&order=created_at.desc&limit=50'),pageClient.query('jf_products',scoped+'&archived_at=is.null&order=created_at.desc&limit=50'),pageClient.query('jf_customers',scoped+'&archived_at=is.null&order=updated_at.desc&limit=50')]);
     records={orders:orders||[],products:products||[],customers:customers||[],items:[],payments:[],followups:[],costs:[],finance:[]};
-    const collect=async(table,filter)=>{const rows=[];for(let offset=0;;offset+=1000){const part=await client.query(table,scoped+filter+'&order=id.asc&limit=1000&offset='+offset);rows.push(...(part||[]));if(!part||part.length<1000)break}return rows};
+    const collect=async(table,filter)=>{const rows=[];for(let offset=0;;offset+=1000){const part=await pageClient.query(table,scoped+filter+'&order=id.asc&limit=1000&offset='+offset);rows.push(...(part||[]));if(!part||part.length<1000)break}return rows};
     const orderFilter='&order_id=in.('+records.orders.map(o=>o.id).join(',')+')';
     const [items,payments,followups,finance,costs]=await Promise.all([
      records.orders.length?collect('jf_order_items',orderFilter):[],records.orders.length?collect('jf_payments',orderFilter):[],
-     records.customers.length?client.query('jf_followups',scoped+'&customer_id=in.('+records.customers.map(c=>c.id).join(',')+')&limit=50'):[],
-     canFinance&&records.orders.length?client.query('jf_order_finance',scoped+orderFilter):[],
-     canFinance&&records.products.length?client.query('jf_product_costs',scoped+'&product_id=in.('+records.products.map(p=>p.id).join(',')+')&limit=50'):[]]);
+     records.customers.length?pageClient.query('jf_followups',scoped+'&customer_id=in.('+records.customers.map(c=>c.id).join(',')+')&limit=50'):[],
+     canFinance&&records.orders.length?pageClient.query('jf_order_finance',scoped+orderFilter):[],
+     canFinance&&records.products.length?pageClient.query('jf_product_costs',scoped+'&product_id=in.('+records.products.map(p=>p.id).join(',')+')&limit=50'):[]]);
     Object.assign(records,{items:items||[],payments:payments||[],followups:followups||[],finance:finance||[],costs:costs||[]});
    }
    if(current!==generation||root.querySelector('.slot-layout-controls,.workspace-action-page'))return;
    const original=bridge();if(!original)throw new Error('Original screen assets could not be loaded. Refresh the page.');
-   viewContext={section,shop,profile,shops,profiles,members,records,accountRole,recordFilter,fullLoading};root.innerHTML=original.render(section,viewContext);bind(root);
+   viewContext={section,shop,profile,shops,profiles,members,records,accountRole,recordFilter,fullLoading,workspaceClient,supervisorCanLayout,supervisorCanWork};root.innerHTML=original.render(section,viewContext);bind(root);
   }catch(error){if(current===generation)root.innerHTML='<section class="card"><h2>Unable to open this screen</h2><p role="alert">'+esc(error.message)+'</p><p>Refresh to try again. No records were changed.</p></section>'}finally{finishLoading()}
  }};
 }

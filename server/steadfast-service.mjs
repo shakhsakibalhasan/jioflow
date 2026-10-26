@@ -13,11 +13,15 @@ export function credentials(env,shop){
  if(typeof keys.api_key!=='string'||typeof keys.secret_key!=='string'||/[\r\n]/.test(keys.api_key+keys.secret_key))throw new RequestError('Courier server configuration is invalid.',503);
  return keys;
 }
-export function historyResult(data){
- const count=v=>Number.isSafeInteger(v)&&v>=0?v:null;
- const percent=v=>Number.isFinite(v)&&v>=0&&v<=100?v:null;
- return {id:'steadfast',name:'Steadfast',connected:true,status:'ready',delivered:count(data.delivered_count),cancelled:count(data.cancelled_count),delivery_ratio:percent(data.delivery_ratio),cancellation_ratio:percent(data.cancellation_ratio),total_reports:count(data.total_reports),volume_range:typeof data.volume_range==='string'?data.volume_range:null};
+export function historyResult(raw){
+ const data=raw?.data&&typeof raw.data==='object'?raw.data:raw||{};
+ const number=v=>typeof v==='number'?v:typeof v==='string'&&/^\d+(?:\.\d+)?$/.test(v.trim())?Number(v):null;
+ const count=v=>{const n=number(v);return Number.isSafeInteger(n)&&n>=0?n:null};
+ const percent=v=>{const n=number(v);return n!==null&&Number.isFinite(n)&&n>=0&&n<=100?n:null};
+ const delivered=count(data.delivered_count),cancelled=count(data.cancelled_count),ratio=percent(data.delivery_ratio),available=delivered!==null||cancelled!==null||ratio!==null;
+ return {id:'steadfast',name:'Steadfast',connected:true,status:available?'ready':'unavailable',delivered,cancelled,delivery_ratio:ratio,cancellation_ratio:percent(data.cancellation_ratio),total_reports:count(data.total_reports),volume_range:typeof data.volume_range==='string'?data.volume_range:null,...(!available?{error:'Steadfast returned no recognized phone history fields. Check API access for this account.'}:{})};
 }
+
 const historyCache=new Map();
 export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Date.now(),cache=historyCache}={}){
  const c=configuration(env);
@@ -31,7 +35,7 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
  async function provider(keys,path,body){
   let response;try{response=await fetcher(BASE+path,{method:body?'POST':'GET',headers:{'Api-Key':keys.api_key,'Secret-Key':keys.secret_key,'Content-Type':'application/json',Accept:'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(6500)})}catch{throw new RequestError(body?'Booking outcome is uncertain. Retry this same saved order after 90 seconds; never create a replacement order.':'Steadfast did not respond. Please try again later.',503)}
   const data=await response.json().catch(()=>null);
-  if(!response.ok||data?.status!==200){const code=response.ok?Number(data?.status):response.status;const error=new RequestError(code===401?'Steadfast rejected the API keys. Ask your administrator to update them.':code===403?'Steadfast has restricted booking/access. Complete ownership details in the merchant panel.':code===429?'Steadfast rate limit reached. Stop retries and try later.':body?'Steadfast did not confirm this booking. Check the same invoice in the merchant panel before retrying.':'Steadfast could not return this record.',[401,403,429].includes(code)?code:502);if(code===429){const header=response.headers?.get?.('retry-after');const delay=header&&/^\d+$/.test(header)?Number(header):header?Math.ceil((Date.parse(header)-now())/1000):3600;error.retryAfter=Math.max(60,Math.min(3600,Number.isFinite(delay)?delay:3600));}error.definitiveRejection=[401,403,422].includes(code);throw error}
+  if(!response.ok||Number(data?.status)!==200){const code=response.ok?Number(data?.status):response.status;const error=new RequestError(code===401?'Steadfast rejected the API keys. Ask your administrator to update them.':code===403?'Steadfast has restricted booking/access. Complete ownership details in the merchant panel.':code===429?'Steadfast rate limit reached. Stop retries and try later.':body?'Steadfast did not confirm this booking. Check the same invoice in the merchant panel before retrying.':'Steadfast could not return this record.',[401,403,429].includes(code)?code:502);if(code===429){const header=response.headers?.get?.('retry-after');const delay=header&&/^\d+$/.test(header)?Number(header):header?Math.ceil((Date.parse(header)-now())/1000):3600;error.retryAfter=Math.max(60,Math.min(3600,Number.isFinite(delay)?delay:3600));}error.definitiveRejection=[401,403,422].includes(code);throw error}
   return data;
  }
  async function apply(shop,id,data){return rpc('jf_courier_apply',{target_shop:shop,shipment_id:id,provider_data:data},null,true)}
