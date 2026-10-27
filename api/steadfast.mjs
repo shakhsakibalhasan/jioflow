@@ -7,7 +7,7 @@ export function createHandler(options={}){return async(req,res)=>{
   const service=createSteadfastService(options);
   if(req.headers.origin!==service.origin)throw new RequestError('Request origin denied.',403);
   if(!String(req.headers['content-type']||'').startsWith('application/json'))throw new RequestError('Use a JSON request.',415);
-  const raw=req.body;if(Buffer.byteLength(typeof raw==='string'?raw:JSON.stringify(raw||{}))>16384)throw new RequestError('Request too large.',413);
+  const raw=req.body;if(Buffer.byteLength(typeof raw==='string'?raw:JSON.stringify(raw||{}))>400000)throw new RequestError('Request too large.',413);
   let input;try{input=typeof raw==='string'?JSON.parse(raw):raw}catch{throw new RequestError('Invalid JSON.')}
   if(!input||typeof input!=='object'||Array.isArray(input))throw new RequestError('Invalid request.');
   const auth=String(req.headers.authorization||'');if(!auth.startsWith('Bearer ')||auth.length>10007)throw new RequestError('Please sign in.',401);

@@ -1,4 +1,4 @@
-import {createPathaoProvider,pathaoOptions} from './pathao-provider.mjs';
+import {createPathaoProvider,pathaoOptions,pathaoHistoryResult} from './pathao-provider.mjs';
 // Server only. Never include server/ or environment files in dist/.
 import {openKeys,sealKeys} from './courier-secrets.mjs';
 import {randomUUID,timingSafeEqual,createHash} from 'node:crypto';
@@ -30,7 +30,7 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
   const key=server?c.secret:c.publicKey,auth=server?c.secret:token;
   const response=await fetcher(c.url+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:key,'Content-Type':'application/json',...(!auth.startsWith('sb_secret_')?{Authorization:'Bearer '+auth}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(7000)});
   const data=await response.json().catch(()=>null);
-  if(!response.ok)throw new RequestError(data?.code==='PGRST202'?'Apply Database57.sql to enable Pathao.':data?.code==='42501'?'Courier access denied.':data?.message?.startsWith('Confirm the order')?'Confirm the order before booking.':data?.message?.startsWith('Booking is already')?'Booking is processing. Check again after 90 seconds.':data?.message?.startsWith('Check recipient')?'Check recipient name, phone, address, note and COD amount.':/^(Pathao |Choose a verified|Add a separate|Check Pathao|Check the courier|This method has open shipments|Choose an active courier|This order already uses another delivery method|Courier method unavailable|Enter both API keys)/.test(data?.message||'')?data.message:'Courier records could not be updated.',response.status===401?401:data?.code==='42501'?403:409);
+  if(!response.ok)throw new RequestError(data?.code==='PGRST202'?'Apply Database58.sql to enable courier branding and history settings.':data?.code==='42501'?'Courier access denied.':data?.message?.startsWith('Confirm the order')?'Confirm the order before booking.':data?.message?.startsWith('Booking is already')?'Booking is processing. Check again after 90 seconds.':data?.message?.startsWith('Check recipient')?'Check recipient name, phone, address, note and COD amount.':/^(Pathao |Choose a verified|Add a separate|Check Pathao|Check the courier|This method has open shipments|Choose an active courier|This order already uses another delivery method|Courier method unavailable|Enter both API keys)/.test(data?.message||'')?data.message:'Courier records could not be updated.',response.status===401?401:data?.code==='42501'?403:409);
   return data;
  }
  async function provider(keys,path,body){
@@ -52,7 +52,7 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
   if(['book','sync','reconcile'].includes(input.action)&&!uuid.test(input.order_id||''))throw new RequestError('Choose a saved order.');
   const access=await rpc('jf_courier_access',{target_shop:input.shop_id,target_order:input.order_id||null},token);
   if(input.order_id&&['info','reconcile'].includes(input.action))access.can_configure=(await rpc('jf_courier_access',{target_shop:input.shop_id,target_order:null},token)).can_configure===true;
-  if(input.action==='methods')return savedMethods(input.shop_id,token);
+  if(input.action==='methods'){const result=await savedMethods(input.shop_id,token);if(!result.can_configure)return result;return {...result,methods:await Promise.all(result.methods.map(async m=>{let email=m.auth_email||'';if(m.provider==='pathao'&&!email){try{email=(await savedKey(input.shop_id,m.id)).username||''}catch{}}return {...m,credentials_saved:true,...(m.provider==='pathao'?{auth_email:email}:{})}}))}}
   if(input.action.startsWith('method_')){
    if(access.can_configure!==true)throw new RequestError('Integration permission required.',403);
    if(input.method_id&&!uuid.test(input.method_id))throw new RequestError('Choose a courier method.');
@@ -63,6 +63,8 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
     else if(api||secret||input.username||input.password){if(!api||!secret||api.length>512||secret.length>512||/[\r\n]/.test(api+secret))throw new RequestError('Enter both API credentials (up to 512 characters each).');let values={api_key:api,secret_key:secret};if(providerName==='pathao'){const username=String(input.username||'').trim(),password=String(input.password||'');if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)||!password||username.length>254||password.length>512)throw new RequestError('Enter Pathao merchant email and password with Client ID and Client Secret.');values={...values,username,password}}sealed=sealKeys(env,input.shop_id,id,values)}
     if(providerName==='pathao')input.details={...input.details,provider_options:pathaoOptions(input.details?.provider_options)};
     if(input.method_id){const existing=(await savedMethods(input.shop_id,token)).methods.find(m=>m.id===input.method_id);if(!existing||existing.provider!==providerName)throw new RequestError('Add a separate courier method to change provider.');}
+    if(providerName==='pathao'){let email=String(input.username||'').trim();if(!email&&input.method_id)email=(await savedKey(input.shop_id,input.method_id)).username||'';input.details={...input.details,auth_email:email}}
+    const logo=input.details?.logo_path,color=input.details?.brand_color;if(logo!==undefined&&(typeof logo!=='string'||logo.length>360000||logo!==''&&!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(logo)))throw new RequestError('Upload a PNG, JPEG or WebP courier logo under 250 KB.');if(color!==undefined&&!/^#[a-f\d]{6}$/i.test(color))throw new RequestError('Choose a valid brand color.');
     if(!input.method_id&&!sealed)throw new RequestError('Enter the courier API credentials.');
     const saved=await rpc('jf_delivery_method_save',{target_shop:input.shop_id,method_id:id,details:input.details,encrypted_keys:sealed},token);return {id:saved,message:'Courier method saved.'};
    }
@@ -78,10 +80,18 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
   let keys=access.shipment?.consignment_id&&!access.shipment.method_id?credentials(env,input.shop_id):await selectedKey(input.shop_id,selectedId,methods);
   if(input.action==='info')return {provider:keys?.provider||'steadfast',can_configure:access.can_configure===true,configured:!!keys&&keys.provider!=='custom',booking_enabled:keys?.booking_enabled===true,can_book:access.can_book,methods:methods.methods.filter(m=>m.active),selected_method_id:keys?.id||null,shop_id:input.shop_id,polling_enabled:env.JIOFLOW_POLL_ENABLED==='true',...(access.can_configure?{callback_mode:'polling',shop_reference:input.shop_id}:{}),...(access.order?{order:access.order,shipment:access.shipment}:{})};
   if(input.action==='history'){
-   const pathaoMethod=methods.methods.find(m=>m.provider==='pathao'&&m.active&&m.check_status==='verified');const pathaoHistory=pathaoMethod?[{id:'pathao',name:'Pathao',connected:true,status:'unsupported',error:'The supplied Pathao Merchant API guide does not include phone-based customer history. Booking and parcel tracking are connected; history needs separate supported API access.'}]:[];
-   const sf=methods.methods.find(m=>m.provider==='steadfast'&&m.active&&m.preferred)||methods.methods.find(m=>m.provider==='steadfast'&&m.active);keys=sf?await savedKey(input.shop_id,sf.id):methods.has_methods?null:credentials(env,input.shop_id);
-   if(!keys)return {providers:pathaoHistory,own:await rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token)};
    const phone=String(input.phone||'').replace(/^\+?88/,'');if(!/^01\d{9}$/.test(phone))throw new RequestError('Enter an eleven-digit Bangladesh phone number.');
+   const only=input.history_only_method_id;if(only&&(!uuid.test(only)||!methods.methods.some(m=>m.id===only&&m.active)))throw new RequestError('Choose an active courier method.',403);
+   const candidates=methods.methods.filter(m=>!only||m.id===only),pathaoMethod=candidates.find(m=>m.provider==='pathao'&&m.active&&m.check_status==='verified'&&m.history_enabled!==false),sf=candidates.find(m=>m.provider==='steadfast'&&m.active&&m.preferred&&m.history_enabled!==false)||candidates.find(m=>m.provider==='steadfast'&&m.active&&m.history_enabled!==false);
+   keys=sf?await savedKey(input.shop_id,sf.id):methods.has_methods||only?null:credentials(env,input.shop_id);
+   const ownTask=rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token);
+   const pathaoTask=(async()=>{if(!pathaoMethod)return null;const k=await savedKey(input.shop_id,pathaoMethod.id),brand={logo_path:pathaoMethod.logo_path||'',brand_color:pathaoMethod.brand_color},base={id:'pathao',name:'Pathao',connected:true,...brand};
+    if(k.provider_options?.environment!=='production')return {...base,status:'unavailable',error:'Use a production Pathao connection for live customer history.'};
+    const account='pathao-account:'+createHash('sha256').update(JSON.stringify([input.shop_id,k.id,k.api_key,k.secret_key,k.username])).digest('hex'),key='pathao-phone:'+createHash('sha256').update(account+phone).digest('hex');let entry=cache.get(key);
+    if(!entry||entry.until<=now()){for(const [key,v]of cache)if(v.until<=now())cache.delete(key);if(cache.size>=500)cache.delete(cache.keys().next().value);entry={until:now()+60000,promise:(async()=>{const block=cache.get(account);if(block&&block.until>now())return block.provider;if(await rpc('jf_courier_rate',{target_shop:input.shop_id},token)!==true)return {id:'pathao',name:'Pathao',connected:true,status:'unavailable',error:'Please wait one minute before checking history again.'};try{return {...pathaoHistoryResult(await pathao.history({...k,provider_options:pathaoOptions(k.provider_options)},phone)),checked_at:new Date(now()).toISOString()}}catch(e){const p={id:'pathao',name:'Pathao',connected:true,status:'unavailable',error:[401,403].includes(e.status)?'Pathao denied customer-history access. Verify production credentials and merchant history permission.':e.status===429?'Pathao history rate limit reached. Please wait before retrying.':'Pathao could not return customer history. Try again later.'};if([401,403,429].includes(e.status))cache.set(account,{until:now()+60000,provider:p});return p}})()};cache.set(key,entry)}
+    return {...await entry.promise,...brand};
+   })();
+   if(!keys){const [own,p]=await Promise.all([ownTask,pathaoTask]);return {own,providers:p?[p]:[]}}
    const accountKey='account:'+createHash('sha256').update(JSON.stringify([input.shop_id,keys.id||'',keys.api_key,keys.secret_key])).digest('hex');
    const cacheKey='phone:'+createHash('sha256').update(accountKey+phone).digest('hex');
    let entry=cache.get(cacheKey);
@@ -97,8 +107,8 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
     })();cache.set(cacheKey,entry);
     entry.promise.catch(()=>{if(cache.get(cacheKey)===entry)cache.delete(cacheKey)});
    }
-   const [p,own]=await Promise.all([entry.promise,rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token)]);
-   return {own,providers:[p,...pathaoHistory]};
+   const [p,own,pathaoResult]=await Promise.all([entry.promise,ownTask,pathaoTask]);
+   return {own,providers:[{...p,logo_path:sf?.logo_path||'',brand_color:sf?.brand_color},...(pathaoResult?[pathaoResult]:[])]};
   }
   if(await rpc('jf_courier_rate',{target_shop:input.shop_id},token)!==true)throw new RequestError('Please wait a minute before making more courier requests.',429);
   if(keys?.provider==='custom')throw new RequestError('This courier needs a backend adapter before booking or tracking.',409);
