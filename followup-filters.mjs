@@ -8,10 +8,11 @@ export function filterPeriod(range,now=new Date()){
  if(range==='yesterday'){start.setUTCDate(start.getUTCDate()-1);end.setUTCDate(end.getUTCDate()-1)}else if(range==='last7')start.setUTCDate(start.getUTCDate()-6);else if(range==='last30')start.setUTCDate(start.getUTCDate()-29);else if(range==='month')start.setUTCDate(1);else if(range==='lastmonth'){start.setUTCDate(1);start.setUTCMonth(start.getUTCMonth()-1);end.setUTCDate(0)}
  return {from:dateValue(start),to:dateValue(end)};
 }
-export const paymentRanges=[['100:500','৳100–499'],['500:1000','৳500–999'],...Array.from({length:9},(_,i)=>[(i+1)*1000+':'+(i+2)*1000,'৳'+((i+1)*1000).toLocaleString('en')+'–'+((i+2)*1000-1).toLocaleString('en')])].map(([id,label])=>[id,id==='9000:10000'?'৳9,000–10,000':label]);
+export const paymentRanges=[['0:500','৳0–499'],['500:1000','৳500–999'],...Array.from({length:9},(_,i)=>[(i+1)*1000+':'+(i+2)*1000,'৳'+((i+1)*1000).toLocaleString('en')+'–'+((i+2)*1000-1).toLocaleString('en')])].map(([id,label])=>[id,id==='9000:10000'?'৳9,000–10,000':label]);
 export function readAdvancedFilters(form,base={}){const next={...base};for(const key of advancedFilterKeys)delete next[key];for(const key of advancedFilterKeys){const value=String(form.get(key)||'').trim();if(value&&!(key==='af_range'&&value==='lifetime'))next[key]=value}const payments=form.getAll?.('af_payment_ranges')||[];if(payments.length)next.af_payment_ranges=payments.join(',');else{delete next.af_payment_ranges;delete next.af_payment_basis}for(const [from,to]of [['af_created_from','af_created_to'],['af_updated_from','af_updated_to'],['af_order_from','af_order_to']])if(next[from]&&next[to]&&next[from]>next[to])throw Error('Start date must not follow end date.');return next}
 export function bindFollowupFilters({root,panel,context,client,filters,navigate}){
  if(context.section!=='followups')return;
+ if(filters.af_payment_ranges)filters={...filters,af_payment_ranges:filters.af_payment_ranges.split(',').map(v=>v==='100:500'?'0:500':v).join(',')};
  root.querySelectorAll('.filter-panel,[data-original-filters],[data-advanced-followup-filters]').forEach(el=>el.remove());
  if(!['Creator','Owner','Admin'].includes(context.accountRole))return;
  const bar=root.ownerDocument.createElement('section');bar.className='followup-filter-bar';bar.dataset.advancedFollowupFilters='';
