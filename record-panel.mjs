@@ -1,3 +1,4 @@
+import {bindFollowupFilters} from './followup-filters.mjs';
 import {loadStatusDefinitions,paintStatusBadges,loadTagDefinitions} from './custom-statuses.mjs';
 import {stageOrderHandoff} from './order-handoff.mjs';
 import {bindFollowupStatus,statusTone} from './followup-status.mjs';
@@ -80,5 +81,6 @@ export async function bindRecordPanel({root,context,client,openForm,reload,navig
  const keys={followAgentFilter:'agent_id','window.orderAgentFilter':'agent_id',followSourceFilter:'source',orderSourceFilter:'source',followCallFilter:'call',orderCallFilter:'call',followResponseFilter:'response',orderResponseFilter:'response',orderTagFilter:'tag'};
  root.querySelectorAll('[data-original-filter]').forEach(input=>{const key=keys[input.dataset.originalFilter];if(key){input.value=filters[key]||'';input.onchange=()=>navigate(section,{...filters,[key]:input.value})}});
  root.querySelectorAll('[data-workspace-action]').forEach(b=>{const action=b.dataset.workspaceAction;if(action==="tagFilter='';render()"||/^tagFilter=db.settings.tags\[\d+\]/.test(action)){b.disabled=false;b.onclick=()=>navigate(section,{...filters,tag:action.includes("tagFilter=''")?'':b.textContent.trim().replace(/\s+\d+$/,'')})}});
+ bindFollowupFilters({root,panel,context,client,filters,navigate});
  await load();
 }
