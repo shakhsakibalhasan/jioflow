@@ -1,3 +1,4 @@
+import {createPathaoProvider,pathaoOptions} from './pathao-provider.mjs';
 // Server only. Never include server/ or environment files in dist/.
 import {openKeys,sealKeys} from './courier-secrets.mjs';
 import {randomUUID,timingSafeEqual,createHash} from 'node:crypto';
@@ -29,7 +30,7 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
   const key=server?c.secret:c.publicKey,auth=server?c.secret:token;
   const response=await fetcher(c.url+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:key,'Content-Type':'application/json',...(!auth.startsWith('sb_secret_')?{Authorization:'Bearer '+auth}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(7000)});
   const data=await response.json().catch(()=>null);
-  if(!response.ok)throw new RequestError(data?.code==='PGRST202'?'Database update 026 is required.':data?.code==='42501'?'Courier access denied.':data?.message?.startsWith('Confirm the order')?'Confirm the order before booking.':data?.message?.startsWith('Booking is already')?'Booking is processing. Check again after 90 seconds.':data?.message?.startsWith('Check recipient')?'Check recipient name, phone, address, note and COD amount.':/^(Check the courier|This method has open shipments|Choose an active courier|This order already uses another delivery method|Courier method unavailable|Enter both API keys)/.test(data?.message||'')?data.message:'Courier records could not be updated.',response.status===401?401:data?.code==='42501'?403:409);
+  if(!response.ok)throw new RequestError(data?.code==='PGRST202'?'Apply Database57.sql to enable Pathao.':data?.code==='42501'?'Courier access denied.':data?.message?.startsWith('Confirm the order')?'Confirm the order before booking.':data?.message?.startsWith('Booking is already')?'Booking is processing. Check again after 90 seconds.':data?.message?.startsWith('Check recipient')?'Check recipient name, phone, address, note and COD amount.':/^(Pathao |Choose a verified|Add a separate|Check Pathao|Check the courier|This method has open shipments|Choose an active courier|This order already uses another delivery method|Courier method unavailable|Enter both API keys)/.test(data?.message||'')?data.message:'Courier records could not be updated.',response.status===401?401:data?.code==='42501'?403:409);
   return data;
  }
  async function provider(keys,path,body){
@@ -42,35 +43,44 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
  async function status(keys,s){const data=await provider(keys,'/status_by_cid/'+encodeURIComponent(s.consignment_id));if(!STATUSES.has(data.delivery_status))throw new RequestError('Unrecognized courier status. The previous status was kept.',502);return apply(s.shop_id,s.id,data)}
  async function savedMethods(shop,token){return rpc('jf_delivery_methods',{target_shop:shop},token)}
  async function savedKey(shop,id){const rows=await rpc('jf_delivery_method_secrets',{target_shop:shop,target_method:id},null,true),m=rows.find(x=>x.id===id);if(!m)throw new RequestError('Courier method unavailable.',404);return {...m,...openKeys(env,shop,id,m.sealed)}}
- async function selectedKey(shop,id,methods){if(id)return savedKey(shop,id);const active=methods.methods.filter(m=>m.active);const m=active.find(m=>m.preferred)||active[0];return m?savedKey(shop,m.id):methods.has_methods?null:credentials(env,shop)}
+ async function selectedKey(shop,id,methods){if(id)return savedKey(shop,id);const active=methods.methods.filter(m=>m.active&&m.provider!=='custom');const m=active.find(m=>m.preferred)||active[0];return m?savedKey(shop,m.id):methods.has_methods?null:credentials(env,shop)}
+ const pathao=createPathaoProvider({fetcher,now,persist:async keys=>{const {api_key,secret_key,username,password,access_token,refresh_token,expires_at}=keys;const encrypted=sealKeys(env,keys.shop_id,keys.id,{api_key,secret_key,username,password,access_token,refresh_token,expires_at});await rpc('jf_delivery_method_token_store',{target_shop:keys.shop_id,target_method:keys.id,expected_cipher:keys.sealed,encrypted},null,true);keys.sealed=encrypted}});
+ async function pathaoSync(keys,s){const data=await pathao.track(keys,s.consignment_id);return rpc('jf_pathao_apply',{target_shop:s.shop_id,shipment_id:s.id,provider_data:data},null,true)}
  async function execute(token,input){
   if(!uuid.test(input.shop_id||''))throw new RequestError('Choose a business.');
-  if(!['info','history','book','sync','methods','method_save','method_remove','method_check'].includes(input.action))throw new RequestError('Unsupported courier action.');
-  if(['book','sync'].includes(input.action)&&!uuid.test(input.order_id||''))throw new RequestError('Choose a saved order.');
+  if(!['info','history','book','sync','methods','method_save','method_remove','method_check','reconcile'].includes(input.action))throw new RequestError('Unsupported courier action.');
+  if(['book','sync','reconcile'].includes(input.action)&&!uuid.test(input.order_id||''))throw new RequestError('Choose a saved order.');
   const access=await rpc('jf_courier_access',{target_shop:input.shop_id,target_order:input.order_id||null},token);
+  if(input.order_id&&['info','reconcile'].includes(input.action))access.can_configure=(await rpc('jf_courier_access',{target_shop:input.shop_id,target_order:null},token)).can_configure===true;
   if(input.action==='methods')return savedMethods(input.shop_id,token);
   if(input.action.startsWith('method_')){
    if(access.can_configure!==true)throw new RequestError('Integration permission required.',403);
    if(input.method_id&&!uuid.test(input.method_id))throw new RequestError('Choose a courier method.');
    if(input.action==='method_save'){
-    const id=input.method_id||randomUUID(),api=String(input.api_key||'').trim(),secret=String(input.secret_key||'').trim();let sealed=null;
-    if(api||secret){if(!api||!secret||api.length>512||secret.length>512||/[\r\n]/.test(api+secret))throw new RequestError('Enter both API Key and Secret (up to 512 characters each).');sealed=sealKeys(env,input.shop_id,id,{api_key:api,secret_key:secret});}
-    if(!input.method_id&&!sealed)throw new RequestError('Enter both API Key and Secret.');
+    const id=input.method_id||randomUUID(),api=String(input.api_key||'').trim(),secret=String(input.secret_key||'').trim(),providerName=input.details?.provider||'steadfast';let sealed=null;
+    if(!['steadfast','pathao','custom'].includes(providerName))throw new RequestError('Choose a supported API courier.');
+    if(providerName==='custom'){const entries={api_key:api,secret_key:secret,access_token:String(input.access_token||''),username:String(input.username||''),password:String(input.password||'')};if(Object.values(entries).some(Boolean)){if(Object.values(entries).some(v=>v.length>2000||/[\r\n]/.test(v)))throw new RequestError('Use API credentials up to 2000 characters without newlines.');sealed=sealKeys(env,input.shop_id,id,{kind:'custom',credentials:entries})}const options=input.details?.provider_options||{},base=String(options.base_url||'').trim();if(base){try{const u=new URL(base);if(u.protocol!=='https:'||u.username||u.password||base.length>500)throw Error()}catch{throw new RequestError('Use a valid HTTPS API base URL.')}}if(!String(options.courier_type||'').trim()||String(options.courier_type).length>80)throw new RequestError('Enter the courier name.');input.details={...input.details,booking_enabled:false,preferred:false,provider_options:{courier_type:String(options.courier_type).trim(),base_url:base}};}
+    else if(api||secret||input.username||input.password){if(!api||!secret||api.length>512||secret.length>512||/[\r\n]/.test(api+secret))throw new RequestError('Enter both API credentials (up to 512 characters each).');let values={api_key:api,secret_key:secret};if(providerName==='pathao'){const username=String(input.username||'').trim(),password=String(input.password||'');if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)||!password||username.length>254||password.length>512)throw new RequestError('Enter Pathao merchant email and password with Client ID and Client Secret.');values={...values,username,password}}sealed=sealKeys(env,input.shop_id,id,values)}
+    if(providerName==='pathao')input.details={...input.details,provider_options:pathaoOptions(input.details?.provider_options)};
+    if(input.method_id){const existing=(await savedMethods(input.shop_id,token)).methods.find(m=>m.id===input.method_id);if(!existing||existing.provider!==providerName)throw new RequestError('Add a separate courier method to change provider.');}
+    if(!input.method_id&&!sealed)throw new RequestError('Enter the courier API credentials.');
     const saved=await rpc('jf_delivery_method_save',{target_shop:input.shop_id,method_id:id,details:input.details,encrypted_keys:sealed},token);return {id:saved,message:'Courier method saved.'};
    }
    if(!input.method_id)throw new RequestError('Choose a courier method.');
    if(input.action==='method_remove'){await rpc('jf_delivery_method_remove',{target_shop:input.shop_id,method_id:input.method_id},token);return {message:'Courier removed from available delivery methods. Existing parcel tracking is preserved.'};}
    const method=(await savedMethods(input.shop_id,token)).methods.find(m=>m.id===input.method_id);if(!method)throw new RequestError('Courier method unavailable.',404);
    if(await rpc('jf_courier_rate',{target_shop:input.shop_id},token)!==true)throw new RequestError('Please wait a minute before more connection checks.',429);
-   const k=await savedKey(input.shop_id,input.method_id);try{await provider(k,'/get_balance');await rpc('jf_delivery_method_checked',{target_shop:input.shop_id,target_method:input.method_id,result:'verified'},null,true);return {message:'Connection verified. No parcel was booked.'}}catch(e){await rpc('jf_delivery_method_checked',{target_shop:input.shop_id,target_method:input.method_id,result:'failed'},null,true);throw e}
+   const k=await savedKey(input.shop_id,input.method_id);if(k.provider==='custom')throw new RequestError('API credentials are saved. Backend adapter is not installed for this courier yet.',409);try{if(k.provider==='pathao'){k.provider_options=pathaoOptions(k.provider_options);await pathao.check(k)}else await provider(k,'/get_balance');await rpc('jf_delivery_method_checked',{target_shop:input.shop_id,target_method:input.method_id,result:'verified'},null,true);return {message:'Connection verified. No parcel was booked.'}}catch(e){await rpc('jf_delivery_method_checked',{target_shop:input.shop_id,target_method:input.method_id,result:'failed'},null,true);throw e}
   }
   const methods=await savedMethods(input.shop_id,token),preferred=methods.methods.find(m=>m.id===access.order?.preferred_method_id&&m.active),selectedId=access.shipment?.method_id||input.method_id||preferred?.id;
   if(input.method_id&&!uuid.test(input.method_id))throw new RequestError('Choose a courier method.');
   if(!access.shipment?.method_id&&input.method_id&&!methods.methods.some(m=>m.id===input.method_id&&m.active))throw new RequestError('Choose an active courier method.',403);
-  const keys=access.shipment?.consignment_id&&!access.shipment.method_id?credentials(env,input.shop_id):await selectedKey(input.shop_id,selectedId,methods);
-  if(input.action==='info')return {configured:!!keys,booking_enabled:keys?.booking_enabled===true,can_book:access.can_book,methods:methods.methods.filter(m=>m.active),selected_method_id:keys?.id||null,shop_id:input.shop_id,polling_enabled:env.JIOFLOW_POLL_ENABLED==='true',...(access.can_configure?{callback_mode:'polling',shop_reference:input.shop_id}:{}),...(access.order?{order:access.order,shipment:access.shipment}:{})};
+  let keys=access.shipment?.consignment_id&&!access.shipment.method_id?credentials(env,input.shop_id):await selectedKey(input.shop_id,selectedId,methods);
+  if(input.action==='info')return {provider:keys?.provider||'steadfast',can_configure:access.can_configure===true,configured:!!keys&&keys.provider!=='custom',booking_enabled:keys?.booking_enabled===true,can_book:access.can_book,methods:methods.methods.filter(m=>m.active),selected_method_id:keys?.id||null,shop_id:input.shop_id,polling_enabled:env.JIOFLOW_POLL_ENABLED==='true',...(access.can_configure?{callback_mode:'polling',shop_reference:input.shop_id}:{}),...(access.order?{order:access.order,shipment:access.shipment}:{})};
   if(input.action==='history'){
-   if(!keys)return {providers:[],own:await rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token)};
+   const pathaoMethod=methods.methods.find(m=>m.provider==='pathao'&&m.active&&m.check_status==='verified');const pathaoHistory=pathaoMethod?[{id:'pathao',name:'Pathao',connected:true,status:'unsupported',error:'The supplied Pathao Merchant API guide does not include phone-based customer history. Booking and parcel tracking are connected; history needs separate supported API access.'}]:[];
+   const sf=methods.methods.find(m=>m.provider==='steadfast'&&m.active&&m.preferred)||methods.methods.find(m=>m.provider==='steadfast'&&m.active);keys=sf?await savedKey(input.shop_id,sf.id):methods.has_methods?null:credentials(env,input.shop_id);
+   if(!keys)return {providers:pathaoHistory,own:await rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token)};
    const phone=String(input.phone||'').replace(/^\+?88/,'');if(!/^01\d{9}$/.test(phone))throw new RequestError('Enter an eleven-digit Bangladesh phone number.');
    const accountKey='account:'+createHash('sha256').update(JSON.stringify([input.shop_id,keys.id||'',keys.api_key,keys.secret_key])).digest('hex');
    const cacheKey='phone:'+createHash('sha256').update(accountKey+phone).digest('hex');
@@ -88,10 +98,30 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
     entry.promise.catch(()=>{if(cache.get(cacheKey)===entry)cache.delete(cacheKey)});
    }
    const [p,own]=await Promise.all([entry.promise,rpc('jf_phone_own_record',{target_shop:input.shop_id,phone:String(input.phone||'')},token)]);
-   return {own,providers:[p]};
+   return {own,providers:[p,...pathaoHistory]};
   }
   if(await rpc('jf_courier_rate',{target_shop:input.shop_id},token)!==true)throw new RequestError('Please wait a minute before making more courier requests.',429);
+  if(keys?.provider==='custom')throw new RequestError('This courier needs a backend adapter before booking or tracking.',409);
   if(!keys)throw new RequestError('Steadfast is not configured for this business.',503);
+  if(keys.provider==='pathao'){
+   keys.provider_options=pathaoOptions(keys.provider_options);
+   if(input.action==='book'){
+    if(!access.can_book||keys.booking_enabled!==true)throw new RequestError('Pathao booking permission and live booking are required.',403);
+    const r=await rpc('jf_pathao_reserve',{target_shop:input.shop_id,target_order:input.order_id,target_method:keys.id},token);if(r.already_booked)return {message:'This order is already booked.',shipment:r.shipment};
+    let data;try{data=await pathao.book(keys,r.payload)}catch(e){if(e.definitiveRejection)await rpc('jf_pathao_reject',{target_shop:input.shop_id,shipment_id:r.shipment_id},null,true);throw e}
+    const result=await rpc('jf_pathao_apply',{target_shop:input.shop_id,shipment_id:r.shipment_id,provider_data:data},null,true);return {...result,message:'Pathao booking confirmed.'};
+   }
+   const s=access.shipment;if(!s||s.courier!=='pathao'||s.method_id!==keys.id)throw new RequestError('No Pathao shipment is linked to this order.');
+   if(input.action==='reconcile'){
+    if(access.can_configure!==true)throw new RequestError('Integration permission required to reconcile a parcel.',403);
+    if(s.consignment_id)throw new RequestError('This parcel already has a Consignment ID. Refresh its status instead.');
+    if(!/^[a-z0-9-]{1,100}$/i.test(input.consignment_id||''))throw new RequestError('Enter the Pathao Consignment ID from the merchant panel.');
+    const data=await pathao.track(keys,input.consignment_id);return {...await rpc('jf_pathao_apply',{target_shop:input.shop_id,shipment_id:s.id,provider_data:data},null,true),message:'Pathao parcel matched and attached.'};
+   }
+   if(!s.consignment_id)throw new RequestError('Check Pathao merchant panel and attach the Consignment ID before retrying.');
+   if(s.last_checked_at&&now()-Date.parse(s.last_checked_at)<60000)return {message:'Showing the latest saved Pathao status.',cached:true,status:s.status,provider_status:s.provider_status};
+   return {message:'Pathao status updated.',...await pathaoSync(keys,s)};
+  }
   if(input.action==='book'){
    if(!access.can_book)throw new RequestError('Courier booking permission required.',403);
    if(keys.booking_enabled!==true)throw new RequestError('Live booking is disabled. Your administrator can enable it after setup.',403);
@@ -109,7 +139,7 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
  async function poll(){
   if(env.JIOFLOW_POLL_ENABLED!=='true')return {enabled:false,checked:0,changed:0,failed:0,message:'Scheduled polling is disabled until setup is complete.'};
   const start=now(),rows=await rpc('jf_courier_poll_claim',{batch_size:20},null,true);let checked=0,changed=0,failed=0,index=0,blocked=new Map();
-  await Promise.all(Array.from({length:Math.min(4,rows.length)},async()=>{while(index<rows.length&&now()-start<35000){const s=rows[index++];try{const keys=s.method_id?await savedKey(s.shop_id,s.method_id):credentials(env,s.shop_id);if(!keys)throw new RequestError('Courier credentials missing for this business.',503);if(blocked.has(s.shop_id))throw new RequestError('Courier credentials or rate limit require attention.',503);let result;try{result=await status(keys,s)}catch(e){if([401,403,429].includes(e.status))blocked.set(s.shop_id,true);throw e}checked++;if(result.changed)changed++;}catch(e){failed++;await rpc('jf_courier_poll_error',{target_shop:s.shop_id,shipment_id:s.id,error_message:e instanceof RequestError?e.message:'Status refresh failed.'},null,true).catch(()=>{})}}}));
+  await Promise.all(Array.from({length:Math.min(4,rows.length)},async()=>{while(index<rows.length&&now()-start<35000){const s=rows[index++];try{const keys=s.method_id?await savedKey(s.shop_id,s.method_id):credentials(env,s.shop_id),blockedKey=s.shop_id+':'+(s.method_id||'legacy');if(!keys)throw new RequestError('Courier credentials missing for this business.',503);if(blocked.has(blockedKey))throw new RequestError('Courier credentials or rate limit require attention.',503);let result;try{result=keys.provider==='pathao'?await pathaoSync({...keys,provider_options:pathaoOptions(keys.provider_options)},s):await status(keys,s)}catch(e){if([401,403,429].includes(e.status))blocked.set(blockedKey,true);throw e}checked++;if(result.changed)changed++;}catch(e){failed++;await rpc('jf_courier_poll_error',{target_shop:s.shop_id,shipment_id:s.id,error_message:e instanceof RequestError?e.message:'Status refresh failed.'},null,true).catch(()=>{})}}}));
   return {enabled:true,checked,changed,failed,batch_size:20,has_more:rows.length===20};
  }
  return {execute,poll,origin:c.origin};
