@@ -14,3 +14,6 @@ export function scopedAgentClient(client,member){
 export function clearAgentWorkspaceClients(client){caches.delete(client);layoutClients.delete(client)}
 const layoutClients=new WeakMap();
 export function agentLayoutClient(client,member){let map=layoutClients.get(client);if(!map){map=new Map();layoutClients.set(client,map)}const key=member.id+':'+client.sessionVersion?.();if(map.has(key))return map.get(key);const wrapped={...client,sessionVersion:()=>String(client.sessionVersion?.())+':layout:'+member.id,rpc(name,args={}){if(name==='jf_workspace_tools'&&['load','save_layout'].includes(args.tool))args={...args,details:{...args.details,page:'a:'+member.id+':'+args.details.page}};return client.rpc(name,args)}};map.set(key,wrapped);return wrapped;}
+
+export const supervisorWorkspaceSections=new Set([...agentWorkspaceSections,'products','import','profit','agentreports','team','settings','deliverymethods','accounts','admins','agents','profile']);
+export function inspectedWorkspaceRole(members,id){const role=members.find(m=>m.id===id&&m.status==='active')?.role;return ['owner','admin','agent'].includes(role)?role[0].toUpperCase()+role.slice(1):'Agent'}
