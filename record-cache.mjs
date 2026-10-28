@@ -1,7 +1,7 @@
 // Memory only, partitioned by authenticated client/session and exact query scope.
 const caches=new WeakMap(),readCaches=new WeakMap(),countCaches=new WeakMap(),workspaceCaches=new WeakMap();
 export function invalidateRecordPages(client){caches.delete(client);readCaches.delete(client);countCaches.delete(client);workspaceCaches.delete(client)}
-export async function recordPage(client,args){let cache=caches.get(client);if(!cache){cache=new Map();caches.set(client,cache)}const key=JSON.stringify([client.sessionVersion?.()??null,args]),old=cache.get(key);if(old&&old.until>Date.now())return old.promise;const entry={until:Date.now()+15000};entry.promise=client.rpc('jf_workspace_page',args).then(value=>{if(!value||!Array.isArray(value.rows)||!Number.isFinite(Number(value.total)))throw Error('Invalid record response. Refresh and check the database update.');if(value.counts){let counts=countCaches.get(client);if(!counts){counts=new Map();countCaches.set(client,counts)}counts.set(countScope(client,args),{until:Date.now()+15000,value:structuredClone(value.counts)});while(counts.size>30)counts.delete(counts.keys().next().value)}return value}).catch(error=>{if(cache.get(key)===entry)cache.delete(key);throw error});cache.set(key,entry);while(cache.size>30)cache.delete(cache.keys().next().value);return entry.promise}
+export async function recordPage(client,args,method='jf_workspace_page'){let cache=caches.get(client);if(!cache){cache=new Map();caches.set(client,cache)}const key=JSON.stringify([method,client.sessionVersion?.()??null,args]),old=cache.get(key);if(old&&old.until>Date.now())return old.promise;const entry={until:Date.now()+15000};entry.promise=client.rpc(method,args).then(value=>{if(!value||!Array.isArray(value.rows)||!Number.isFinite(Number(value.total)))throw Error('Invalid record response. Refresh and check the database update.');if(value.counts){let counts=countCaches.get(client);if(!counts){counts=new Map();countCaches.set(client,counts)}counts.set(countScope(client,args),{until:Date.now()+15000,value:structuredClone(value.counts)});while(counts.size>30)counts.delete(counts.keys().next().value)}return value}).catch(error=>{if(cache.get(key)===entry)cache.delete(key);throw error});cache.set(key,entry);while(cache.size>30)cache.delete(cache.keys().next().value);return entry.promise}
 
 export async function cachedReadRpc(client,name,args){
  if(!['jf_workspace_summary','jf_workspace_tools','jf_agent_workspace_context'].includes(name)||name==='jf_workspace_tools'&&args.tool!=='load')throw Error('Only workspace reads can be cached.');
@@ -21,3 +21,11 @@ export async function cachedWorkspaceRecords(client,scope,read){
 }
 
 export function reportDeadline(promise,milliseconds=12000){let timer;return Promise.race([promise,new Promise((resolve,reject)=>{timer=setTimeout(()=>reject(new Error('Reporting request took too long. Retry totals.')),milliseconds)})]).finally(()=>clearTimeout(timer));}
+
+export async function progressiveRecordPage(client,args,onDetails){
+ const fullKey=JSON.stringify(['jf_workspace_page',client.sessionVersion?.()??null,args]),full=caches.get(client)?.get(fullKey);
+ if(full&&full.until>Date.now())return full.promise;
+ const rows=await recordPage(client,args,'jf_workspace_page_fast');
+ recordPage(client,args).then(value=>onDetails(value,null)).catch(error=>onDetails(null,error));
+ return rows;
+}
