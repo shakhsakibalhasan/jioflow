@@ -361,3 +361,93 @@ html[data-mode=dark] .customer-workspace-page{--fu-tint:#1d251a;--fu-edge:#41543
 .followup-filter-bar button,.followup-filter-bar select,.followup-filter-bar input:not([type=checkbox]){font:inherit;color:var(--text,#151a14);border:1px solid var(--line,#dfe5da);border-radius:10px;background:var(--surface,#fff);min-height:39px;padding:8px 11px;box-sizing:border-box}.followup-filter-bar button{font-size:13px;font-weight:500;cursor:pointer;transition:background .15s,transform .12s}.followup-filter-bar button:active{transform:scale(.98)}.followup-filter-bar button:disabled{opacity:.4;cursor:default}.followup-filter-bar button.primary{background:var(--accent,#b5ee68);border-color:transparent;color:#14200b}.followup-filter-bar input:focus,.followup-filter-bar select:focus{outline:2px solid var(--accent,#b5ee68);outline-offset:1px}.followup-filter-fields>.field{display:flex;flex-direction:column;justify-content:flex-end}.filter-payment-ranges{grid-column:1/-1}.filter-payment-checks{grid-template-columns:repeat(4,minmax(0,1fr))}.filter-payment-checks label{padding:6px 4px}.filter-payment-ranges select{max-width:260px}.followup-filter-bar [data-advanced-clear]{background:transparent;border-color:transparent}.followup-filter-top-actions select{font-size:13px}@media(max-width:650px){.filter-payment-checks{grid-template-columns:1fr 1fr}}
 
 .callback-reminder-popup{position:fixed;right:26px;bottom:26px;z-index:11000;width:min(360px,calc(100vw - 32px));box-sizing:border-box;display:flex;gap:14px;padding:24px;background:var(--surface,#fff);color:var(--text,#151a14);border:1px solid var(--accent,#afe958);border-radius:20px;box-shadow:0 12px 40px #14250b1c;animation:callback-reminder-in .18s ease-out}.callback-reminder-popup [data-callback-close]{position:absolute;right:10px;top:8px;border:0;background:transparent;font-size:23px;cursor:pointer}.callback-reminder-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:13px;background:var(--accent-soft,#f0f8e5);font-size:26px}.callback-reminder-popup h3{font-size:17px;margin:8px 0 14px;font-weight:600}.callback-reminder-popup small{font-size:11px}.callback-reminder-popup p{margin:5px 0}.callback-reminder-popup time{display:block;font-size:12px;margin-bottom:15px}.callback-reminder-popup .primary{display:block;border:0;border-radius:10px;padding:10px 15px;background:var(--accent,#afe958);color:#17210d;cursor:pointer}@keyframes callback-reminder-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){.callback-reminder-popup{animation:none}}
+
+/* Update 66: compact phone layout only; desktop/tablet rules above are unchanged. */
+@media (max-width:600px){
+ #app .layout .content{padding:14px 10px!important}
+ #app .heading{gap:10px;margin-bottom:14px}
+ #app .heading h1{font-size:22px;line-height:1.25}
+ #app .heading p{margin-top:5px;font-size:11px}
+ #app .heading .row,#app .original-header-actions{gap:7px;margin-bottom:10px}
+ #app .topbar{padding:10px 12px;gap:8px;min-height:58px}
+ #app .card,#app .insight-grid>.card,#app .shop-card{padding:14px!important;border-radius:15px!important}
+ #app .card h2{font-size:16px;line-height:1.35;margin-top:0;margin-bottom:10px}
+ #app .card h3{font-size:14px;line-height:1.4}
+ #app .section-gap{margin-top:12px!important}
+ #app .settings-stack,#app .profile-stack,#app .insight-grid,#app .shop-list{gap:12px!important}
+ #app #view .stats:not(.jf-layout-rows),#app .layout #view .dashboard-metrics:not(.jf-layout-rows):not(:has(.slot-move-controls)),#app .layout #view .agent-report-summary,#app #view .platform-summary:not(.jf-layout-rows){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin-bottom:14px}
+ #app #view .stats :is(.metric-tile,.insight-tile,.overview-tile){width:auto!important;min-width:0!important;min-height:112px!important;height:112px!important;padding:12px!important;border-radius:14px!important;grid-column:auto!important}
+ #app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) :is(.label,.tile-label){font-size:10px!important;line-height:1.35!important;padding-right:28px;overflow-wrap:anywhere}
+ #app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) strong{left:12px;bottom:15px;font-size:22px!important;max-width:54%}
+ #app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) .metric-icon{top:11px!important;right:10px!important;width:26px!important;height:26px!important;border-radius:8px!important}
+ #app #view .stats .metric-icon svg{width:14px!important;height:14px!important}
+ #app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) .change-badge{right:10px;bottom:32px;font-size:9px!important;padding:2px 4px!important;max-width:46%}
+ #app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) .previous-line{right:10px;bottom:10px;font-size:8px!important;max-width:47%;line-height:1.25!important}
+ #app .layout #view .dashboard-panels:not(:has(.slot-move-controls)),#app #view .insight-grid{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+ #app #view .dashboard-panels>.card,#app #view .insight-grid>.card{min-height:0!important;height:auto!important;margin-bottom:0}
+ #app #view .chart,#app #view .detailed-chart,#app #view .source-bars{height:150px!important;margin-top:10px;padding-top:8px;gap:9px}
+ #app #view .source-bars{min-width:480px}
+ #app #view .line-chart{min-height:0!important;margin-top:10px}
+ #app #view .line-chart svg{max-height:155px;width:100%}
+ #app #view .ring-block{min-height:140px;gap:14px;padding:6px 0;flex-wrap:wrap}
+ #app #view .insight-ring{width:110px;height:110px;padding:12px}
+ #app #view .donut{width:112px;height:112px;margin:12px auto}
+ #app #view .mini-ring,#app #view .dashboard-panels .mini-ring{width:112px;height:112px;border-width:13px;margin:14px auto}
+ #app #view .ring-legend{font-size:11px;max-height:none;overflow:visible}
+ #app #view .source-chart-summary{gap:7px;margin:12px 0 16px;grid-template-columns:repeat(3,minmax(0,1fr))}
+ #app #view .source-chart-summary button{padding:9px;min-width:0;gap:4px;border-radius:10px}
+ #app #view .source-chart-summary strong{font-size:18px}
+ #app #view .source-chart-summary span{font-size:10px}
+ #app .followup-filter-bar{margin:12px 0;border-radius:13px}
+ #app .followup-filter-toolbar{padding:10px;gap:8px}
+ #app .followup-filter-top-actions{gap:6px;width:100%}
+ #app .followup-filter-top-actions select{min-width:100px;flex:1}
+ #app .followup-filter-fields{padding:12px;gap:12px}
+ #app .filter-payment-checks{gap:6px}
+ #app .tabs,#app .toolbar{gap:7px;margin-bottom:12px}
+ #app .tabs button{padding:8px 10px;min-height:38px}
+ #app .workspace-action-page>form{padding:14px!important}
+ #app .workspace-action-page .workspace-page-header{padding-bottom:12px;gap:10px}
+ #app .workspace-action-page .workspace-page-header h2{font-size:20px}
+ #app .workspace-page-body>.field,#app .workspace-page-body>.form-grid{margin-bottom:12px}
+ #app .workspace-action-page .online-dialog-actions{margin-top:14px;padding-top:14px}
+ #app .form-grid{gap:12px}
+ #app input:not([type=checkbox]):not([type=radio]),#app select,#app textarea{font-size:16px}
+ #app textarea{min-height:72px}
+ #app #view .order-workbench-panels,#app #view .customer-workspace-columns{gap:12px}
+ #app #view .order-workbench-panels>.card,#app #view .order-history-panel{padding:14px!important}
+ #app #view .courier-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px}
+ #app #view .courier-history-card{min-width:0;min-height:0!important;padding:10px}
+ #app #view .live-product-pick{min-height:74px;padding:10px;gap:9px}
+ #app #view .live-product-pick img{width:48px;height:54px;object-fit:contain}
+ #app .table-wrap{margin-top:10px}
+ #app th,#app td{padding:10px 8px;font-size:12px}
+ #app .footer{margin-top:16px;padding-top:12px}
+ .callback-reminder-popup{right:12px;bottom:12px;padding:18px;gap:10px;border-radius:16px}
+}
+@media (max-width:360px){
+ #app #view .stats{gap:8px!important}
+ #app #view .stats :is(.metric-tile,.insight-tile,.overview-tile){min-height:116px!important;height:116px!important}
+ #app #view .stats :is(.metric-tile,.insight-tile,.overview-tile) strong{font-size:20px!important}
+}
+
+/* Keep layout editing controls local to each widget; never squeeze an overcrowded row. */
+#app :is(#view.jf-layout-editing,#view .jf-layout-editing) .jf-layout-row{overflow-x:auto!important;overflow-y:visible!important;padding:5px 4px 10px;box-sizing:border-box;align-items:flex-start!important}
+#app :is(#view.jf-layout-editing,#view .jf-layout-editing) .jf-layout-row>.slot-layout-item{min-width:240px!important;flex-shrink:0!important;max-width:none!important;box-sizing:border-box;padding-top:54px!important;position:relative}
+#app :is(#view.jf-layout-editing,#view .jf-layout-editing) .jf-layout-row>:is(.metric-tile,.insight-tile,.overview-tile){min-width:180px!important;min-height:170px!important}
+#app :is(#view.jf-layout-editing,#view .jf-layout-editing) .slot-move-controls{left:10px!important;right:auto!important;top:10px!important;gap:5px!important;display:flex!important;justify-content:flex-start!important;max-width:calc(100% - 54px);z-index:12}
+#app :is(#view.jf-layout-editing,#view .jf-layout-editing) .slot-move-controls button{min-width:28px;min-height:30px;padding:4px 7px!important;border-radius:8px;line-height:1.2;white-space:nowrap}
+#app :is(#view.jf-layout-editing,#view .jf-layout-editing) .slot-drag-handle{top:10px!important;right:9px!important;width:28px;height:30px;z-index:13}
+#app :is(#view.jf-layout-editing,#view .jf-layout-editing) .slot-layout-controls{position:sticky;top:8px;padding:16px!important;z-index:40;gap:10px}
+#app :is(#view.jf-layout-editing,#view .jf-layout-editing) .slot-layout-controls small{max-width:600px;font-size:12px}
+#app :is(#view.jf-layout-editing,#view .jf-layout-editing) .slot-is-hidden::after{top:auto;bottom:5px;left:10px;font-size:9px;pointer-events:none}
+@media(max-width:600px){
+ #app #view .jf-layout-rows{display:flex!important;flex-direction:column!important;gap:12px!important}
+ #app :is(#view.jf-layout-editing,#view .jf-layout-editing) .jf-layout-row>.slot-layout-item{min-width:0!important;max-width:100%!important;flex:1 1 100%!important;width:100%!important;height:auto!important}
+ #app :is(#view.jf-layout-editing,#view .jf-layout-editing) .jf-layout-row>:is(.metric-tile,.insight-tile,.overview-tile){min-height:170px!important}
+ #app :is(#view.jf-layout-editing,#view .jf-layout-editing) .slot-layout-controls{position:relative;top:0;padding:12px!important}
+}
+@media(max-width:600px){
+ #app #view .stats.jf-layout-rows .jf-layout-row:not(:has(>.slot-layout-item)){flex-wrap:wrap!important;gap:10px!important}
+ #app #view .stats.jf-layout-rows .jf-layout-row:not(:has(>.slot-layout-item))>:is(.metric-tile,.insight-tile,.overview-tile){flex:1 1 calc(50% - 5px)!important;max-width:calc(50% - 5px)!important;min-width:0!important}
+}

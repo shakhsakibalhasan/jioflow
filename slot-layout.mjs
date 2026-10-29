@@ -1,3 +1,5 @@
+// Structural wrappers are row containers, not editable widgets themselves.
+export function editableLayoutElements(elements){return [...new Set(elements)].filter(el=>!el.matches('.original-restored-view,.stats,.dashboard-metrics,.dashboard-panels,.dashboard-grid,.insight-grid,.order-workbench,.order-workbench-panels,.customer-workspace-columns,.original-record-scope,.original-connection-notice,.original-header-actions,.jf-layout-row,.slot-layout-controls,script,style'))}
 // Explicit rows: dragging never moves a card to a different row.
 const formScope=el=>el?.matches?.('form')?el.parentElement?.closest('form'):el?.closest?.('form');
 const logicalParent=el=>el.parentElement?.classList.contains('jf-layout-row')?el.parentElement.parentElement:el.parentElement;
