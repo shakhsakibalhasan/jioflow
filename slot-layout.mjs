@@ -64,5 +64,29 @@ export function startSlotLayout({root,items,layout={},onSave,onCancel}){
  return {cancel:()=>bar.querySelector('[data-layout-cancel]')?.click()};
 }
 
-// Repair only an overcrowded saved KPI row; keep labels, order, hidden state and business data.
-export function repairDashboardMetricRows(root){const summary=root.querySelector('.stats.dashboard-metrics')||root.querySelector('.original-restored-view>.stats');if(!summary)return false;const rows=[...summary.querySelectorAll(':scope>.jf-layout-row')];const broken=rows.some(row=>{const tiles=[...row.children].filter(el=>el.matches('.metric-tile,.insight-tile,.overview-tile'));if(tiles.length<7)return false;const width=row.getBoundingClientRect().width;return !width||width/tiles.length<140});if(!broken)return false;for(const row of rows){for(const tile of [...row.children]){summary.insertBefore(tile,row);for(const key of ['width','minWidth','maxWidth','height','minHeight','flex'])tile.style[key]='';tile.style.removeProperty('--row-weight');tile.style.removeProperty('--layout-width');tile.classList.remove('layout-positioned','layout-resized')}row.remove()}summary.classList.remove('jf-layout-rows','layout-free-group');return true}
+// Recover only unsafe summary geometry. Never remove labels, values, visibility or unrelated sections.
+export function repairDashboardMetricRows(root){
+ const selector='.stats.dashboard-metrics,.original-restored-view>.stats,.platform-summary,.agent-report-summary';
+ const summaries=[...(root.matches?.(selector)?[root]:[]),...root.querySelectorAll(selector)];let repaired=false;
+ const metric=el=>el.matches('.metric-tile,.insight-tile,.overview-tile,.agent-report-compact');
+ const visible=el=>!el.hidden&&el.style.display!=='none';
+ const clear=el=>{for(const key of ['width','minWidth','maxWidth','height','minHeight','maxHeight','flex','flexBasis'])el.style[key]='';for(const key of ['--row-weight','--layout-width'])el.style.removeProperty(key);el.classList.remove('layout-positioned','layout-resized')};
+ for(const summary of new Set(summaries)){
+  const rows=[...summary.querySelectorAll(':scope>.jf-layout-row')];let changed=false;
+  for(const row of rows){const tiles=[...row.children].filter(metric),shown=tiles.filter(visible),width=row.getBoundingClientRect().width;
+   const compressed=shown.some(el=>{const w=el.getBoundingClientRect().width;return w>0&&w<140});
+   const overcrowded=shown.length>1&&(width>0?width/shown.length<160:shown.length>6);
+   if(!compressed&&!overcrowded)continue;
+   for(const el of [...row.children]){summary.insertBefore(el,row);if(metric(el))clear(el)}row.remove();changed=true;
+  }
+  const direct=[...summary.children].filter(metric),shown=direct.filter(visible);
+  const squeezed=shown.some(el=>{const w=el.getBoundingClientRect().width;return w>0&&w<140});
+  if(squeezed||summary.classList.contains('layout-free-group')&&shown.length>6&&!rows.length){for(const el of direct)clear(el);changed=true}
+  if(changed){
+   // A trailing singleton from the same broken save belongs back in the KPI grid.
+   for(const row of [...summary.querySelectorAll(':scope>.jf-layout-row')])if(row.children.length===1&&metric(row.firstElementChild)){const tile=row.firstElementChild;summary.insertBefore(tile,row);clear(tile);row.remove()}
+   summary.classList.remove('layout-free-group','jf-layout-rows');summary.classList.add('jf-summary-safe-grid');repaired=true;
+  }
+ }
+ return repaired;
+}

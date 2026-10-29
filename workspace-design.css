@@ -508,3 +508,11 @@ html[data-mode=dark] .customer-workspace-page{--fu-tint:#1d251a;--fu-edge:#41543
 .courier-provider-heading .courier-brand-watermark{display:none}
 .courier-preset-picker .courier-booking-logo,.courier-booking-heading .courier-booking-logo{display:block;width:112px;height:38px;max-width:100%;max-height:38px;object-fit:contain;object-position:center}
 .courier-list-logo.courier-preset-logo{display:block;width:84px;height:30px;object-fit:contain;max-width:100%;margin:0}
+/* 69: KPI readability must not depend on saved layout geometry or asynchronous repair. */
+#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid):not(.jf-layout-rows){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:16px!important;align-items:stretch!important;overflow:visible!important}
+#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid):not(.jf-layout-rows)>:is(.metric-tile,.insight-tile,.overview-tile,.agent-report-compact){width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid).jf-layout-rows{display:flex!important;flex-direction:column!important;align-items:stretch!important}
+#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid)>.jf-layout-row{flex-wrap:wrap!important;min-width:0!important}
+#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid)>.jf-layout-row>:is(.metric-tile,.insight-tile,.overview-tile,.agent-report-compact){flex:var(--row-weight,1) 1 220px!important;min-width:min(220px,100%)!important;max-width:100%!important;box-sizing:border-box!important}
+@media(max-width:1100px){#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid):not(.jf-layout-rows){grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:600px){#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid):not(.jf-layout-rows){gap:10px!important}#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid)>.jf-layout-row{gap:10px!important}#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid)>.jf-layout-row>:is(.metric-tile,.insight-tile,.overview-tile,.agent-report-compact){flex:1 1 calc(50% - 5px)!important;min-width:0!important;max-width:calc(50% - 5px)!important}}
