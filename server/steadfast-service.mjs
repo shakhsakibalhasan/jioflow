@@ -43,7 +43,7 @@ export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Da
  }
  async function apply(shop,id,data){return rpc('jf_courier_apply',{target_shop:shop,shipment_id:id,provider_data:data},null,true)}
  async function status(keys,s){const data=await provider(keys,'/status_by_cid/'+encodeURIComponent(s.consignment_id));if(!STATUSES.has(data.delivery_status))throw new RequestError('Unrecognized courier status. The previous status was kept.',502);return apply(s.shop_id,s.id,data)}
- async function savedMethods(shop,token){return rpc('jf_delivery_methods',{target_shop:shop},token)}
+ async function savedMethods(shop,token){const result=await rpc('jf_delivery_methods',{target_shop:shop},token);return {...result,methods:(result.methods||[]).map(m=>{const preset=courierDefinition(m.provider==='custom'?m.provider_options?.courier_type:m.provider);return {...m,...(preset.preset_id?{preset_id:preset.preset_id,logo_asset:preset.logo_asset,brand_color:m.brand_color||preset.brand_color}:{})}})}}
  async function savedKey(shop,id){const rows=await rpc('jf_delivery_method_secrets',{target_shop:shop,target_method:id},null,true),m=rows.find(x=>x.id===id);if(!m)throw new RequestError('Courier method unavailable.',404);return {...m,...openKeys(env,shop,id,m.sealed)}}
  async function selectedKey(shop,id,methods){if(id)return savedKey(shop,id);const active=methods.methods.filter(m=>m.active&&(m.provider!=='custom'||String(m.provider_options?.courier_type).toLowerCase()==='ecourier'));const m=active.find(m=>m.preferred)||active[0];return m?savedKey(shop,m.id):methods.has_methods?null:credentials(env,shop)}
  const ecourier=createEcourierProvider({fetcher});

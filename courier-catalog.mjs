@@ -1,3 +1,4 @@
+import {courierPreset} from './courier-presets.mjs';
 // Shared connection catalog. Only installed adapters may claim live capabilities.
 export const courierCatalog=Object.freeze([
  {id:'steadfast',name:'Steadfast',adapter:'steadfast',fields:[['api_key','API Key'],['secret_key','Secret Key']],booking:true,tracking:true,history:true},
@@ -8,6 +9,6 @@ export const courierCatalog=Object.freeze([
  {id:'ecourier',name:'eCourier',adapter:'ecourier',fields:[['api_key','API Key'],['secret_key','API Secret'],['user_id','User ID']],booking:true,tracking:true,history:true},
  {id:'sundarban',name:'Sundarban',adapter:null,fields:[['api_key','API Key'],['secret_key','API Secret'],['access_token','Access Token']],booking:false,tracking:false,history:false},
  {id:'other',name:'Other courier',adapter:null,fields:[['api_key','API Key'],['secret_key','API Secret'],['access_token','Access Token'],['username','Merchant username'],['password','Merchant password'],['client_context','Client Context'],['user_id','User ID']],booking:true,tracking:true,history:true}
-]);
+].map(c=>{const preset=courierPreset(c.id);return {...c,...(preset?{preset_id:preset.id,brand_color:preset.color,logo_asset:preset.logo}:{})}}));
 export function courierDefinition(value){const id=String(value||'').trim().toLowerCase().replace(/[\s_-]/g,'');return courierCatalog.find(c=>c.id===id)||courierCatalog.at(-1)}
 export function courierCapabilities(method){const definition=courierDefinition(method.provider==='custom'?method.provider_options?.courier_type:method.provider),verified=method.active&&method.check_status==='verified'&&!!definition.adapter;return {adapter_installed:!!definition.adapter,connection:definition.adapter?(verified?'verified':'not_verified'):'setup_required',booking:!!(verified&&definition.booking&&method.booking_enabled),tracking:!!(verified&&definition.tracking),history:!!(verified&&definition.history&&method.history_enabled!==false)}}

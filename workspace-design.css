@@ -451,3 +451,60 @@ html[data-mode=dark] .customer-workspace-page{--fu-tint:#1d251a;--fu-edge:#41543
  #app #view .stats.jf-layout-rows .jf-layout-row:not(:has(>.slot-layout-item)){flex-wrap:wrap!important;gap:10px!important}
  #app #view .stats.jf-layout-rows .jf-layout-row:not(:has(>.slot-layout-item))>:is(.metric-tile,.insight-tile,.overview-tile){flex:1 1 calc(50% - 5px)!important;max-width:calc(50% - 5px)!important;min-width:0!important}
 }
+
+/* Update 67: entering Edit is an overlay, never a geometry conversion. */
+#app .jf-layout-editing.jf-layout-inplace .slot-layout-item{padding-top:var(--slot-original-padding-top)!important;min-width:0!important;flex-shrink:1!important;max-width:100%!important}
+#app .jf-layout-editing.jf-layout-inplace .slot-layout-item:is(.metric-tile,.insight-tile,.overview-tile){min-height:0!important}
+#app .jf-layout-editing.jf-layout-inplace .slot-move-controls{opacity:0;pointer-events:none;transition:opacity .12s;top:5px!important;left:5px!important;background:var(--surface,#fff);border-radius:9px;padding:3px;box-shadow:0 2px 8px #14210b12}
+#app .jf-layout-editing.jf-layout-inplace .slot-layout-item:hover>.slot-move-controls,#app .jf-layout-editing.jf-layout-inplace .slot-layout-item:focus-within>.slot-move-controls{opacity:1;pointer-events:auto}
+#app .jf-layout-editing.jf-layout-inplace .slot-drag-handle{top:5px!important;right:5px!important;opacity:.8}
+#app .jf-layout-editing.jf-layout-inplace>.slot-layout-controls{position:fixed!important;top:auto!important;bottom:16px;right:20px;left:auto;width:min(700px,calc(100vw - 40px))!important;margin:0!important;z-index:11000}
+#app .jf-layout-editing.jf-layout-inplace .jf-layout-row{padding:0!important;overflow:visible!important;align-items:stretch!important}
+@media(max-width:600px){
+ #app .jf-layout-editing.jf-layout-inplace>.slot-layout-controls{bottom:10px;right:10px;width:calc(100vw - 20px)!important;padding:10px!important}
+ #app .jf-layout-editing.jf-layout-inplace .slot-move-controls{opacity:1;pointer-events:auto;position:absolute;top:4px!important;padding:2px;gap:2px!important}
+ #app .jf-layout-editing.jf-layout-inplace .slot-move-controls button{min-width:23px;min-height:26px;padding:3px 4px!important;font-size:10px!important}
+ #app .jf-layout-editing.jf-layout-inplace .slot-layout-controls small{display:none}
+}
+
+.jf-page-options{position:fixed;z-index:12000;box-sizing:border-box;max-height:min(480px,75vh);overflow:auto;padding:8px;background:var(--surface,#fff);color:var(--text,#182015);border:1px solid var(--accent-edge,#dce6d2);border-radius:14px;box-shadow:0 10px 34px #16220e1a;animation:workspace-fade-in .12s ease-out}
+.jf-page-options-heading{display:flex;align-items:center;justify-content:space-between;padding:7px 8px 10px;border-bottom:1px solid var(--line,#e4e8df);margin-bottom:5px;font-size:12px}
+.jf-page-options-heading>button{border:0;background:transparent;font-size:21px;line-height:1;padding:3px 7px;cursor:pointer;color:inherit}
+.jf-page-options .page-options-list{display:grid;gap:4px}
+.jf-page-options .page-options-list>button{display:flex;align-items:center;gap:10px;min-height:40px;width:100%;text-align:left;padding:10px 11px;border:0;border-radius:9px;background:transparent;color:inherit;font:500 13px Manrope,Arial,sans-serif;cursor:pointer}
+.jf-page-options .page-options-list>button::before{content:'›';display:grid;place-items:center;width:23px;height:23px;border-radius:7px;background:var(--accent-soft,#f0f7e5);color:inherit;flex:none;font-size:17px}
+.jf-page-options .page-options-list>button:hover,.jf-page-options .page-options-list>button:focus-visible{background:var(--accent-soft,#f0f7e5);outline:0}
+.is-layout-editing{outline:2px solid var(--accent,#aee957);outline-offset:2px}
+#app .jf-layout-editing>.slot-layout-controls[hidden]{display:none!important}
+
+#app :is(#view.jf-layout-editing.jf-layout-inplace,#view .jf-layout-editing.jf-layout-inplace) .slot-layout-item{padding-top:var(--slot-original-padding-top)!important;min-height:var(--slot-original-min-height)!important;min-width:var(--slot-original-min-width)!important;flex-shrink:1!important}
+/* Courier presets: original supplied wordmarks, quiet corner branding and matched card geometry. */
+.courier-provider-heading{position:relative;isolation:isolate;overflow:hidden}
+.courier-provider-heading .courier-brand-watermark{position:absolute;z-index:-1;right:-12px;bottom:-13px;width:125px;height:65px;opacity:.14;transform:rotate(-16deg);pointer-events:none;background:none;border-radius:0}
+.courier-brand-watermark .courier-uploaded-logo{width:100%;height:100%;max-width:none;max-height:none;filter:grayscale(1) brightness(0)}
+.courier-provider-heading .courier-uploaded-logo-wrap{position:relative;flex:0 1 auto;width:fit-content;max-width:85%;padding:3px 8px;border-radius:5px}
+.courier-provider-heading .courier-preset-logo{height:26px;width:auto;max-width:135px;aspect-ratio:auto}
+.courier-preset-logo{display:block;flex:none;overflow:hidden}
+.courier-list-logo.courier-preset-logo{width:82px;height:27px;margin:0}
+.courier-booking-heading{display:flex;align-items:center;gap:12px}
+.courier-booking-logo{width:100px;height:32px;object-fit:contain;vertical-align:middle}
+.courier-preset-picker{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+.courier-preset-picker button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:14px 10px;min-height:88px;background:var(--surface,#fff);border:1px solid var(--line,#e1e5dc);font-size:12px}
+.courier-preset-picker button:hover,.courier-preset-picker button[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft)}
+.courier-preset-picker button:disabled{opacity:1;cursor:default}
+#view .courier-provider-card{padding:0 0 11px;overflow:hidden!important}
+#view .courier-provider-card>.courier-provider-heading{min-height:39px;padding:5px 9px;margin:0 0 9px;border-radius:14px 14px 0 0}
+#view .courier-provider-card dl{margin-top:0}
+#view .courier-provider-card dl>div{font-size:12px;line-height:1.65;align-items:center}
+#view .courier-provider-card dd{font-weight:600}
+@media(max-width:600px){.courier-preset-picker{grid-template-columns:repeat(2,minmax(0,1fr))}.courier-preset-picker button{min-height:76px}#app #view .courier-provider-card{padding:0 0 10px}}
+#view .courier-history-strip{grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));gap:10px}
+.courier-provider-meter{margin:0 12px}
+@media(max-width:600px){#app #view .courier-history-strip{grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:9px}}
+/* 68: contain the complete transparent logo within its white badge; no SVG viewport clipping. */
+.courier-provider-heading .courier-uploaded-logo-wrap{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:136px;max-width:calc(100% - 24px);height:34px;min-height:34px;padding:5px 10px;overflow:hidden;background:#fff;border-radius:5px;line-height:normal;flex:0 1 136px}
+.courier-provider-heading .courier-uploaded-logo-wrap>.courier-uploaded-logo{display:block;position:static;width:100%;height:100%;max-width:100%;max-height:100%;min-width:0;object-fit:contain;object-position:center;transform:none;flex:0 1 auto}
+#view .courier-provider-card>.courier-provider-heading,.courier-logo-preview .courier-provider-heading{box-sizing:border-box;height:48px;min-height:48px;padding:7px 12px;align-items:center;justify-content:center}
+.courier-provider-heading .courier-brand-watermark{display:none}
+.courier-preset-picker .courier-booking-logo,.courier-booking-heading .courier-booking-logo{display:block;width:112px;height:38px;max-width:100%;max-height:38px;object-fit:contain;object-position:center}
+.courier-list-logo.courier-preset-logo{display:block;width:84px;height:30px;object-fit:contain;max-width:100%;margin:0}
