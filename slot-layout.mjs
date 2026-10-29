@@ -25,7 +25,7 @@ export function applySlotLayout({root,items,layout={}}){
  }
  if(layout.row_layout_version===56)wrapRows(groups,items,configs);
  else for(const gid of layout.groups||[]){const p=groups.get(gid);if(p)p.classList.add('layout-free-group')}
- return groups;
+ repairWorkflowPanels(root);return groups;
 }
 export function startSlotLayout({root,items,layout={},onSave,onCancel}){
  const doc=root.ownerDocument,groups=layoutContainers(root,items),snap=new Map(items.map(i=>[i.el,{computed:(()=>{const c=doc.defaultView?.getComputedStyle?.(i.el);return {paddingTop:c?.paddingTop||'0px',minHeight:c?.minHeight||'0px',minWidth:c?.minWidth||'0px'}})(),style:i.el.getAttribute('style'),hidden:i.el.hidden,parent:i.el.parentElement,next:i.el.nextSibling,draggable:i.el.getAttribute('draggable'),positioned:i.el.classList.contains('layout-positioned'),handlers:Object.fromEntries(['dragstart','dragend','dragover','drop','pointerdown'].map(k=>[k,i.el['on'+k]]))}]));
@@ -89,4 +89,29 @@ export function repairDashboardMetricRows(root){
   }
  }
  return repaired;
+}
+
+// Legacy layout-group flags must never turn a chart card into a row of labels.
+export function repairWorkflowPanels(root){
+ for(const parent of root.querySelectorAll('.dashboard-panels')){
+  const cards=[...parent.querySelectorAll(':scope>.card,:scope>.jf-layout-row>.card')];
+  if(!cards.some(c=>c.querySelector('.breakdown')))continue;
+  for(const row of [...parent.children].filter(c=>c.classList.contains('jf-layout-row'))){while(row.firstChild)parent.insertBefore(row.firstChild,row);row.remove()}
+  parent.classList.remove('layout-free-group','jf-layout-rows');parent.classList.add('jf-workflow-grid');
+  for(const prop of ['display','width','height','min-height','grid-template-columns','flex'])parent.style.removeProperty(prop);
+  for(const card of cards){card.classList.remove('layout-free-group','jf-layout-rows');card.classList.add('jf-workflow-card');for(const prop of ['width','height','min-height','min-width','max-width','flex','order'])card.style.removeProperty(prop);
+   for(const row of [...card.children].filter(c=>c.classList.contains('jf-layout-row'))){while(row.firstChild)card.insertBefore(row.firstChild,row);row.remove()}
+   for(const item of card.children){item.classList.remove('layout-positioned');for(const prop of ['width','height','min-height','min-width','max-width','flex','order'])item.style.removeProperty(prop)}
+  }
+ }
+ const doc=root.ownerDocument;if(!doc.getElementById('workflow-layout78')){const style=doc.createElement('style');style.id='workflow-layout78';style.textContent=`
+ #app .dashboard-panels.jf-workflow-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:16px!important;align-items:start!important}
+ #app .jf-workflow-grid>.jf-workflow-card{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box;padding:20px;border:1px solid var(--line,#dde5d6);border-radius:18px;background:var(--surface,#f6f7f4)}
+ #app .jf-workflow-grid>.jf-workflow-card[hidden]{display:none!important}
+ #app .jf-workflow-card>h2{font-size:18px;line-height:1.35;margin:0 0 12px}#app .jf-workflow-card>p{margin-bottom:18px}
+ #app .jf-workflow-card>.breakdown{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:8px;width:100%!important;min-width:0!important;flex:none!important;padding:14px 0;text-align:left}
+ #app .jf-workflow-card>.breakdown>.meter,#app .jf-workflow-card>.breakdown>small{grid-column:1/-1;width:100%}#app .jf-workflow-card>.breakdown>span{overflow-wrap:anywhere}#app .jf-workflow-card .meter{height:8px;border-radius:8px;overflow:hidden}#app .jf-workflow-card .meter i{display:block;height:100%;border-radius:inherit}
+ @media(max-width:1100px){#app .dashboard-panels.jf-workflow-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+ @media(max-width:600px){#app .dashboard-panels.jf-workflow-grid{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}#app .jf-workflow-grid>.jf-workflow-card{padding:16px}#app .jf-workflow-card>.breakdown{padding:10px 0}}
+ `;doc.head.append(style)}
 }

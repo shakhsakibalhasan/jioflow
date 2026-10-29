@@ -5,7 +5,7 @@ export function scopedAgentClient(client,member){
  const scoped={...client,sessionVersion:()=>String(client.sessionVersion?.())+':agent:'+member.id,
   query(table,params='select=*'){if(['jf_customers','jf_orders'].includes(table))params+='&assigned_membership_id=eq.'+encodeURIComponent(member.id);return client.query(table,params)},
   count(table,params=''){if(['jf_customers','jf_orders'].includes(table))params+='&assigned_membership_id=eq.'+encodeURIComponent(member.id);return client.count(table,params)},
-  rpc(name,args={}){if(name==='jf_workspace_summary')return client.rpc('jf_agent_workspace_summary',{...args,target_agent:member.id});if(['jf_workspace_page','jf_workspace_page_fast'].includes(name))args={...args,filters:{...args.filters,agent_id:member.id}};
+  rpc(name,args={}){if(name==='jf_workspace_summary')return client.rpc('jf_agent_workspace_summary',{...args,target_agent:member.id});if(['jf_workspace_page','jf_workspace_page_fast','jf_select_records'].includes(name))args={...args,filters:{...args.filters,agent_id:member.id}};
    if(name==='jf_save_order')args={...args,details:{...args.details,assigned_membership_id:member.id}};
    if(name==='jf_workspace_tools'&&['load','save_layout'].includes(args.tool))args={...args,details:{...args.details,page:'a:'+member.id+':'+args.details.page}};
    return client.rpc(name,args)}
