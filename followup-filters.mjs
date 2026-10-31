@@ -24,8 +24,8 @@ export function bindFollowupFilters({root,panel,context,client,filters,navigate}
  ${date('af_order_date','Order date')}<div class="field"><span>Created at</span><div class="filter-date-pair">${date('af_created_from','From')}${date('af_created_to','To')}</div></div><div class="field"><span>Updated at</span><div class="filter-date-pair">${date('af_updated_from','From')}${date('af_updated_to','To')}</div></div>${select('af_imported_status','Imported status',[])}
  ${select('af_agent','Agent',agents)}<label class="field">SKU<input name="af_sku" value="${esc(filters.af_sku||'')}" maxlength="200" placeholder="Search SKU…"></label>${select('af_source','Order source',[])}${select('af_call_status','Call status',['connected','not_connected','not_attempted','no_answer','busy'].map(v=>[v,v.replaceAll('_',' ')]))}${select('af_customer_status','Customer status',[])}${select('af_tag','Custom tag 1',[])}${select('af_tag2','Custom tag 2',[])}${select('af_tag3','Custom tag 3',[])}<fieldset class="filter-payment-ranges"><legend>Payment amount</legend><select name="af_payment_basis" aria-label="Payment amount type"><option value="total">Order total</option><option value="advance" ${filters.af_payment_basis==='advance'?'selected':''}>Recorded advance</option></select><div class="filter-payment-checks">${paymentRanges.map(([v,t])=>`<label><input type="checkbox" name="af_payment_ranges" value="${v}" ${String(filters.af_payment_ranges||'').split(',').includes(v)?'checked':''}>${t}</label>`).join('')}</div></fieldset><div class="filter-custom-period">${date('af_order_from','Order date from')}${date('af_order_to','Order date to')}</div>
  </div><p class="followup-filter-message" role="status" data-filter-message></p></form>`;
- bar.classList.add('filter-premium','filter-compact81');
- if(!root.ownerDocument.getElementById('followup-premium77')){const style=root.ownerDocument.createElement('style');style.id='followup-premium77';style.textContent=FILTER_DESIGN77+compact81;root.ownerDocument.head.append(style)}
+ bar.classList.add('filter-premium','filter-compact81','filter-readable82');
+ if(!root.ownerDocument.getElementById('followup-premium77')){const style=root.ownerDocument.createElement('style');style.id='followup-premium77';style.textContent=FILTER_DESIGN77+compact81+readable82;root.ownerDocument.head.append(style)}
  const fieldsHost=bar.querySelector('[data-advanced-fields]'),controls=[...fieldsHost.children];
  const group=(title,description,indexes,wide=false)=>{const box=root.ownerDocument.createElement('section');box.className='filter-option-group'+(wide?' filter-group-wide':'');const heading=root.ownerDocument.createElement('header');heading.innerHTML='<strong>'+title+'</strong><span>'+description+'</span>';box.append(heading);const grid=root.ownerDocument.createElement('div');grid.className='filter-group-grid';for(const i of indexes)grid.append(controls[i]);box.append(grid);fieldsHost.append(box)};
  group('Date & period','Choose when the orders were placed or updated',[0,1,2,13],true);
@@ -91,4 +91,22 @@ const compact81=`
 @media(min-width:851px) and (max-width:1100px){.filter-compact81 .filter-option-group:not(.filter-group-wide) .filter-group-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:850px){.filter-compact81 .filter-payment-checks{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.filter-premium.filter-compact81 .followup-filter-fields{padding:10px!important}.filter-compact81 .filter-payment-checks{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-compact81 .followup-filter-top-actions{gap:5px}.filter-compact81 .filter-group-grid{gap:8px}}
+`;
+
+const readable82=`
+.filter-premium.filter-readable82 .followup-filter-toolbar{padding:10px 14px;align-items:center}
+.filter-premium.filter-readable82 .filter-option-group>header strong{font-size:13px;line-height:1.5;font-weight:600}
+.filter-premium.filter-readable82 .filter-group-grid>.field,.filter-premium.filter-readable82 .filter-group-grid>label{font-size:12px;line-height:1.5;color:var(--text-secondary,#5e6857)}
+.filter-premium.filter-readable82 .filter-date-pair label{font-size:11px;line-height:1.5}
+.filter-premium.filter-readable82 .filter-option-group:first-child .filter-group-grid{align-items:end}
+.filter-readable82 select,.filter-readable82 input:not([type=checkbox]){box-sizing:border-box!important;height:42px!important;min-height:42px!important;max-height:none!important;font-size:13px!important;line-height:normal!important;letter-spacing:normal!important;padding:0 11px!important;vertical-align:middle!important;text-indent:0!important}
+.filter-readable82 select{padding-right:28px!important}.filter-readable82 select option{font-size:13px!important;line-height:normal!important;padding:4px 8px!important}
+.filter-premium.filter-readable82 .filter-group-grid input:not([type=checkbox]),.filter-premium.filter-readable82 .filter-group-grid select{margin-top:5px;border-radius:9px}
+.filter-premium.filter-readable82 .followup-filter-toolbar button{min-height:40px;font-size:13px;line-height:1.35;padding:8px 12px}
+.filter-premium.filter-readable82 .filter-payment-checks{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.filter-premium.filter-readable82 .filter-payment-checks label{min-height:37px;font-size:12px;line-height:1.5;padding:7px 10px;gap:8px}
+.filter-premium.filter-readable82 .filter-payment-checks input[type=checkbox]{width:14px;height:14px;flex-basis:14px}
+.filter-premium.filter-readable82 .followup-filter-message{font-size:12px;line-height:1.5}
+@media(max-width:1050px){.filter-premium.filter-readable82 .filter-option-group:not(.filter-group-wide) .filter-group-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:650px){.filter-premium.filter-readable82 .filter-payment-checks{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-readable82 select,.filter-readable82 input:not([type=checkbox]){font-size:16px!important;height:44px!important;min-height:44px!important}.filter-premium.filter-readable82 .filter-group-grid>.field{font-size:12px}}
 `;
