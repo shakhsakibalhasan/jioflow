@@ -32,7 +32,7 @@ export async function bindWorkspaceTools({root,context,client,openForm,reload,na
  const previousTask=summaryNeeded&&reportWindow.report_start?capture(cachedReadRpc(client,'jf_workspace_summary',{target_shop:shop.id,report_start:new Date(new Date(reportWindow.report_start).getTime()-(new Date(reportWindow.report_end).getTime()-new Date(reportWindow.report_start).getTime())).toISOString(),report_end:reportWindow.report_start})):null;
  const financeTask=['dashboard','profit','profitdetail','agentreports'].includes(section)&&permitted('profit')?capture(client.rpc('jf_finance_totals',{target_shop:shop.id})):null;
  const agentTask=['dashboard','agentreports','agentdetail'].includes(section)&&staff?capture(client.rpc('jf_agent_totals',{target_shop:shop.id})):null;
- const browse=(entity='customers',status='all',agent_id=null,source='')=>navigate(entity==='orders'?'orders':'followups',{entity,status:recordStatus(status),agent_id,source,...(entity==='orders'?reportWindow:{})});
+ const browse=(entity='customers',status='all',agent_id=null,source='')=>{const destination=entity==='orders'?'orders':'followups';if(section==='dashboard'){root.ownerDocument.documentElement.dataset.jfRecordScroll=destination+':'+shop.id;root.ownerDocument.documentElement.dataset.jfRecordScrollAt=String(Date.now())}return navigate(destination,{entity,status:recordStatus(status),agent_id,source,...(entity==='orders'?reportWindow:{})})};
  let financeCache=null,reportTotals=null,currentSummary=null;
  const isOrders=['orders','courier'].includes(section);
  const metrics={
