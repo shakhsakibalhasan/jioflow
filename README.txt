@@ -1,7 +1,6 @@
-Update 90 - Courier history diagnosis
-Requires Update 88 already installed.
-Replace server/native-history88.mjs and courier-overview.mjs in the same locations, then deploy. No SQL.
-Shared history cards apply to Owner, Admin and Agent.
-Reload New Order, check a phone and expand the availability message. Send the Diagnostic version 90 information for Steadfast and Pathao. No API keys needed.
-This update diagnoses missing exact counts; it does not grant courier API access or invent counts. Raw provider error text, credentials and phone values are not exposed. Error categories are heuristic; unknown provider errors remain provider_error.
-Validated parser and shared-card tests and build locally; not live deployed or verified.
+Update 91: Import rejection visibility
+Requires Update 89. Replace live-customer-import.mjs then deploy. No SQL.
+Reopen Order Import and click View last rejected import reasons. Send the first displayed reason (no full customer file needed).
+All-rejected jobs now show No records were imported instead of a success message. First 200 errors are shown safely; existing rejected job errors can be retrieved without uploading again.
+This does not retry rejected rows or fix an unknown database validation failure. The saved rejection reason is needed to identify that failure. No live records were changed.
+Local tests cover rejected job recovery, error escaping and all-rejected completion; direct import regression and build passed.
