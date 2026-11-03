@@ -1,6 +1,8 @@
-Update 91: Import rejection visibility
-Requires Update 89. Replace live-customer-import.mjs then deploy. No SQL.
-Reopen Order Import and click View last rejected import reasons. Send the first displayed reason (no full customer file needed).
-All-rejected jobs now show No records were imported instead of a success message. First 200 errors are shown safely; existing rejected job errors can be retrieved without uploading again.
-This does not retry rejected rows or fix an unknown database validation failure. The saved rejection reason is needed to identify that failure. No live records were changed.
-Local tests cover rejected job recovery, error escaping and all-rejected completion; direct import regression and build passed.
+Update 92 - Restore and merge imported customers
+Requires Database89.sql already applied.
+Run Database92.sql in Supabase SQL Editor. No frontend replacement needed if Update 91 is installed.
+Then choose the original file again and click Import. Previously rejected payloads were discarded, so the failed job cannot replay those rows.
+Only customers matched by normalized phone in the importing shop are restored during a successful import. No blanket restore occurs when applying this SQL. Same phone keeps one customer/follow-up; separate Order IDs retain separate dated history, and repeated Order IDs update the existing history.
+Public customer editing and Agent access are unchanged. Imports retain staff/import/assign permission checks.
+Local database tests passed: normalized phone merge, archived restoration, repeated Order ID update, separate orders, failed-row rollback, private helper access denial, migration applied twice. No live deployment or production data changes performed.
+Latest-order display/date sorting is unchanged by this patch.
