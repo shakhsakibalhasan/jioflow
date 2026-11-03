@@ -1,0 +1,19 @@
+Apply after Update 86.
+1. Run Database87.sql in Supabase SQL Editor.
+2. Replace/add the included files preserving api/ and server/ folders. Deploy on Vercel (not static-only hosting).
+3. Existing Supabase server credentials and JIOFLOW_APP_ORIGIN must remain configured.
+4. Add JIOFLOW_HISTORY_ALLOWED_ORIGINS in Vercel: the exact provider origin, e.g. https://api.provider.com (comma separated for multiple providers). Redeploy.
+5. Open Delivery methods > Customer courier history API > Configure history API.
+6. Enable the connection. Enter the provider's HTTPS endpoint, API key, documented GET/POST method, Bearer or supported API-key header, and phone field. This adapter sends Bangladesh local format 01xxxxxxxxx.
+7. Map response paths for every supported courier. These are examples only; use the provider's actual documentation. Courier IDs: steadfast, pathao, redx, carrybee, etc. Supports dot paths through object/array fields. No key is returned to the browser after saving.
+8. Save, reopen settings, test a known phone number. Exact delivered/cancelled counts must be returned; missing counts remain unavailable. Test uses the SAVED connection, not unsaved edits.
+9. New Order phone-history checks use the configured external provider for all roles. If disconnected, existing native courier history is used. Booking/tracking integrations are unchanged.
+
+Provider API account/subscription is NOT included. This prepares the backend and panel, but cannot obtain private courier data without provider access. GET query parameters or simple POST JSON body, one phone field, one API key are supported. Other auth/request formats need a provider-specific adapter. Async pending responses report processing and require retry; there is no background polling job here.
+
+LIVE FLOW: phone -> authenticated JioFlow server -> authorized history provider -> exact counts -> shared cards. Results are cached for 60 seconds and protected by the existing request-rate gate. Provider failures do not create zero counts. No live deployment or live provider verification was performed.
+
+Mapping example:
+[{"id":"steadfast","name":"Steadfast","delivered":"data.steadfast.delivered","cancelled":"data.steadfast.cancelled","total":"data.steadfast.total"}]
+
+Only if provider documentation explicitly defines total minus success as cancelled may remainder_is_cancelled:true be used with delivered and total paths. Do not use that option if remaining orders may be pending/returned/unknown.

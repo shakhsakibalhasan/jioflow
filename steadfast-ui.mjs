@@ -1,3 +1,4 @@
+import {bindHistorySettings} from './history-settings.mjs';
 import {courierPresets,courierPreset} from './courier-presets.mjs';
 import {bookableCourierMethods} from './courier-options.mjs';
 import {courierCatalog,courierDefinition,courierCapabilities} from './courier-catalog.mjs';
@@ -29,6 +30,7 @@ export async function bindSteadfastOrder({dialog,client,shop,order,reload,method
 }
 // Delivery methods are managed as a list, never fixed provider cards.
 export function bindSteadfastPanel({root,context,client,openForm}){
+ bindHistorySettings({root,context,client,openForm});
  if(!context.shop||!['courier','deliverymethods'].includes(context.section))return;
  root.querySelectorAll('.courier-cards,.steadfast-settings').forEach(el=>el.remove());
  if(context.section!=='deliverymethods'||!client.courier)return;
