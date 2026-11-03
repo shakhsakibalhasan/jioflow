@@ -1,3 +1,4 @@
+import {nativeHistory88} from './native-history88.mjs';
 import {createEcourierProvider,ecourierOptions} from './ecourier-provider.mjs';
 import {courierDefinition,courierCapabilities} from '../courier-catalog.mjs';
 import {createPathaoProvider,pathaoOptions,pathaoHistoryResult} from './pathao-provider.mjs';
@@ -16,14 +17,7 @@ export function credentials(env,shop){
  if(typeof keys.api_key!=='string'||typeof keys.secret_key!=='string'||/[\r\n]/.test(keys.api_key+keys.secret_key))throw new RequestError('Courier server configuration is invalid.',503);
  return keys;
 }
-export function historyResult(raw){
- const data=raw?.data&&typeof raw.data==='object'?raw.data:raw||{};
- const number=v=>typeof v==='number'?v:typeof v==='string'&&/^\d+(?:\.\d+)?$/.test(v.trim())?Number(v):null;
- const count=v=>{const n=number(v);return Number.isSafeInteger(n)&&n>=0?n:null};
- const percent=v=>{const n=number(v);return n!==null&&Number.isFinite(n)&&n>=0&&n<=100?n:null};
- const delivered=count(data.delivered_count),cancelled=count(data.cancelled_count),ratio=percent(data.delivery_ratio),available=delivered!==null||cancelled!==null||ratio!==null;
- return {id:'steadfast',name:'Steadfast',connected:true,status:available?'ready':'unavailable',delivered,cancelled,delivery_ratio:ratio,cancellation_ratio:percent(data.cancellation_ratio),total_reports:count(data.total_reports),volume_range:typeof data.volume_range==='string'?data.volume_range:null,...(!available?{error:'Steadfast returned no recognized phone history fields. Check API access for this account.'}:{})};
-}
+export function historyResult(raw){return nativeHistory88(raw,'steadfast')}
 
 const historyCache=new Map();
 export function createSteadfastService({env=process.env,fetcher=fetch,now=()=>Date.now(),cache=historyCache}={}){
