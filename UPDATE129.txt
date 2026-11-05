@@ -1,0 +1,3 @@
+Apply after your current update. Replace agent-reports.mjs in the repository root and redeploy. No SQL.
+Only Agent Reports aggregate table headings gain small paired chevron icons. First click sorts ascending; repeat sorts descending. Names alphabetically, all counts/amounts/rates numerically using report data. Whole rows move with their existing links/events; Agent search remains active. Actions is not sortable.
+Local numeric/name/rate sorting, search visibility and existing report navigation checks passed; build passed. Not deployed/live verified.
