@@ -1,6 +1,8 @@
-Update 93 - Order Date only
-Run Database93.sql in Supabase, replace the three .mjs files in their original locations and deploy.
-Created At is no longer mapped to Order Date. If Order Date is missing it stays blank. Existing history dates are repaired from retained original_columns where available; no year is guessed and no upload date substituted. Created At system metadata is retained, not deleted.
-Shared UI and SQL changes apply to Owner/Admin/Agent with existing permissions unchanged.
-This patch does not change which order is selected as latest when a phone has multiple orders.
-Tests: both spreadsheet header orders, Created At-only input, isolated SQL fixture applied twice with 2023 Order Date/2026 Created At, syntax and build passed locally. No live deployment performed.
+Update 94 - Only Phone Number required
+Apply after Updates 89, 92 and 93. Run Database94.sql in Supabase SQL Editor, then replace the three .mjs files in their original locations and deploy.
+Phone Number is the only required import column. Invalid phone numbers and invalid supplied field lengths are still rejected. Customer name, Order ID, Order Date, amount and all other columns are optional.
+Missing name: keep the existing customer name; a new customer uses their phone as the display label. Blank customer fields do not erase existing details.
+Phone-only files import customer profiles. Files with order/extra columns retain order history. Same normalized phone uses the same customer profile.
+Missing Order ID: a stable AUTO ID is computed from normalized phone and order details. Identical reuploads merge; different dates/details produce separate history. Without a real Order ID, two identical purchases cannot be distinguished. Provide Order ID to update the same order after changing date/amount/details.
+Existing staff import permissions and Agent restrictions remain enforced. No courier bookings are created.
+No live deployment or production changes performed.
