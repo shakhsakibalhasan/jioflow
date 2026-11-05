@@ -650,3 +650,9 @@ body:has(.customer-workspace-page) .record-footer106,body:has(.workspace-action-
 #app #view .agent-dashboard-panels118{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:20px}
 #app #view .agent-recent-orders118{grid-column:1/-1!important;width:100%!important;min-width:0;box-sizing:border-box}
 #app #view .agent-recent-orders118 .table-wrap{overflow-x:auto}
+
+.permission-section120{padding:16px 0;border-top:1px solid var(--line,#dce4d6);margin-top:16px}
+.permission-section120 h3{font-size:14px;margin:0 0 12px}
+.permission-defaults120{padding:12px;margin-bottom:14px;border-radius:10px;background:var(--accent-soft,#f4f9ec)}
+.permission-section120 .account-permission-grid label{display:flex;align-items:center;gap:9px;padding:8px 0;font-size:13px;line-height:1.5}
+.permission-section120 input[type=checkbox]{width:16px;height:16px;flex:0 0 16px;accent-color:var(--accent,#a5dc54)}
