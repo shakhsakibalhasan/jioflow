@@ -1,7 +1,9 @@
-JioFlow Update120 - requires Update118 files and Update119 if applied.
-Replace included account-actions.mjs, online.js and workspace-design.css. Deploy and hard refresh. No SQL.
+JioFlow Update122 - requires Update120 files.
+1. Run included Database121.sql if not already applied.
+2. Replace all four included JS/MJS/CSS root files; deploy and hard refresh.
 
-Edit Agent profile > Permissions now has Sidebar access and Action permissions groups. Dashboard/Follow-ups/New Order are checked disabled defaults. Optional sidebar entries are named checkboxes, linked to existing permissions. Save existing confirmation as usual. No duplicate permission names; existing grants preserved. Existing module permissions (e.g. Products, Import, Users) govern both module visibility and their existing delegated capability.
-Owner/Admin inspecting an Agent workspace now uses that Agent membership permissions in the sidebar rather than the supervisor own permissions. Other roles keep their own sidebar.
+Top business/search/account bar and bottom bar stay outside scrolling content across workspace pages. Record pages retain page-size/pagination footer; other pages use matching footer. Header search beside business name submits name/phone to Follow-ups; on Orders/Couriers searches that page, including order IDs. Existing per-page search remains. Creator selects a business first. Agent scoping retained.
 
-Local permission control/grant-payload regression, grouped checkbox/default tests, navigation/tab tests, syntax and build passed. Not deployed or browser visually verified.
+Includes Update121 permission/KPI fix: backend accepts sidebar permission keys orders/permanent/courier; boolean validation/caller restrictions retained. Management Follow-ups first confirmation tile now explicitly counts all active confirmed-flow business orders, including Agents, matching Dashboard order counts. Customer workflow tabs retain customer counts.
+
+Validated: frame DOM/search destinations, real database permission saves/denials and shop-Agent order summary agreement, UI order KPI2 vs customer count0, action/retry/tab tests, syntax/build. Not deployed; browser visual QA not performed.
