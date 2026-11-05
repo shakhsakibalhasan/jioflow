@@ -1,0 +1,3 @@
+Apply after Update125. Replace both frontend files and redeploy. No SQL.
+Corrected flow: Create Order is disabled unless saved customer status is Confirm. Updating status to Confirm enables Create Order but does not navigate. Clicking Create Order opens New Order with customer details, selected products and draft payment/delivery information. Saving another status disables Create Order again; failed updates preserve saved state. New Order retains Save Order and Confirm & Book from Update125.
+Local status callbacks, product UI checks and build passed. Not deployed/live verified.
