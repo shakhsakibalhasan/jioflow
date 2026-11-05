@@ -1,12 +1,17 @@
-JioFlow Update 104 — fix missing date/amount in unfiltered All list
+JioFlow Update 105 — phone profile merge and original order customer details
 
-Requires Database102.sql and Database103.sql.
-Run Database104.sql in Supabase SQL Editor, then refresh the website (Ctrl+Shift+R). No frontend replacement is required.
-If the SQL reports the prerequisite error, apply Database102.sql and Database103.sql before retrying.
+Requires prior updates through 104.
+1. Run Database105.sql in Supabase SQL Editor.
+2. Replace record-panel.mjs in the repository root, deploy and refresh.
 
-Confirmed defect: the staff fast-list function had a separate unfiltered All shortcut, returning customer/follow-up fields without order_date, order_amount or latest_order_status. Updates 102–103 corrected the date-filtered query but this shortcut still bypassed it. Reproduced locally with status=all and no advanced filters: all three fields were absent.
+Rules:
+- Same normalized phone, different Order IDs: one customer profile with separate historical orders, even when names differ.
+- Same normalized phone and same Order ID: update the existing order; no duplicate purchase row.
+- Order IDs remain unique within the shop. An ID already belonging to another phone is rejected rather than silently moved.
+- Latest order status continues to follow the newest actual Order Date (Update103), independent of upload order.
+- Each new/reimported order now stores the supplied name, phone and address inside its purchase details. Cards show those per-order customer details along with products, ID, date, amount and status.
+- Older imports use their preserved original CSV columns when available. A missing original name cannot be reconstructed automatically; reimporting supplies it.
+- Existing optional phone-only/no-ID import behavior and access controls remain unchanged.
 
-Fix: route the staff fast list through the existing indexed batch projection with _fast=true. It now includes matching order date, amount and latest status while deferring full tab counts. Existing staff authorization is retained; Agent routing remains scoped to assigned records.
-
-Validation: unfiltered All, search, Assigned, full/fast field consistency, Owner/Admin/Agent, chronological order, repeated SQL application and cross-shop denial. 3,500-row local All-list fixture also checked. Dates/amounts missing from the source are not invented.
-Not applied to production.
+Validation: actual staged importer with normalized phones, differing names/IDs, repeated identical ID, changed-name same ID, per-order snapshots, one customer profile, latest status after an older order upload, repeated migration; historical CSV name fallback, card rendering, inline note regressions and build.
+Tested locally, not deployed to production.
