@@ -1,12 +1,18 @@
-JioFlow Update 101 — CSV dates MM/DD/YYYY
+JioFlow Update 102 — chronological dates and immediate amounts
 
-Requires updates 96–100. If Database100.sql was not applied, run the included Database100.sql first.
-1. Run Database101.sql in Supabase SQL Editor.
-2. Replace historical-import.mjs and record-panel.mjs in the repository root.
-3. Deploy, then refresh the browser and apply the Order Date filter again.
+Requires Database100.sql and Database101.sql already applied, plus the Update101 frontend files deployed.
+Run Database102.sql in the Supabase SQL Editor. Refresh the website and reapply the filter. No frontend replacement is needed for this update.
 
-CSV numeric Order Date uses MM/DD/YYYY: 09/01/2026 = 1 September; 09/30/2026 = 30 September. ISO YYYY-MM-DD remains supported. Invalid numeric dates reject the import preparation with a clear format message. Blank dates remain blank.
-Existing historical rows are read from their original Order Date using MM/DD/YYYY; original CSV values are preserved. No re-upload is required for existing rows with original_columns. This does not recover rows never successfully imported or deduce dates absent from the source.
-Shared Owner/Admin/Agent date logic and existing permissions are preserved.
-Follow-ups count unique customer phone profiles; this may differ from another software's order count and source/created-date filters.
-Local database, CSV/display and build checks passed. Not deployed to the live website.
+Changes:
+- Fast customer lists now include matching order date and amount immediately, without waiting for the separate totals/details request.
+- Customer pages sort by matching order date ascending, then customer ID, before pagination. Fast and full responses use the same ordering and matching amount.
+- One phone remains one customer profile. If multiple orders match the range, the profile uses its latest matching order date/amount; other purchases remain in order history.
+- Parsed MM/DD/YYYY CSV Order Date is stored once with an indexed column. Existing records are backfilled from the original date. New/updated history rows maintain this value through a trigger.
+- Matching orders are computed as a batch per request, with explicit shop/role/Agent scope checks, instead of repeated guarded helper calls per customer.
+- Counts and select-all keep their existing filters and authorization checks.
+
+For the full September 2026 month select 09/01/2026 through 09/30/2026. The supplied screenshot selected September 1–15.
+Missing source dates/amounts are not invented. Unique customer counts need not equal another system's order counts.
+
+Validation: Owner/Admin/Agent dates, same-order amounts, inclusive boundaries, fast/full consistency, selection totals, ascending dates, trigger insert/update, repeat migration, cross-shop and anonymous denial. Local 3,500-record fixture: fast before ~673ms; after ~431ms; full after ~502ms. These are local measurements, not a production performance guarantee.
+This update has not been applied to production. It reduces query work; it cannot guarantee that hosting/network/database requests will never time out.
