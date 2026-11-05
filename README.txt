@@ -1,10 +1,14 @@
-JioFlow Update118 - Agent workspace and shared theme
+JioFlow Update119 - Timeout investigation and confirmed fixes
 
-Apply after Update115 frontend (latest Database117 recommended for large datasets). Replace all seven included root files in GitHub, deploy and hard refresh. No SQL for this UI/navigation update.
+Prerequisites: Update118 frontend and Database117 applied.
+1. Run Diagnostics119.sql in Supabase SQL Editor and retain result tables. Read-only; does not return customer details. It reports installed function hashes/summary markers, table estimates, analyze state, indexes, connection waits and configured role timeout settings. SQL Editor timeout may differ from authenticated API role timeout.
+2. Run Database119.sql. It changes only the filter-options reader to use private parsed summaries instead of reparsing every historical order; existing active-shop/agent scope guards retained.
+3. Replace record-panel.mjs, deploy and hard refresh.
 
-Agent Follow-ups: same shared search/tabs/table as management; no assignment control; remove summary/chart/filter sections. Agent Dashboard: keep first KPI summary boxes and only full-width Recent Orders below. Other roles retain dashboard sections.
-Agent default navigation: Dashboard, Follow-ups, New Order; profile remains via account menu. New optional page controls in Owner/Admin Edit account > Permissions: Agent All Orders, Agent Permanent Clients, Agent Couriers. They default off unless explicitly enabled. Other delegated modules/actions continue to use existing permissions. Hidden pages are rejected by the client route guard; database row/action authorization remains the existing server policy (this update does not broaden it). Permission changes remain managed by Creator/Owner/Admin.
+Confirmed UI defect: bulk selection bar was visible before the first successful list load. A timeout bypassed its selection-state paint. It now starts hidden and paints only from actual selection; empty failed loads clear stale selection. Retry explicitly invalidates client read caches before issuing a new read. Failed cache entries were already evicted; cache poisoning is not the established cause.
 
-Shared workspace: 1200px centered content, consistent responsive side gutters, soft panel tint, white table surfaces, subtle borders/shadows. Existing user accent/dark variables retained.
+Database finding: list reads and filter-option reads are separate RPCs. Update117 optimized the former but did not replace the latter, which continued decoding entire original CSV history. In local 24k-customer/order test, unchanged filter-option result took 1340ms before and78ms after Update119. This does not establish the production list timeout cause or guarantee constant/unlimited performance.
 
-Validation: agent navigation defaults/grants, dashboard metrics+Recent Orders retention, permission editor controls/grant payload, action/selection/pagination tests, scroll-preserving tab tests, JavaScript syntax and build. Production deployment/browser visual QA not performed.
+Refresh repeats the same server work; changing browser UI cannot remove a deterministic server statement timeout. Live diagnostic results are necessary to distinguish missing/old SQL, resource pressure, locking, stale statistics or remaining expensive query plans. No live database access/deployment performed.
+
+Validation: timeout->retry->successful rows, no-selection bulk hiding, select/clear behavior, cache invalidation/session scope, existing action/pagination tests, idempotent SQL/filter-option parity and build passed.
