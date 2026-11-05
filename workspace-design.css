@@ -635,3 +635,18 @@ body:has(.customer-workspace-page) .record-footer106,body:has(.workspace-action-
 #app #view .record-customers113 .record-col-address113{width:14%}
 #app #view .record-customers113 .record-col-customer113{width:15%}
 #app #view .record-sku115{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:550}
+
+/* Update118: a shared centered workspace theme for every account and screen. */
+#app .layout>.main{background:var(--surface,#fff)}
+#app .layout>.main>.content{width:100%;box-sizing:border-box;padding:28px 36px 100px!important}
+#app .layout #view{width:100%;max-width:1200px!important;margin-inline:auto!important;min-width:0}
+#app #view :is(section.card,.shop-card,.metric-tile,.insight-tile,.overview-tile){border:1px solid var(--line,#dce4d6);border-radius:16px;background:color-mix(in srgb,var(--surface,#fff) 96%,var(--accent,#b2f044) 4%);box-shadow:0 1px 3px rgb(20 30 18 / 4%)!important}
+#app #view :is(.table-wrap,.record-toolbar110){background:var(--surface,#fff)}
+#app #view[data-agent-followups118] :is(.stats,.dashboard-metrics,.followup-filter-bar,.filter-panel,[data-original-filters],[data-advanced-followup-filters]){display:none!important}
+#app #view [data-agent-followups118] :is(.stats,.dashboard-metrics,.followup-filter-bar,.filter-panel,[data-original-filters],[data-advanced-followup-filters]){display:none!important}
+@media(max-width:850px){#app .layout>.main>.content{padding:20px 18px 100px!important}}
+@media(max-width:540px){#app .layout>.main>.content{padding:16px 12px 150px!important}}
+
+#app #view .agent-dashboard-panels118{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:20px}
+#app #view .agent-recent-orders118{grid-column:1/-1!important;width:100%!important;min-width:0;box-sizing:border-box}
+#app #view .agent-recent-orders118 .table-wrap{overflow-x:auto}

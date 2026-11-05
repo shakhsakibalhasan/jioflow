@@ -1,12 +1,10 @@
-JioFlow Update117 - Persisted imported-order summaries
+JioFlow Update118 - Agent workspace and shared theme
 
-Requires Database115 and prior updates.
-1. If Database116 has not been applied, run included Database116.sql first.
-2. Run Database117.sql in Supabase SQL Editor. This builds summaries for existing history once. Let this initial build finish.
-3. Refresh JioFlow. No frontend files changed.
+Apply after Update115 frontend (latest Database117 recommended for large datasets). Replace all seven included root files in GitHub, deploy and hard refresh. No SQL for this UI/navigation update.
 
-Each imported purchase has private parsed metadata; each customer has an indexed latest-imported-order summary. Transactional database triggers maintain insert/update/delete changes; no browser jobs or scheduled refresh are needed for these summaries. Historical purchases remain intact. The existing guarded reader still combines eligible live orders and preserves staff/agent restrictions and latest-date filtering. Cache tables/functions are not granted to authenticated API users.
+Agent Follow-ups: same shared search/tabs/table as management; no assignment control; remove summary/chart/filter sections. Agent Dashboard: keep first KPI summary boxes and only full-width Recent Orders below. Other roles retain dashboard sections.
+Agent default navigation: Dashboard, Follow-ups, New Order; profile remains via account menu. New optional page controls in Owner/Admin Edit account > Permissions: Agent All Orders, Agent Permanent Clients, Agent Couriers. They default off unless explicitly enabled. Other delegated modules/actions continue to use existing permissions. Hidden pages are rejected by the client route guard; database row/action authorization remains the existing server policy (this update does not broaden it). Permission changes remain managed by Creator/Owner/Admin.
 
-Validation: idempotent migration, Owner/Admin/Agent latest-only filters, date boundaries, cross-shop denial, latest insert/delete fallback and row parity. Local 24k-customer test: 2642ms to973ms. Local 100k-customer test:11333ms to4207ms, identical returned rows/total. Synthetic one imported order/customer; not concurrent production load. No live deployment performed.
+Shared workspace: 1200px centered content, consistent responsive side gutters, soft panel tint, white table surfaces, subtle borders/shadows. Existing user accent/dark variables retained.
 
-This reduces repeated history work; it is not a guarantee of zero timeouts or constant latency at unlimited scale. Live-server query plans/resources still govern final performance. This update does not implement background CSV import processing.
+Validation: agent navigation defaults/grants, dashboard metrics+Recent Orders retention, permission editor controls/grant payload, action/selection/pagination tests, scroll-preserving tab tests, JavaScript syntax and build. Production deployment/browser visual QA not performed.
