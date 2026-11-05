@@ -586,3 +586,12 @@ body:has(.customer-workspace-page) .record-footer106,body:has(.workspace-action-
 #app #view [data-live-record-panel] .record-actions109 .record-assign-text109{width:auto!important;min-width:62px!important;padding:7px 10px!important;background:var(--accent,#b2f044);border:1px solid var(--accent,#b2f044);border-radius:9px;color:var(--accent-ink,#18230e);font-weight:500}
 @media(max-width:700px){#app #view [data-live-record-panel] .record-actions109 button{min-height:40px!important;height:40px!important}#app #view [data-live-record-panel] .record-actions109 .record-view-action{width:40px!important;min-width:40px!important}}
 #app #view [data-live-record-panel] .record-actions109 .record-view-action:not(:has(svg)){width:auto!important;min-width:52px!important;padding:7px 10px!important}
+
+/* Update110: one search field beside the queue tabs, no duplicate list header. */
+#app #view .record-toolbar110{display:flex;align-items:center;gap:12px;min-width:0;margin-bottom:16px;padding:8px;border:1px solid var(--line,#dce4d6);border-radius:12px;background:var(--surface,#fff)}
+#app #view .record-search110{position:relative;flex:0 0 265px;min-width:0;margin:0!important}
+#app #view .record-search110 input{display:block;width:100%!important;max-width:none!important;min-width:0;min-height:40px;box-sizing:border-box;padding:9px 12px;font-size:13px}
+#app #view .record-tabs110{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;display:flex;flex-wrap:nowrap!important;margin:0!important;padding:0 0 4px!important;border:0}
+#app #view .record-tabs110>button{flex:0 0 auto}
+#app #view [hidden]{display:none!important}
+@media(max-width:700px){#app #view .record-toolbar110{flex-wrap:wrap;gap:10px}#app #view .record-search110{flex:1 1 100%}#app #view .record-tabs110{flex:1 1 100%}}
