@@ -1,0 +1,10 @@
+Apply after Update128 (Update129 can also be installed).
+1. Run Database130.sql in Supabase SQL Editor.
+2. Replace the three frontend files in the repository root and redeploy.
+3. Refresh the page.
+
+Eye/customer details: Delivery & Payment section removed. Payment/delivery fields remain on New Order. Confirm shows two button groups: Call Status (Connected/Not Connected), Customer Status (Positive/Intermediate/Negative/Irregular). One selection in each is required. Confirm + both selections enables Create Order immediately, without Update status. Clicking Create Order saves the status/outcomes first, then opens New Order with customer/product draft. A failed save keeps the customer page open. Other non-Processing statuses disable Create Order and show the red Confirm instruction. Processing disables Create Order without the warning. Selected buttons use a light background/border. Same shared workflow for Agent/Owner/Admin.
+
+Filter: Call Status and Customer Status read separate persisted classifications, never workflow labels such as Confirm/Refuse. Options come from saved scoped customer data. Combined filters require both classifications. Existing unambiguous legacy classifications backfilled. Missing/ambiguous classifications remain unset. Update status remains available for saving follow-ups without opening New Order.
+
+Database patch applied twice locally; required values, independent persistence, Irregular, scoped options, unauthorized Agent denial, combined filters on full/fast projections Owner/Agent passed. UI checks for all roles: immediate enable/disable, highlight state, warning rules, saved payload passed. Existing history/notes, Save Order without booking, SKU dropdown, report sorting and build checks passed. Not deployed or live browser verified.
