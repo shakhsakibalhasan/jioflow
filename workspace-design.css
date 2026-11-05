@@ -595,3 +595,28 @@ body:has(.customer-workspace-page) .record-footer106,body:has(.workspace-action-
 #app #view .record-tabs110>button{flex:0 0 auto}
 #app #view [hidden]{display:none!important}
 @media(max-width:700px){#app #view .record-toolbar110{flex-wrap:wrap;gap:10px}#app #view .record-search110{flex:1 1 100%}#app #view .record-tabs110{flex:1 1 100%}}
+
+/* Update113: bounded text columns; long identifiers never paint over neighbours. */
+#app #view :is(.card,.form-grid,.detail-kv,.customer-workspace-main,.customer-workspace-side)>*{min-width:0}
+#app #view :is(td,th,.detail-kv dd,.detail-kv p,.card p,.card h3){overflow-wrap:anywhere}
+#app #view td :is(a,button,strong,small,span){max-width:100%;box-sizing:border-box}
+#app #view [data-record-rows] .record-table113{table-layout:fixed!important;min-width:1160px}
+#app #view .record-table113 .record-col-select113{width:32px}
+#app #view .record-table113 .record-col-date113{width:108px}
+#app #view .record-table113 .record-col-customer113{width:18%}
+#app #view .record-table113 .record-col-address113{width:21%}
+#app #view .record-table113 .record-col-status113{width:126px}
+#app #view .record-table113 .record-col-amount113{width:80px}
+#app #view .record-table113 .record-col-assigned113{width:110px}
+#app #view .record-table113 .record-col-note113{width:105px}
+#app #view .record-table113 .record-col-actions113{width:124px}
+#app #view .record-orders113 .record-col-actions113{width:196px}
+#app #view [data-record-rows] .record-table113 :is(th,td){min-width:0;max-width:none;box-sizing:border-box;overflow-wrap:anywhere;white-space:normal}
+#app #view [data-record-rows] .record-table113 :is(th,td):last-child{width:auto;min-width:0}
+#app #view .record-table113 :is(.order-number-link,.record-customer-name,.record-customer-phone,.record-note-link){display:block;width:100%;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap!important;text-align:left}
+#app #view .record-table113 .order-number-link{padding:0!important;min-height:0;height:auto;line-height:1.6}
+#app #view .record-table113 .record-overflow-text{width:100%;max-width:100%;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;overflow-wrap:anywhere;line-height:1.5}
+#app #view .record-table113 .record-status-pill{white-space:normal;overflow-wrap:anywhere}
+#app #view .record-table113 .record-actions109{max-width:100%;width:max-content}
+#app #view .record-table113 :is(.record-order-date,[data-record-amount]){white-space:nowrap;font-variant-numeric:tabular-nums}
+#app #view .record-table113 :is(.order-number-link,.record-overflow-text,.record-customer-name):focus-visible{outline:2px solid var(--accent,#a7df53);outline-offset:2px}
