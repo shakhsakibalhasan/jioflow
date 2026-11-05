@@ -620,3 +620,18 @@ body:has(.customer-workspace-page) .record-footer106,body:has(.workspace-action-
 #app #view .record-table113 .record-actions109{max-width:100%;width:max-content}
 #app #view .record-table113 :is(.record-order-date,[data-record-amount]){white-space:nowrap;font-variant-numeric:tabular-nums}
 #app #view .record-table113 :is(.order-number-link,.record-overflow-text,.record-customer-name):focus-visible{outline:2px solid var(--accent,#a7df53);outline-offset:2px}
+
+/* Update115: concise address preview, above-row tooltip and separate agent workflow. */
+#app #view .record-customers113 .record-col-address113{width:16%}
+#app #view .record-customers113 .record-col-customer113{width:16%}
+#app #view .record-table113 .record-col-agent115{width:112px}
+#app #view .record-customers113 .record-col-status113{width:105px}
+#app #view .record-customers113 .record-col-note113{width:90px}
+#app #view [data-record-rows] .record-customers113 :is(th,td){padding:11px 7px!important;font-size:12px;line-height:1.5}
+#app #view .record-table113 .record-overflow-text{display:block;white-space:nowrap;-webkit-line-clamp:unset;text-overflow:ellipsis;overflow:hidden}
+.record-address-tip115{position:fixed;z-index:10000;box-sizing:border-box;max-width:min(300px,calc(100vw - 16px));padding:10px 12px;border:1px solid #3d4145;border-radius:9px;background:#232629;color:#fff;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;pointer-events:none;box-shadow:0 2px 5px #00000018}
+
+#app #view .record-customers113 .record-col-sku115{width:85px}
+#app #view .record-customers113 .record-col-address113{width:14%}
+#app #view .record-customers113 .record-col-customer113{width:15%}
+#app #view .record-sku115{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:550}
