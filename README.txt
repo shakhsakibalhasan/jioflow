@@ -1,18 +1,16 @@
-JioFlow Update 102 — chronological dates and immediate amounts
+JioFlow Update 103 — latest order status, all purchase cards, inline notes
 
-Requires Database100.sql and Database101.sql already applied, plus the Update101 frontend files deployed.
-Run Database102.sql in the Supabase SQL Editor. Refresh the website and reapply the filter. No frontend replacement is needed for this update.
+Requires updates 100–102, including Database102.sql.
+1. Run Database103.sql in Supabase SQL Editor.
+2. Replace record-panel.mjs in the repository root, deploy and refresh.
 
-Changes:
-- Fast customer lists now include matching order date and amount immediately, without waiting for the separate totals/details request.
-- Customer pages sort by matching order date ascending, then customer ID, before pagination. Fast and full responses use the same ordering and matching amount.
-- One phone remains one customer profile. If multiple orders match the range, the profile uses its latest matching order date/amount; other purchases remain in order history.
-- Parsed MM/DD/YYYY CSV Order Date is stored once with an indexed column. Existing records are backfilled from the original date. New/updated history rows maintain this value through a trigger.
-- Matching orders are computed as a batch per request, with explicit shop/role/Agent scope checks, instead of repeated guarded helper calls per customer.
-- Counts and select-all keep their existing filters and authorization checks.
+Shared Owner/Admin/Agent behavior:
+- Follow-up list shows Latest order status, using the newest actual Order Date across imported and live purchases, independent of the selected date range. Existing follow-up status/call-status filtering remains the workflow filter, not the courier/imported status filter.
+- One phone remains one customer profile. Older order uploads do not displace a newer dated purchase. Same-day ties use the recorded timestamp and ID. An order with no date cannot displace a dated order.
+- View includes an All orders & products section at the bottom. Imported and live purchases appear newest first with product descriptions/items, date, status, order ID and total. Historical orders no longer stop at 25; reads paginate through all records allowed by existing permissions. Missing product details/amounts are shown as missing, not invented.
+- View banner includes the latest order status alongside the independent follow-up workflow status.
+- Add note opens a text box. Update note saves a customer note and immediately adds it to the notes list; errors preserve the typed text. Saving a note does not change order status, workflow status, callback or activity metrics.
+- Notes use the existing follow-up editing permissions and customer/shop/session checks. Agents remain restricted to assigned customers and their permitted live orders.
 
-For the full September 2026 month select 09/01/2026 through 09/30/2026. The supplied screenshot selected September 1–15.
-Missing source dates/amounts are not invented. Unique customer counts need not equal another system's order counts.
-
-Validation: Owner/Admin/Agent dates, same-order amounts, inclusive boundaries, fast/full consistency, selection totals, ascending dates, trigger insert/update, repeat migration, cross-shop and anonymous denial. Local 3,500-record fixture: fast before ~673ms; after ~431ms; full after ~502ms. These are local measurements, not a production performance guarantee.
-This update has not been applied to production. It reduces query work; it cannot guarantee that hosting/network/database requests will never time out.
+Validation: DB latest status independent of matching-date filters, Owner/Admin/Agent list consistency, owner and agent note saves, empty note rejection, other-shop and unassigned customer denial, repeat SQL application; UI pagination through 1,027 history records, combined purchase cards, escaped products/notes, note controls and save/error behavior for all three roles; shared page integration and production build.
+This package is tested locally and has not been deployed to the live website.
