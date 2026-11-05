@@ -1,0 +1,13 @@
+Update 123 — apply after Update 122.
+
+1. Run Database123.sql in Supabase SQL Editor.
+2. Replace the included frontend files in the repository root, commit, and redeploy.
+3. Reopen the site and refresh.
+
+Changes: Agent can edit their assigned customer, status and notes without assignment permission; existing server visibility and assignment checks remain. Customer details have compact cards, copy buttons, curated Imported Data, and no All imported details dropdown. Purchase history remains newest first.
+
+Save Order stores a Draft in the software without courier booking. Confirm & Book uses the existing courier flow; from customer details it opens the full booking form to select/validate the courier.
+
+All Orders now uses the Follow-ups search/status bar. Enter runs search. Options contains the previous toolbar actions and Clear filters.
+
+Local database, shared search, order toolbar, history/notes UI, tab navigation and build checks passed. This package has not been deployed or verified against your live database. This update does not resolve unmeasured production timeout causes; Diagnostics119 results are still needed.

@@ -675,3 +675,18 @@ body:has(#app .layout){overflow:hidden}
 @media print{body:has(#app .layout){overflow:visible}#app .layout,#app .layout>.main{height:auto!important;overflow:visible!important;display:block!important}#app .main>.content{overflow:visible!important}#app .main>.footer,.workspace-search122{display:none!important}}
 
 body:has(.customer-workspace-page) #app .main>.footer,body:has(.workspace-action-page) #app .main>.footer{display:flex}
+
+/* Update123: compact, copyable customer workspace. */
+#app #view .customer-workspace-columns{grid-template-columns:minmax(0,2fr) minmax(300px,1fr);gap:18px!important;align-items:start}
+#app #view .customer-workspace-page .card{padding:18px!important;border-radius:13px!important}
+#app #view .customer-workspace-page .detail-kv{gap:14px 20px;margin-top:14px}
+#app #view .customer-workspace-page .detail-kv>div{position:relative;min-width:0;line-height:1.5}
+#app #view .customer-workspace-page .detail-kv small{font-size:11px;color:var(--muted,#6c7566);display:block;margin-bottom:4px}
+#app #view .customer-workspace-page .detail-kv strong{font-size:13px;font-weight:550;overflow-wrap:anywhere;white-space:pre-wrap}
+.detail-copy123{display:inline-flex!important;align-items:center;justify-content:center;vertical-align:middle;width:24px;height:24px;min-height:24px!important;padding:4px!important;margin-left:5px;border:0!important;background:transparent!important;box-shadow:none!important;color:var(--muted,#6c7566)}
+.detail-copy123 svg,.detail-icon123 svg{width:15px;height:15px}.detail-icon123{display:inline-flex;vertical-align:middle;margin-right:7px;color:var(--green,#489b72)}
+#app #view .customer-workspace-side .detail-kv>div:has(>small:first-child){min-width:0}
+#app #view .customer-workspace-side .detail-kv>div:first-child,#app #view .customer-workspace-side .detail-kv>div:last-child{grid-column:1/-1}
+@media(max-width:850px){#app #view .customer-workspace-columns{grid-template-columns:minmax(0,1fr)}}
+
+.record-options123{position:relative;flex:0 0 auto;margin:0!important}.record-options123>summary{cursor:pointer;list-style:none;border:1px solid var(--line,#e2e7dd);border-radius:9px;padding:10px 14px;background:var(--surface,#fff);white-space:nowrap}.record-options-actions123{position:absolute;right:0;top:100%;z-index:30;min-width:175px;padding:10px;display:grid;gap:8px;background:var(--surface,#fff);border:1px solid var(--line,#e2e7dd);border-radius:10px;box-shadow:0 8px 24px #0001}.record-toolbar110>.record-tabs110{min-width:0;flex:1}
