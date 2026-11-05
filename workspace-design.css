@@ -516,3 +516,37 @@ html[data-mode=dark] .customer-workspace-page{--fu-tint:#1d251a;--fu-edge:#41543
 #app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid)>.jf-layout-row>:is(.metric-tile,.insight-tile,.overview-tile,.agent-report-compact){flex:var(--row-weight,1) 1 220px!important;min-width:min(220px,100%)!important;max-width:100%!important;box-sizing:border-box!important}
 @media(max-width:1100px){#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid):not(.jf-layout-rows){grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:600px){#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid):not(.jf-layout-rows){gap:10px!important}#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid)>.jf-layout-row{gap:10px!important}#app #view :is(.stats.dashboard-metrics,.jf-summary-safe-grid)>.jf-layout-row>:is(.metric-tile,.insight-tile,.overview-tile,.agent-report-compact){flex:1 1 calc(50% - 5px)!important;min-width:0!important;max-width:calc(50% - 5px)!important}}
+/* Provider errors stay compact until deliberately expanded. One provider's cooldown does not block another. */
+.courier-availability:not([open])>:not(summary){display:none!important}
+.courier-availability summary{font-size:11px;line-height:1.5;cursor:pointer;border-radius:6px;overflow-wrap:anywhere}
+.courier-availability summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.redx-delivery-fields[hidden],[data-redx-settings][hidden]{display:none!important}
+.redx-delivery-fields{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff)}
+.redx-delivery-fields p:empty{display:none}.redx-delivery-fields p{margin:0}
+
+/* Update106: quieter surfaces, consistent spacing and persistent record navigation. */
+:root{--workspace-gap106:20px;--workspace-pad106:22px;--workspace-shadow106:0 1px 3px rgb(20 30 18 / 4%)}
+#app #view :is(.card.card,.shop-card.shop-card,.metric-tile.metric-tile,.insight-tile.insight-tile,.overview-tile.overview-tile,.report-summary.report-summary,.customer-profile-banner.customer-profile-banner,.courier-history-card.courier-history-card,.jf-hero-card.jf-hero-card){box-shadow:var(--workspace-shadow106)!important}
+#app #view :is(.card.card,.shop-card.shop-card,.metric-tile.metric-tile,.insight-tile.insight-tile,.overview-tile.overview-tile):hover{box-shadow:var(--workspace-shadow106)!important}
+#app #view section.card:not(.metric-tile):not(.overview-tile):not(.insight-tile){padding:var(--workspace-pad106)!important}
+#app #view :is(.dashboard-panels,.insight-grid,.settings-stack,.customer-workspace-columns,.order-workbench-panels){gap:var(--workspace-gap106)!important}
+#app #view :is(.stats,.report-summary-row){gap:16px!important}
+#app #view .form-grid{gap:16px!important}
+#app #view .section-gap{margin-top:var(--workspace-gap106)}
+#app #view .card h2,#app #view .card h3{line-height:1.4}
+#app #view .field{gap:7px}
+#app #view :is(input,select,textarea){line-height:1.4}
+#app .record-bulk106{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;margin:16px 0;border:1px solid var(--line,#dce4d6);border-radius:12px;background:var(--surface,#fff)}
+#app .record-bulk106 [data-selection-total]{order:-1;margin-right:auto;font-size:13px;font-weight:500}
+#app .record-bulk106 button{min-height:36px;padding:7px 12px;font-size:13px;line-height:1.4;white-space:normal}
+#app .record-bulk106 .danger{color:#bb3543;background:color-mix(in srgb,#c33b4c 7%,var(--surface,#fff));border:1px solid color-mix(in srgb,#c33b4c 28%,var(--line,#ddd));box-shadow:none}
+#app .record-with-footer106{padding-bottom:var(--record-footer-space106,88px)!important}
+#app .record-footer106{position:fixed;z-index:65;left:var(--record-footer-left106,260px);bottom:0;width:var(--record-footer-width106,calc(100% - 280px));box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:0!important;padding:12px 16px;background:var(--surface,#fff);color:var(--text,#172016);border:1px solid var(--line,#dce4d6);border-bottom:0;border-radius:12px 12px 0 0;box-shadow:0 -1px 4px rgb(20 30 18 / 4%)}
+#app .record-footer106>div{display:flex;align-items:center;flex-wrap:wrap;gap:10px!important;min-width:0}
+#app .record-footer106 label{display:flex;align-items:center;gap:8px;font-size:13px;white-space:nowrap}
+#app .record-footer106 :is(button,select,input){min-height:34px;height:34px;padding:5px 10px;font-size:13px;line-height:1.4}
+#app .record-footer106 [data-record-size]{width:84px}
+#app .record-footer106 [data-record-showing]{font-size:13px}
+#app .record-footer106 [data-record-jump]{width:60px!important}
+body:has(.customer-workspace-page) .record-footer106,body:has(.workspace-action-page) .record-footer106,body:has(dialog[open]) .record-footer106{visibility:hidden}
+@media(max-width:700px){:root{--workspace-gap106:16px;--workspace-pad106:16px}#app #view :is(.stats,.report-summary-row){gap:12px!important}#app .record-footer106{left:8px;width:calc(100% - 16px);padding:10px 12px;gap:8px}#app .record-footer106>div{justify-content:space-between;width:100%}#app .record-bulk106{padding:12px;gap:8px}#app .record-bulk106 [data-selection-total]{flex-basis:100%}#app .record-footer106 :is(button,select,input){min-height:40px;height:40px}}

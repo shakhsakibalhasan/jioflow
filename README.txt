@@ -1,17 +1,13 @@
-JioFlow Update 105 — phone profile merge and original order customer details
+JioFlow Update 106 — top bulk controls, fixed pagination and quieter spacing
 
-Requires prior updates through 104.
-1. Run Database105.sql in Supabase SQL Editor.
-2. Replace record-panel.mjs in the repository root, deploy and refresh.
+Requires Update105 frontend and previous database updates. No new SQL is required.
+1. Replace record-panel.mjs and workspace-design.css in the repository root.
+2. Deploy and hard refresh (Ctrl+Shift+R).
 
-Rules:
-- Same normalized phone, different Order IDs: one customer profile with separate historical orders, even when names differ.
-- Same normalized phone and same Order ID: update the existing order; no duplicate purchase row.
-- Order IDs remain unique within the shop. An ID already belonging to another phone is rejected rather than silently moved.
-- Latest order status continues to follow the newest actual Order Date (Update103), independent of upload order.
-- Each new/reimported order now stores the supplied name, phone and address inside its purchase details. Cards show those per-order customer details along with products, ID, date, amount and status.
-- Older imports use their preserved original CSV columns when available. A missing original name cannot be reconstructed automatically; reimporting supplies it.
-- Existing optional phone-only/no-ID import behavior and access controls remain unchanged.
+- Selection, clear selection, select-all-matching and Delete selected are above the record table. Existing deletion confirmation and permission checks are retained. Agents do not gain deletion permission.
+- Rows per page (20,50,100,200,500,1000), Previous/Next and page-number navigation are in a fixed bottom bar, aligned with the list on desktop and adjusted for mobile. Space is reserved below rows to prevent covering the last records.
+- The bottom bar hides while a customer/action page or modal is open.
+- Shared site styles reduce card/widget shadows, standardize normal panel padding (22px desktop,16px mobile), section/grid gaps (20px desktop,16px mobile) and form spacing. Existing theme colors, readable font sizes and focus treatment remain.
+- Previous import, matching dates/amounts, latest status, purchase cards and inline notes are retained.
 
-Validation: actual staged importer with normalized phones, differing names/IDs, repeated identical ID, changed-name same ID, per-order snapshots, one customer profile, latest status after an older order upload, repeated migration; historical CSV name fallback, card rendering, inline note regressions and build.
-Tested locally, not deployed to production.
+Validation: shared Owner/Admin/Agent DOM checks for bulk-bar position, delete visibility, selection and page navigation; customer/history/note regression checks; production build. Layout CSS prepared for desktop/mobile; no live browser or production verification was available. Not deployed by this package.
