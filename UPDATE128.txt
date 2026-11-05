@@ -1,0 +1,12 @@
+Apply after Update123 or later. Includes cumulative frontend changes124-127.
+1. Run Database128.sql in Supabase SQL Editor.
+2. Replace the included frontend files in the repository root, commit and redeploy.
+3. Refresh the site.
+
+SKU: open dropdown, search uploaded CSV SKU values, select multiple checkboxes, then Apply filters. Search narrows options only. Each complete CSV SKU cell is one exact option (including combination SKUs). Selected values match the latest order SKU, preserving latest-order/date semantics. Existing bookmarked plain af_sku searches retain substring matching. Option values respect business/customer access.
+
+New Order: Others is a non-booking option. Select Others and Save Order to store a Draft in All Orders without any courier booking. Select a connected courier and Confirm & Book for actual booking. Save Order sits below the form with the live order total. Same shared form for standalone orders and customer detail handoffs, all roles with existing permissions.
+
+Customer details: Confirm status save enables Create Order; clicking Create Order opens New Order with draft details/products. No automatic navigation on Confirm. Removed extra live order edit excerpt; history retained. Ordered/Add Products use compact rows and matching panels; totals/actions sit below both panels. Imported Data retains compact grouped identifiers and previous note. JioFlow theme colors preserved.
+
+Validation: real local database patch applied twice; exact combination SKU matching and options; role/access regressions; option search/multi-select persistence; all-role Save Order with Others creates Draft and zero booking calls; live totals and footer placement; status flow and product UI; build passed. No live deployment or visual browser comparison performed. Production timeout investigation remains separate.
