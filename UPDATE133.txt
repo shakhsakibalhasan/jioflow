@@ -1,0 +1,13 @@
+JioFlow Update 133 — Startup loader fix (apply after Update132)
+
+কারণ: Update132-এর online.js এবং original-sections.mjs নতুন workspace-ui132.mjs import করেছিল, কিন্তু build.mjs-এর explicit copy list-এ সেই নতুন ফাইল ছিল না। Build সফল হলেও deployed dist-এ dependency অনুপস্থিত থাকায় JavaScript module graph লোড হতে পারছিল না।
+
+ফিক্স: helper-টি বিদ্যমান original-sections.mjs-এর মধ্যে রাখা হয়েছে। online.js সেখান থেকেই helper নেয়। আলাদা workspace-ui132.mjs আর প্রয়োজন হয় না; পুরোনো ফাইল থাকলেও ক্ষতি নেই। build.mjs বা database বদলাতে হবে না। Update132-এর কাজগুলো বজায় থাকে।
+
+ইনস্টল:
+1. ZIP-এর online.js ও original-sections.mjs GitHub repository-র root-এ একই ফাইলের জায়গায় Replace করুন।
+2. Vercel deployment Ready হওয়া পর্যন্ত অপেক্ষা করুন।
+3. সাইটে Ctrl+Shift+R চাপুন।
+
+SQL চালানোর প্রয়োজন নেই।
+যাচাই: syntax check, build এবং dist/online.js থেকে সব static dependency-এর উপস্থিতি (49 modules) যাচাই পাস। Embedded helper-এর cancellation UI test পাস। Live deployment পরিবর্তন করা হয়নি।
