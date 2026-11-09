@@ -1,0 +1,27 @@
+JioFlow Update 132 — Follow-up counts, order save workflow, status controls and save bar
+
+ইনস্টল (বর্তমান Update128–131-এর উপর):
+1. Supabase SQL Editor-এ Database132.sql পুরোটা Run করুন। এতে Update130-এর প্রয়োজনীয় নতুন কলাম/ফিল্টারও অন্তর্ভুক্ত আছে। পুরোনো 117/121/123/128 আপডেটগুলো আগে থেকে থাকতে হবে।
+2. ZIP-এর .mjs, .js ও .css ফাইলগুলো GitHub repository-র একই নামের root ফাইলগুলোর জায়গায় Replace করুন। নতুন workspace-ui132.mjs-ও যোগ করুন। SQL ফাইল Supabase-এ চালানোর জন্য; কোড ফাইলের নাম বদলাবেন না।
+3. Vercel deployment শেষ হলে Ctrl+Shift+R দিয়ে খুলুন।
+
+পরিবর্তন:
+- সব ভূমিকার Follow-ups: Assigned, Unassigned, Cancelled ও Due Today ট্যাব বাদ; All সবার শেষে। Dashboard-এর প্রয়োজনীয় assignment হিসাব বজায় আছে।
+- Cancellation ট্যাব/metric/action অপশন সরানো হয়েছে; বিদ্যমান cancelled order/customer history মুছে ফেলা হয়নি। Form বন্ধ করার Cancel বোতাম থাকে।
+- Agent Follow-ups: নতুন order date আগে; Owner/Admin: পুরোনো order date আগে। Pagination-ও একই ক্রমে চলে।
+- Follow-ups-এর Confirmed ট্যাবে বর্তমান confirmed follow-up গণনা হয়; অন্য অর্ডার আছে কি না তার উপর নির্ভর করে না। Confirmed Orders হিসাব বাস্তব saved/confirmed অর্ডারের।
+- Save Order: Others বেছে Save করলে status confirmed; courier booking হয় না। আগে Others দিয়ে draft হিসেবে সেভ হওয়া identifiable অর্ডারগুলো confirmed-এ সংশোধিত হবে। অন্য draft বদলাবে না।
+- Confirm & Book: API booking সফল হলেই courier-এর booked flow; ব্যর্থ হলে saved Confirmed অর্ডার রেখে সমস্যা জানায়।
+- এক capsule bar: প্রশস্ত Save Order বামে, সাদা price অংশ ডানে, সম্পূর্ণ গোল corner ও হালকা shadow। Live total পরিবর্তন হয়।
+- Processing ছাড়া অন্য follow-up status-এ Call Status দেখায় ও প্রয়োজন হয়। Connected হলে Customer Status প্রয়োজন; Not Connected হলে Customer Status লুকায় ও পুরোনো মান মুছে যায়। Processing-এ outcome পরিষ্কার হয়।
+- Create Order শুধু Confirm + প্রয়োজনীয় outcome বেছে সক্রিয় হয়; Create চাপলে status save করে customer/product details-সহ New Order-এ যায়।
+- সফল status/assignment/order mutation ও courier booking-এ data revision বদলায়; normal ও inspected Agent-এর summary/list/report cache পুরোনো ফল পুনরায় ব্যবহার করে না।
+- Creator connected total-এ positive/negative/intermediate connected calls অন্তর্ভুক্ত।
+
+লোকাল যাচাই:
+- SQL দুবার Run করে migration repeatability, owner/admin scoped summary বনাম independent SQL, Agent dashboard/performer/report মিল, assignment/unassignment এবং status/order lifecycle যাচাই পাস।
+- Confirm/Refuse/Processing, Connected/Not Connected, required Customer Status, foreign Agent denial, full/fast list count/sort যাচাই পাস।
+- Agent/Admin/Owner/Creator Save-without-booking এবং Confirm & Book-এর request flow, live total, pill layout markup যাচাই পাস।
+- Mutation cache revision, tab navigation/scroll, cancellation UI, Agent report sorting, SKU dropdown এবং product panel regression যাচাই পাস। Build পাস।
+
+এটি লোকালভাবে যাচাই করা আপডেট। আপনার live Supabase/Vercel-এ চালানো বা বাস্তব courier parcel বুক করা হয়নি।
