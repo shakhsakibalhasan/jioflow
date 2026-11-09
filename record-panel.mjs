@@ -52,6 +52,14 @@ export async function bindRecordPanel({root,context,client,openForm,reload,navig
  const {section,shop,records={},members=[],profiles=[]}=context;const recordFilter=context.recordFilter||{};if(!shop)return;
  const entity=recordFilter.entity||(['orders','courier','profit','profitdetail'].includes(section)?'orders':'customers');
  if(!['orders','followups','customers','permanent','courier'].includes(section)&&!recordFilter.entity)return;
+ if(context.accountRole==='Agent'&&recordFilter._global_search135&&/^[+\d\s()-]+$/.test(String(recordFilter.search||''))&&String(recordFilter.search).replace(/\D/g,'').length>=7){
+  try{const lookup=await client.rpc('jf_phone_lookup136',{target_shop:shop.id,phone_number:String(recordFilter.search)});if(!isCurrent()||!root.isConnected)return;
+   if(!lookup?.own_assignment){const customer=lookup?.customer,purchases=customer?[...(lookup.history||[]),...(lookup.orders||[])]:[],cards=customer?(purchases.length?purchases:[{}]).map(row=>renderSearchCard135(row,customer,lookup.assigned_name||'Unassigned')).join(''):'<section class="card empty-state135">No matching records in this business.</section>';
+    root.innerHTML='<section class="phone-lookup136"><h2>Results</h2><p class="small muted">'+esc(recordFilter.search)+' · Read-only customer lookup</p>'+cards+'</section>';
+    root.querySelectorAll('[data-record-open]').forEach(button=>button.onclick=()=>{const dialog=openForm('Customer details','<p class="small muted">Read-only search result. Customer assignment has not changed.</p>'+cards,async()=>{});dialog?.querySelectorAll('[data-record-open],[type=submit]').forEach(el=>el.remove())});return;
+   }
+  }catch(error){if(isCurrent()&&root.isConnected){const message=root.ownerDocument.createElement('p');message.setAttribute('role','alert');message.textContent='Phone lookup unavailable: '+error.message;root.prepend(message)}return;}
+ }
  const scrollMarker=root.ownerDocument.documentElement;if(scrollMarker.dataset.jfRecordScroll&&(scrollMarker.dataset.jfRecordScroll!==section+':'+shop.id||Date.now()-Number(scrollMarker.dataset.jfRecordScrollAt)>=15000)){delete scrollMarker.dataset.jfRecordScroll;delete scrollMarker.dataset.jfRecordScrollAt}
  const tabStatus=value=>{const status=recordStatus(value);return entity==='orders'&&status==='pending'?'draft':status};
  const filters={...recordFilter,status:tabStatus(recordFilter.status||(section==='permanent'?'permanent':'all'))};let selecting=false,mutating=false;let pageSize=[20,50,100,200,500,1000].includes(Number(recordFilter._page_size))?Number(recordFilter._page_size):20;let page=0,search=String(filters.search||''),revision=0;
