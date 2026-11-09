@@ -1,0 +1,32 @@
+JioFlow Update 134 — Notifications, action popups, order saving and consistent UI
+
+Update132/133-এর উপর ইনস্টল করুন।
+1. Supabase SQL Editor-এ Database134.sql সম্পূর্ণ Run করুন। এটি Agent-এর Assigned Customers থেকে Permanent Customer আলাদা করার filter যোগ করে। Database132 আগে থেকে থাকতে হবে।
+2. ZIP-এর সব .js, .mjs ও .css ফাইল GitHub repository-র root-এ একই নামের ফাইলগুলোর জায়গায় Replace করুন।
+3. Vercel Deploy Ready হলে Ctrl+Shift+R চাপুন। নতুন আলাদা JS module নেই; build.mjs বদলানোর প্রয়োজন নেই।
+
+যা পরিবর্তিত হয়েছে:
+- Notification panel-এর বাইরে ক্লিক করলে বন্ধ হয়; Escape/close-ও থাকে।
+- খোলা/visible tab-এ প্রতি ৫ সেকেন্ডে existing heartbeat দিয়ে notification, reset এবং pending approval update হয়। এটি automatic polling; WebSocket নয়।
+- Pending ছাড়া login request-এ Approve/Decline দেখায় না। Approve করার পর queue ও notification update হয়; অন্য administrator আগে action নিলে refresh করে handled message দেয়।
+- Approve/Decline, reset password, edit account, account security ও অন্য ছোট action corporate modal-এ হয়। Confirmation না দিলে approval RPC চলে না। Customer details/Order-এর বড় work page বজায় থাকে।
+- Popup-এ heading/icon, compact form, consistent spacing, rounded border, subtle shadow/backdrop, close/Cancel এবং পরিষ্কার action button। Login-এর recovery popup-ও একই style।
+- Save Order: কুরিয়ার নির্বাচন লাগবে না। কোনো কুরিয়ার আগে থেকে নির্বাচন করা থাকলেও Save শুধু confirmed order save করে; method/courier booking পাঠায় না।
+- Confirm & Book: valid connected courier লাগবে, confirmation popup হয়, তারপরে booking API। সফল booking server-এর booked flow-তে যায়; ব্যর্থ booking saved confirmed order রেখেই error জানায়।
+- Imported/unsupported source-এর কারণে নতুন order save-এ 'Choose a valid source' আর হবে না: নতুন অর্ডারের source supported value-তে normalize হয়; unknown/imported source Phone হিসেবে save হয়। Imported history-এর original source বদলানো হয় না।
+- Save Order capsule bar-এ button-এর দুই প্রান্ত গোল; পাশে price-এর দুই দিকে padding।
+- Status/assigned badge ও filter tab capsule shape। ছোট selected tab/chip/sidebar/notification action-এ soft background, border ও readable text; বড় Save action-এর brand color বজায় আছে।
+- Account list ও profile card-এ avatar বামে, নাম/ইমেইল ডানে।
+- Activation-এ একটি Active অথবা Inactive badge। Active soft green, Inactive soft red। Duplicate Active/approval policy line বাদ। Business assignment/verification/access-এর মতো জরুরি warning লালে থাকে।
+- Agent Follow-ups expandable submenu: Assigned Customers এবং Permanent Customer। Assigned Customers-এ permanent profile বাদ। Permanent Customer-এ শুধু নিজের permanent profile। Admin/Owner-এর sidebar আগের structure-এ থাকে।
+- Permanent Client নাম বদলে Permanent Customer। মূল permission/DB keys বদলানো হয়নি।
+
+লোকাল যাচাই পাস:
+- Actual heartbeat handler দিয়ে নতুন Admin notification/pending request refresh ছাড়া পাওয়া ও closed queue পরিষ্কার হওয়ার পরীক্ষা।
+- Approval confirmation-before-write, pending-only buttons, outside-click dismiss, nested modal/details restoration।
+- Agent/Admin/Owner/Creator: courier না দিয়ে Save, API courier selected রেখেও Save-এ শূন্য booking call, এবং Book-এ confirmation + এক booking call।
+- Real local database: confirmed save without courier; permanent/non-permanent list ও count-এর বিচ্ছেদ; full/fast projections; shop/Agent scopes; migration দুবার চালানো।
+- আগের summary/report হিসাব, SKU dropdown, report sort, status gating, product editor ও client allowlist regression পাস।
+- Build এবং deployed dist module graph-এর সব 49 static dependency উপস্থিত থাকার পরীক্ষা পাস।
+
+Live deployment বা বাস্তব courier parcel booking করা হয়নি। SQL ও কোড আপনার সাইটে প্রয়োগ করার পর ব্যবহার করুন।

@@ -37,6 +37,7 @@ export function createOriginalSections({client,navigate,onLiveAction=()=>false,o
   root.querySelectorAll('[data-original-filters]').forEach(b=>b.onclick=()=>{const panel=root.querySelector('.filter-panel');if(panel&&root.querySelector('[data-live-record-panel]')){panel.hidden=!panel.hidden;b.setAttribute('aria-expanded',String(!panel.hidden));return}update('filters')});
   root.querySelectorAll('[data-original-search]').forEach(input=>{input.onchange=()=>update('search',input.value);input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();update('search',input.value)}}});
   root.querySelectorAll('[data-original-form]').forEach(form=>form.onsubmit=e=>e.preventDefault());if(viewContext?.accountRole==='Agent'&&viewContext?.section==='dashboard')simplifyAgentDashboard118(root);
+  root.querySelectorAll('.label,.tile-label,h1,h2,h3,[data-original-tab]').forEach(el=>{for(const text of [...el.childNodes])if(text.nodeType===3&&/Permanent clients/i.test(text.textContent))text.textContent=text.textContent.replace(/Permanent clients/gi,'Permanent Customer')});
   removeCancelledUi132(root);
   if(ready){placeHeaderControls(root,root.querySelector('.original-header-actions'));onReady(root,viewContext);bindCustomerImport(root,viewContext,client);}
  }

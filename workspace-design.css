@@ -757,3 +757,37 @@ body:has(.customer-workspace-page) #app .main>.footer,body:has(.workspace-action
 .order-save-footer128 button:disabled{opacity:.55;cursor:not-allowed}
 .outcome-controls130 fieldset[hidden]{display:none!important}
 @media(max-width:540px){.order-save-footer128 button{padding:14px 24px}.order-save-footer128>strong{min-width:100px;padding:14px 16px;font-size:18px}}
+
+/* 134 — consistent compact controls, account identity and modal actions. */
+#app .record-status-pill,#app .badge,.corporate-modal134 .badge{border-radius:999px!important;padding:5px 13px!important;display:inline-flex;align-items:center;justify-content:center;line-height:1.35;max-width:100%;font-size:12px}
+#app .badge{background:var(--accent-soft,#f0f7e8);border:1px solid var(--accent-edge,#d8e6c9);color:var(--text,#263126)}
+#app #view :is(.tabs,.record-tabs110)>button,#app #view button[data-original-tab]{border-radius:999px!important;padding:9px 18px!important;min-height:36px!important;white-space:nowrap}
+#app #view :is(.tabs,.record-tabs110)>button.active,#app #view button[data-original-tab].active,#app .notification-actions .primary,#app .notification-pending-logins .primary,#app .nav button.active,.outcome-controls130 button[aria-pressed=true]{background:var(--accent-soft,#f0f7e8)!important;border-color:var(--accent-edge,#d5e6c5)!important;color:var(--accent-ink,#355424)!important;box-shadow:none!important}
+#app .activation-badge134.is-active{background:#f0f4ea!important;border:1px solid #e2e9d9!important;color:#30482a!important}
+#app .activation-badge134.is-inactive{background:#fff0f1!important;border:1px solid #f0d3d6!important;color:#ab3b45!important}
+#app .activation-warning134{display:block;margin-top:7px;color:#ba3543;font-size:11px;line-height:1.5}
+#app .account-person134{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;gap:12px!important;min-width:200px}
+#app .account-person134>.avatar{flex:0 0 38px;width:38px;height:38px;margin:0!important;object-fit:cover;border-radius:50%}
+#app .account-person134>div{min-width:0;flex:1}#app .account-person134 strong{display:block}#app .account-person134 .account-email{display:block;margin-top:4px;overflow-wrap:anywhere}
+.followup-nav-group134>button{width:100%}.nav-chevron134{margin-left:auto}.followup-subnav134{margin:5px 0 10px 20px;padding-left:12px;border-left:1px solid var(--line,#e0e6d9);display:grid;gap:4px}.followup-subnav134[hidden]{display:none!important}.followup-subnav134>button{font-size:12px!important;padding:10px 12px!important;border-radius:12px!important}
+#app .order-save-footer128{padding:5px;gap:8px;border-radius:999px;min-height:64px}
+#app .order-save-footer128 button{border-radius:999px!important;min-height:54px;padding:14px 48px}
+#app .order-save-footer128>strong{border-radius:999px;min-width:145px;padding:12px 26px;font-size:20px}
+dialog.corporate-modal134{position:fixed!important;inset:0!important;margin:auto!important;width:min(560px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important;max-height:calc(100dvh - 48px)!important;height:fit-content!important;padding:0!important;border:1px solid var(--line,#e0e6db)!important;border-radius:22px!important;background:var(--surface,#fff)!important;color:var(--text,#20271e)!important;box-shadow:0 24px 80px #14250d30!important;overflow:auto!important}
+dialog.corporate-modal134:has(.form-grid){width:min(720px,calc(100vw - 32px))!important}
+dialog.corporate-modal134::backdrop{background:rgba(17,27,15,.32);backdrop-filter:blur(4px)}
+.corporate-modal134 .online-dialog-header{display:flex!important;align-items:center;gap:13px;padding:24px!important;margin:0!important;border-bottom:1px solid var(--line,#e0e6db);position:sticky;top:0;background:var(--surface,#fff);z-index:2}
+.corporate-modal134 .online-dialog-header h2{margin:3px 0 0!important;font-size:20px!important;line-height:1.35!important}.corporate-modal134 .online-dialog-header small{font-size:11px;color:var(--muted,#697264)}
+.corporate-modal134 .modal-symbol134{display:grid;place-items:center;background:var(--accent-soft,#f0f7e8);color:var(--accent-ink,#355424);border:1px solid var(--accent-edge,#d5e6c5);border-radius:14px;width:42px;height:42px;flex:0 0 42px;font-size:20px}
+.corporate-modal134 .online-dialog-header>.online-dialog-close{margin-left:auto;border-radius:50%;width:32px;height:32px;min-height:32px;padding:0}
+.corporate-modal134 form{padding:0!important;margin:0!important}.corporate-modal134 .modal-content134{padding:24px!important;font-size:14px;line-height:1.65}.corporate-modal134 .modal-content134>p:first-child{margin-top:0}.corporate-modal134 .field{margin-bottom:16px}.corporate-modal134 .field>input,.corporate-modal134 .field>select,.corporate-modal134 textarea{border-radius:11px;min-height:42px;width:100%;box-sizing:border-box}
+.corporate-modal134 .online-message:empty{display:none}.corporate-modal134 .online-message:not(:empty){margin:0 24px 20px;padding:11px 14px;background:#fff0f1;color:#ab3b45;border-radius:10px}
+.corporate-modal134 .online-dialog-actions{padding:18px 24px!important;margin:0!important;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--line,#e0e6db);background:var(--surface,#fff)}
+.corporate-modal134 .online-dialog-actions>button{min-height:40px;padding:10px 22px;border-radius:999px;font-size:13px}.corporate-modal134 .primary{background:var(--accent-soft,#f0f7e8)!important;border:1px solid var(--accent-edge,#d5e6c5)!important;color:var(--accent-ink,#355424)!important}.corporate-modal134 .danger{background:#fff0f1!important;border:1px solid #f0d3d6!important;color:#ab3b45!important}
+@media(max-width:540px){#app .order-save-footer128 button{padding:14px 22px}#app .order-save-footer128>strong{min-width:100px;padding:12px 18px;font-size:18px}.corporate-modal134 .online-dialog-header,.corporate-modal134 .modal-content134{padding:18px!important}}
+
+#app :is(.tags,.segmented,.filter-options) button.active{background:var(--accent-soft,#f0f7e8)!important;color:var(--accent-ink,#355424)!important;border-color:var(--accent-edge,#d5e6c5)!important;border-radius:999px!important}
+
+#app .notification-dot{background:var(--accent-soft,#f0f7e8)!important;color:var(--accent-ink,#355424)!important;border:1px solid var(--accent-edge,#d5e6c5);border-radius:999px;box-shadow:none}
+#app .notification-list{border-radius:20px;box-shadow:0 18px 55px #18271320;max-height:min(76dvh,680px)}
+#app .notification-item{border-radius:14px;padding:14px;margin-bottom:10px}#app .notification-item strong{font-size:13px;line-height:1.45}#app .notification-item p{font-size:12px;line-height:1.65;margin:8px 0}#app .notification-actions button{border-radius:999px!important;padding:7px 13px!important;font-size:11px!important}
