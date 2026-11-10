@@ -931,3 +931,21 @@ html #app #view .revenue-dark156 .metric-icon{background:rgba(255,255,255,.12)!i
 /* Profit uses the regular theme; Revenue keeps its separate black emphasis. */
 html #app #view .profit-normal158{background:linear-gradient(115deg,var(--surface),var(--accent-soft))!important;color:var(--text)!important;border-color:var(--edge)!important}
 html #app #view .profit-normal158 :is(strong,span,p,small,b,.label,.tile-label,.metric-context,.previous-line){color:inherit!important}
+
+/* Update159: neutral black surfaces and clear selected status navigation. */
+html[data-mode=dark]{--bg:#000;--surface:#090909;--surface-soft:#101010;--text:#f4f5f4;--muted:#a8ada9;--edge:#272a28;--accent-soft:#14200c;color-scheme:dark;background:#000!important}
+html[data-mode=dark] body,html[data-mode=dark] #app,html[data-mode=dark] #app #view{background:#000!important;color:var(--text)!important}
+html[data-mode=dark] #app :is(.sidebar,.topbar,.footer){background:#050505!important;border-color:#222!important}
+html[data-mode=dark] #app .sidebar :is(button,a):not(.active):not([aria-current=page]){background:transparent!important;color:#bdc3be!important}
+html[data-mode=dark] #app #view :is(.card,.metric-tile,.insight-tile,.overview-tile,.profit-normal158):not(.revenue-dark156){background:linear-gradient(145deg,#101110,#070807)!important;border-color:#282d28!important;color:#f4f5f4!important;box-shadow:0 4px 18px #0003!important}
+html[data-mode=dark] #app #view :is(.metric-tile,.insight-tile,.overview-tile) :is(.label,.tile-label,strong){color:#f4f5f4!important}
+html[data-mode=dark] #app #view :is(.metric-context,.previous-line,.muted){color:#a8ada9!important}
+html[data-mode=dark] #app #view .metric-icon{background:#18220f!important;border-color:#334522!important;color:var(--accent)!important}
+html[data-mode=dark] #app :is(input,select,textarea){background:#080908!important;color:#f4f5f4!important;border-color:#303630!important}
+html[data-mode=dark] #app :is(.record-toolbar110,.table-wrap,dialog,.online-form-dialog){background:#090a09!important;color:#f4f5f4!important;border-color:#282d28!important}
+html[data-mode=dark] #app #view .revenue-dark156{background:#000!important;border-color:#3b4932!important}
+html #app :is(.record-tabs110,.tabs) [data-original-tab]{border:1px solid transparent;transition:background-color .15s,border-color .15s,box-shadow .15s}
+html #app :is(.record-tabs110,.tabs) [data-original-tab]:is(.active,[aria-pressed=true]){--status-active-bg159:color-mix(in srgb,var(--status-color159,var(--accent)) 48%,white);--status-active-ink159:#101710;--status-active-edge159:color-mix(in srgb,var(--status-color159,var(--accent)) 78%,black);background:var(--status-active-bg159)!important;color:var(--status-active-ink159)!important;border-color:var(--status-active-edge159)!important;box-shadow:inset 0 0 0 1px var(--status-active-edge159),0 2px 6px #0001!important;font-weight:700}
+html[data-mode=dark] #app :is(.record-tabs110,.tabs) [data-original-tab]:is(.active,[aria-pressed=true]){--status-active-bg159:color-mix(in srgb,var(--status-color159,var(--accent)) 38%,#080808);--status-active-ink159:#fff;--status-active-edge159:var(--status-color159,var(--accent))}
+html #app :is(.record-tabs110,.tabs) [data-original-tab]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){html #app [data-original-tab]{transition:none!important}}
