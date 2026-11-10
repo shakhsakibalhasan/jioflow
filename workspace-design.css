@@ -922,3 +922,8 @@ body .profile-password141,body .login-review-modal141{width:min(520px,calc(100vw
 #app .metric-tile .metric-context,#app .insight-tile .metric-context{display:block;min-height:34px;line-height:17px}
 #app .metric-balanced>strong{font-variant-numeric:tabular-nums}
 @media(prefers-reduced-motion:reduce){.page-enter{animation:none!important}}
+
+/* Shared Revenue emphasis in every palette and role. */
+html #app #view .revenue-dark156{background:#111713!important;border-color:#26332b!important;color:#fff!important}
+html #app #view .revenue-dark156 :is(strong,span,p,small,b,.label,.tile-label,.metric-context,.previous-line){color:#fff!important;opacity:1}
+html #app #view .revenue-dark156 .metric-icon{background:rgba(255,255,255,.12)!important;border-color:rgba(255,255,255,.22)!important}
