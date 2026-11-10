@@ -1,4 +1,5 @@
 const optionCache149=new WeakMap();
+export function invalidateFilterOptions152(client){optionCache149.delete(client)}
 export function loadFilterOptions149(client,shop){
  let cache=optionCache149.get(client);if(!cache){cache=new Map();optionCache149.set(client,cache)}
  const version=client.sessionVersion?.()||'',key=shop+':'+version,existing=cache.get(key);
