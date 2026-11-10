@@ -166,7 +166,7 @@ export function arrangeDashboardCards156(root){
  const title=el=>(el.dataset.metric155==='confirmed_customers'?'confirmed customers':el.dataset.metric155==='orders_created'?'orders created':el.dataset.toolsOriginalTitle||el.querySelector('.label,.tile-label')?.textContent||'').replace('↗','').trim().toLowerCase();
  const ranks={'confirmed customers':0,'confirmed orders':0,'confirmed':0,'completed':1,'orders created':2,'total orders':2,'all orders':2,'revenue':3,'confirmed revenue':3,'sales':3,'profit':4,'net profit':4,'purchase rate':5,'assigned':6,'unassigned':7,'pending follow-up':8,'pending followup':8};
  const cards=[...root.querySelectorAll(selector)];
- for(const el of cards){if(['revenue','confirmed revenue','sales'].includes(title(el)))el.classList.add('revenue-dark156','metric-dark');}
+ for(const el of cards){if(['profit','net profit'].includes(title(el))){el.classList.remove('metric-dark','profit-brand');el.classList.add('profit-normal158')}if(['revenue','confirmed revenue','sales'].includes(title(el)))el.classList.add('revenue-dark156','metric-dark');}
  const groups=new Map();for(const el of cards){let parent=el.parentElement;if(parent?.classList.contains('jf-layout-row'))parent=parent.parentElement;if(!parent)continue;if(!groups.has(parent))groups.set(parent,[]);groups.get(parent).push(el)}
  for(const [parent,items]of groups){if(items.length<2)continue;const sorted=items.map((el,i)=>({el,i,rank:ranks[title(el)]??100})).sort((a,b)=>a.rank-b.rank||a.i-b.i);
  // Keep row geometry and hidden state; replace card positions without rebuilding nodes.

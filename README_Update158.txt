@@ -1,0 +1,1 @@
+Update158: Profit uses the normal theme across shared dashboard metrics; Revenue remains black. Includes Update156 ordering. Apply after155; replace workspace-tools.mjs and workspace-design.css and deploy. No SQL. Keep agent-reports.mjs from157. Syntax and DOM class verification passed; not deployed live.

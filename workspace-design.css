@@ -927,3 +927,7 @@ body .profile-password141,body .login-review-modal141{width:min(520px,calc(100vw
 html #app #view .revenue-dark156{background:#111713!important;border-color:#26332b!important;color:#fff!important}
 html #app #view .revenue-dark156 :is(strong,span,p,small,b,.label,.tile-label,.metric-context,.previous-line){color:#fff!important;opacity:1}
 html #app #view .revenue-dark156 .metric-icon{background:rgba(255,255,255,.12)!important;border-color:rgba(255,255,255,.22)!important}
+
+/* Profit uses the regular theme; Revenue keeps its separate black emphasis. */
+html #app #view .profit-normal158{background:linear-gradient(115deg,var(--surface),var(--accent-soft))!important;color:var(--text)!important;border-color:var(--edge)!important}
+html #app #view .profit-normal158 :is(strong,span,p,small,b,.label,.tile-label,.metric-context,.previous-line){color:inherit!important}
