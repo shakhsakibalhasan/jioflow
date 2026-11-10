@@ -8,3 +8,17 @@ export function openAssignmentPicker({openForm,members=[],profiles=[],groups=[],
  dialog.querySelectorAll('[data-assignment-user]').forEach(b=>b.onclick=()=>{const id=b.dataset.assignmentUser;if(mode==='single'){chosen.clear();chosen.add(id)}else if(chosen.has(id))chosen.delete(id);else chosen.add(id);dialog.querySelector('[data-assignment-group]').value='';paint()});
  dialog.querySelector('[data-assignment-group]').onchange=()=>{chosen.clear();paint()};dialog.querySelector('[data-assignment-search]').oninput=e=>{const q=e.target.value.trim().toLowerCase();dialog.querySelectorAll('[data-assignment-user]').forEach(b=>b.hidden=!b.dataset.search.includes(q))};return dialog;
 }
+
+export function openUnassignmentPicker153({openForm,client,shopId,ids,onDone=async()=>{}}){
+ const selected=[...new Set(ids)];if(!selected.length)return;
+ let activeTags=[],ready=false,working=false;
+ const dialog=openForm('Unassign '+selected.length.toLocaleString('en-BD')+' customers',`<div class="unassign-picker153"><p>These customers will return to Unassigned and can be assigned again later. Order and follow-up statuses will stay the same.</p><label class="field">Reason tag <small>(optional)</small><select name="reason_tag" disabled><option value="">Loading Unassign Tags…</option></select></label><p class="small muted" data-unassign-message153 role="status">Loading reasons from Workspace Settings…</p></div>`,async form=>{
+ if(!ready||working)throw Error('Wait for the reason tags to load.');const tag=String(form.get('reason_tag')||'');if(tag&&!activeTags.includes(tag))throw Error('Choose an active Unassign Tag.');working=true;
+ try{const result=await client.rpc('jf_bulk_unassign153',{target_shop:shopId,customer_ids:selected,reason_tag:tag||null});await onDone(result)}finally{working=false}
+ },{label:'Unassign'});
+ dialog?.classList.add('unassign-dialog153');if(!dialog)return;
+ dialog.style.maxWidth='440px';dialog.style.width='calc(100vw - 32px)';
+ const submit=dialog.querySelector('[type=submit]'),select=dialog.querySelector('[name=reason_tag]'),message=dialog.querySelector('[data-unassign-message153]');if(submit){submit.textContent='Unassign';submit.disabled=true}
+ client.rpc('jf_status_settings',{target_shop:shopId}).then(settings=>{if(!dialog.isConnected)return;activeTags=(settings.tags||[]).filter(t=>t.active).map(t=>t.name);select.innerHTML='<option value="">No reason</option>'+activeTags.map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('');select.disabled=false;ready=true;if(submit)submit.disabled=false;message.textContent='Already unassigned customers will be left unchanged.'}).catch(error=>{if(message.isConnected)message.textContent='Could not load reasons. Close and try again. '+error.message});
+ return dialog;
+}
