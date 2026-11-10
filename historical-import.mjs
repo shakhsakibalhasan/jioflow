@@ -4,7 +4,7 @@ import {readImportFile,normalizeImportPhone} from './live-customer-import.mjs';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key=v=>String(v).toLowerCase().replace(/[^a-z0-9]/g,'');
 export function normalizeCsvOrderDate101(value){
- const raw=String(value??'').trim(),m=raw.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/);
+ const raw=String(value??'').trim(),m=raw.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})(?:[ T]\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:\s*[AP]M)?)?$/i);
  if(!m)return raw;
  const month=+m[1],day=+m[2],year=+m[3],d=new Date(Date.UTC(year,month-1,day));
  if(d.getUTCFullYear()!==year||d.getUTCMonth()!==month-1||d.getUTCDate()!==day)throw Error('Invalid Order Date "'+raw+'". Use MM/DD/YYYY, for example 09/30/2026.');
