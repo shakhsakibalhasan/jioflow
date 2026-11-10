@@ -906,3 +906,6 @@ body .profile-password141,body .login-review-modal141{width:min(520px,calc(100vw
 #app .jf-layout-editing.jf-layout-inplace .slot-layout-item.layout-resized{min-height:0!important;height:var(--layout-height135)!important;overflow:auto!important}
 #app .layout-inspector135{gap:12px;padding-top:12px;border-top:1px solid var(--line);margin-top:12px}#app .layout-inspector135 label{font-size:11px}#app .layout-inspector135 input,#app .layout-inspector135 select{min-height:34px;font-size:12px;border-radius:8px}
 @media(max-width:700px){#app .profile-premium141{width:calc(100% - 28px);margin:20px auto}.profile-identity141{align-items:flex-start;flex-wrap:wrap}.profile-person141>.avatar{width:60px;height:60px}.profile-information141 dl,.login-review141 dl{gap:18px;grid-template-columns:1fr}.profile-security141{flex-wrap:wrap}.profile-security141>button{margin-left:60px}#app .settings-premium141{padding:0 12px}.profile-person141 h2{font-size:19px}}
+
+/* Status names are shown once, inside their capsules, in every panel. */
+.custom-status-settings .custom-status-category{display:none!important}
