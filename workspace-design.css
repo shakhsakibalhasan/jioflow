@@ -949,3 +949,32 @@ html #app :is(.record-tabs110,.tabs) [data-original-tab]:is(.active,[aria-presse
 html[data-mode=dark] #app :is(.record-tabs110,.tabs) [data-original-tab]:is(.active,[aria-pressed=true]){--status-active-bg159:color-mix(in srgb,var(--status-color159,var(--accent)) 38%,#080808);--status-active-ink159:#fff;--status-active-edge159:var(--status-color159,var(--accent))}
 html #app :is(.record-tabs110,.tabs) [data-original-tab]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){html #app [data-original-tab]{transition:none!important}}
+
+/*160: preserve palette dots in dark mode and support native custom picker. */
+html[data-mode] #app .sidebar .appearance-palettes button[data-palette]{background:var(--swatch)!important;background-image:none!important;border:2px solid #101010!important;opacity:1!important}
+.appearance-custom160{position:relative;display:inline-flex;width:24px;height:24px;align-items:center;justify-content:center;border:1px solid var(--edge);border-radius:7px;overflow:hidden;cursor:pointer;background:conic-gradient(#ff7878,#ffd56c,#79d99d,#73b5ff,#b38bff,#ff7878)}
+.appearance-custom160 input[type=color]{position:absolute;inset:0;width:100%;height:100%;padding:0;opacity:0;cursor:pointer;z-index:2}
+.appearance-custom160 span{color:#111;font-weight:800;pointer-events:none}.appearance-custom160[data-selected=true]{outline:2px solid var(--text);outline-offset:2px}
+html[data-mode=dark][data-palette]{--page:#000;--bg:#000;--surface:#090909;--surface-soft:#101010;--workspace-panel:#0c0c0c;--workspace-bg:#000;--accent-soft:#14200c;--edge:#292929;--accent-edge:#30352b;--text-secondary:#aeb3ae}
+html[data-mode=dark] .layout :is(.main,.content,.footer,.record-pagination,.record-footer106){background:#000!important;color:#eee!important;border-color:#262626!important}
+html[data-mode=dark] .layout #view :is(.card.metric-tile,.card.insight-tile,.card.overview-tile,section.card:not(.metric-dark):not(.profit-brand):not(.brand-confirmed):not(.featured)){background:#0c0c0c!important;border-color:#292929!important;color:#f2f3f2!important}
+html[data-mode=dark] .layout #view :is(.followup-chart-toggle,.followup-chart-toggle summary,.confirmed-chart,h2,h3,summary){color:#e2e6df!important}
+html[data-mode=dark] .layout :is(.table-wrap th,.table-wrap td){background:#0d0d0d!important;color:#edf0ed!important;border-color:#272727!important}
+html[data-mode=dark] .layout #view .followup-filter-bar{background:#0a0a0a!important;border-color:#292929!important}
+html[data-mode=dark] .record-status-pill{background:#161916!important;color:#ccd6c7!important;border-color:#353c30!important}
+html[data-mode=dark] .record-status-completed,html[data-mode=dark] .record-followup-tone-positive{background:#102b20!important;color:#83dfb3!important;border-color:#286347!important}
+html[data-mode=dark] .record-status-cancelled,html[data-mode=dark] .record-followup-tone-negative{background:#30161c!important;color:#f5a1ad!important;border-color:#743746!important}
+html[data-mode=dark] .record-status-pending,html[data-mode=dark] .record-followup-tone-waiting{background:#2d2210!important;color:#eac77e!important;border-color:#685127!important}
+html[data-mode=dark] .record-followup-tone-scheduled{background:#15243a!important;color:#9fc5ff!important;border-color:#365980!important}
+html[data-mode=dark] .record-unassigned{background:#2c2110!important;color:#ebc87f!important;border-color:#71572a!important}
+html[data-mode=dark] .record-assigned{background:#211d38!important;color:#c8baff!important;border-color:#514578!important}
+/*161: subtle accent surfaces and readable dark controls. */
+html[data-mode=dark] .layout #view :is(.card.metric-tile,.card.insight-tile,.card.overview-tile,section.card:not(.metric-dark):not(.profit-brand):not(.brand-confirmed):not(.featured)){background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 5%,#0a0a0a),#090909)!important;border-color:color-mix(in srgb,var(--accent) 12%,#272727)!important;color:#f1f4ef!important}
+html[data-mode=dark] .layout #view :is(.card.metric-tile,.card.insight-tile,.card.overview-tile) :is(.label,.tile-label,strong,.metric-value){color:#f1f4ef!important}
+html[data-mode=dark] .layout :is(.heading p,.business-context small,.metric-context,.previous-line,.table-note,.record-toolbar110 small){color:#afb7ac!important}
+html[data-mode=dark] .layout :is(button.primary,.primary,a.primary,.nav button.active,.sidebar button.active){color:#10150c!important}
+html[data-mode=dark] .layout :is(button.primary,.primary,a.primary,.nav button.active,.sidebar button.active) svg{color:inherit!important}
+html[data-mode=dark] .layout :is(.icon-button,.refresh-page,.heading button:not(.primary),.topbar button:not(.primary)):not([data-palette]){color:#e2e8de}
+html[data-mode=dark] .layout input::placeholder,html[data-mode=dark] .layout textarea::placeholder{color:#8f998a!important;opacity:1}
+html[data-mode=dark] .layout :is(input,select,textarea):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+html[data-mode=dark] .layout :is(.record-toolbar110,.tabs) button .tab-count{color:inherit!important;opacity:.9}
