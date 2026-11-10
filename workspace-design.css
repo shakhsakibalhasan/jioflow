@@ -1024,3 +1024,12 @@ html[data-mode=dark] [style*="--fu-tint-light162"]{--fu-tint:var(--fu-tint-dark1
 :root[data-mode][data-palette] #app .layout :is(.record-tabs110,.tabs) [data-original-tab]:is(.active,[aria-pressed=true]){box-shadow:inset 0 0 0 1px var(--status-active-edge159,var(--accent)),0 2px 6px #0002!important;font-weight:700}
 
 html[data-mode] #app [data-followup-update].confirm-locked164{background:var(--surface-soft,#f0f2ed)!important;color:var(--muted,#6b7565)!important;border:1px solid var(--edge,#d9dfd3)!important;box-shadow:none!important;cursor:not-allowed!important;opacity:.7!important}
+
+/*165 no full-content fade or empty flash while preparing a workspace. */
+html #app .page-enter{animation:none!important;transform:none!important}
+html #app [data-layout-pending155]:not([data-transition165]){visibility:visible}
+.workspace-transition165{position:relative;min-height:240px}
+.workspace-preview165{pointer-events:none;user-select:none;max-height:calc(100dvh - 150px);overflow:hidden}
+html #app [data-transition165=pending]{position:absolute;inset:0;visibility:hidden;pointer-events:none}
+.workspace-transition-label165{position:absolute;right:16px;top:8px;z-index:5;padding:7px 12px;border:1px solid var(--accent-edge);border-radius:10px;background:var(--surface);color:var(--text);font-size:12px;box-shadow:0 2px 10px #0001}
+.workspace-transition-label165:before{content:'';display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-right:7px}
