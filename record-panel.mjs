@@ -1,5 +1,5 @@
 import {bindFollowupFilters} from './followup-filters.mjs';
-import {loadStatusDefinitions,paintStatusBadges,loadTagDefinitions} from './custom-statuses.mjs';
+import {loadStatusDefinitions,paintStatusBadges,loadTagDefinitions,renderStatusTabs142} from './custom-statuses.mjs';
 import {stageOrderHandoff} from './order-handoff.mjs';
 import {bindFollowupStatus,statusTone} from './followup-status.mjs';
 import {openAssignmentPicker} from './assignment-picker.mjs';
@@ -61,6 +61,7 @@ export async function bindRecordPanel({root,context,client,openForm,reload,navig
   }catch(error){if(isCurrent()&&root.isConnected){const message=root.ownerDocument.createElement('p');message.setAttribute('role','alert');message.textContent='Phone lookup unavailable: '+error.message;root.prepend(message)}return;}
  }
  const scrollMarker=root.ownerDocument.documentElement;if(scrollMarker.dataset.jfRecordScroll&&(scrollMarker.dataset.jfRecordScroll!==section+':'+shop.id||Date.now()-Number(scrollMarker.dataset.jfRecordScrollAt)>=15000)){delete scrollMarker.dataset.jfRecordScroll;delete scrollMarker.dataset.jfRecordScrollAt}
+ if(entity==='customers'&&['followups','permanent'].includes(section)){const definitions=await loadStatusDefinitions(client,shop.id,section==='permanent');if(!isCurrent())return;renderStatusTabs142(root,definitions);}
  const tabStatus=value=>{const status=recordStatus(value);return entity==='orders'&&status==='pending'?'draft':status};
  const filters={...recordFilter,status:tabStatus(recordFilter.status||(section==='permanent'?'permanent':'all'))};let selecting=false,mutating=false;let pageSize=[20,50,100,200,500,1000].includes(Number(recordFilter._page_size))?Number(recordFilter._page_size):20;let page=0,search=String(filters.search||''),revision=0;
  if(entity==='customers'&&['followups','customers','permanent'].includes(section)&&filters.report_start&&!filters.af_order_date&&!filters.af_order_from){filters.af_order_from=new Date(Date.parse(filters.report_start)+21600000).toISOString().slice(0,10);if(filters.report_end)filters.af_order_to=new Date(Date.parse(filters.report_end)-1+21600000).toISOString().slice(0,10)}
