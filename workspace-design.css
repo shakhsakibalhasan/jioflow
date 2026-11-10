@@ -916,3 +916,9 @@ body .profile-password141,body .login-review-modal141{width:min(520px,calc(100vw
 .import-summary138 progress::-webkit-progress-value{transition:width .65s linear}
 .import-summary138 progress::-moz-progress-bar{transition:width .65s linear}
 @media(prefers-reduced-motion:reduce){.import-summary138 progress::-webkit-progress-value,.import-summary138 progress::-moz-progress-bar{transition:none}}
+
+/* 155: reserve KPI caption height and expose cards only after their saved layout is applied. */
+[data-layout-pending155]{visibility:hidden}
+#app .metric-tile .metric-context,#app .insight-tile .metric-context{display:block;min-height:34px;line-height:17px}
+#app .metric-balanced>strong{font-variant-numeric:tabular-nums}
+@media(prefers-reduced-motion:reduce){.page-enter{animation:none!important}}

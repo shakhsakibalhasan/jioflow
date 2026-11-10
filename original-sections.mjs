@@ -47,7 +47,7 @@ export function createOriginalSections({client,navigate,onLiveAction=()=>false,o
   if(!shop&&!['profile','platformsettings'].includes(section)){root.innerHTML='<section class="card"><h2>Select a business</h2><p>Select a shop above to open its original workspace screen.</p></section>';return}
   const pageClient=workspaceClient||client;
   const directPanel=progressive&&(['dashboard','new','orders','courier','customers','followups','permanent','agentreports'].includes(section)||Boolean(recordFilter?.entity));
-  root.classList.add('page-enter');const finishLoading=fullLoading&&!directPanel?showLoading({scope:root}):()=>{};
+  root.classList.add('page-enter');if(['dashboard','followups','customers','permanent'].includes(section))root.dataset.layoutPending155='true';const finishLoading=fullLoading&&!directPanel?showLoading({scope:root}):()=>{};
   try{
    if(directPanel){const original=bridge();if(!original)throw new Error('Screen assets could not be loaded. Refresh to retry.');viewContext={section,shop,profile,shops,profiles,members,records:{},accountRole,recordFilter,fullLoading,workspaceClient,supervisorCanLayout,supervisorCanWork};root.innerHTML=original.render(section,viewContext);root.querySelectorAll('.metric-tile,.insight-tile,.overview-tile').forEach(el=>{const value=el.querySelector('strong');if(value)value.textContent='—';const foot=el.querySelector('.metric-context');if(foot)foot.textContent='Updating totals…';const badge=el.querySelector('.change-badge');if(badge)badge.textContent='—'});bind(root);if(section!=='dashboard')return}
    if(!directPanel)root.innerHTML='<div class="page-loading-space" aria-busy="true"></div>';
@@ -66,7 +66,7 @@ export function createOriginalSections({client,navigate,onLiveAction=()=>false,o
     Object.assign(records,{items:items||[],payments:payments||[],followups:followups||[],finance:finance||[],costs:costs||[]});return records;
     });
    }
-   if(current!==generation||root.querySelector('.slot-layout-controls,.workspace-action-page'))return;
+   if(current!==generation||(root.matches('.jf-layout-editing')||root.querySelector('.jf-layout-editing,.slot-layout-controls,.workspace-action-page')))return;
    const original=bridge();if(!original)throw new Error('Original screen assets could not be loaded. Refresh the page.');
    viewContext={section,shop,profile,shops,profiles,members,records,accountRole,recordFilter,fullLoading,workspaceClient,supervisorCanLayout,supervisorCanWork};
    if(directPanel&&section==='dashboard'){

@@ -27,7 +27,7 @@ export async function progressiveRecordPage(client,args,onDetails){
  const fullKey=stable150(['jf_workspace_page',client.sessionVersion?.()??null,args]),full=caches.get(client)?.get(fullKey);
  if(full?.value&&full.until>Date.now())return structuredClone(full.value);
  const rows=await recordPage(client,args,'jf_workspace_page_fast');
- recordPage(client,args).then(value=>onDetails(value,null)).catch(error=>onDetails(null,error));
+ recordPage(client,args).then(value=>setTimeout(()=>onDetails(value,null),0)).catch(error=>setTimeout(()=>onDetails(null,error),0));
  return rows;
 }
 

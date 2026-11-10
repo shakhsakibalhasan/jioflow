@@ -1,0 +1,16 @@
+Findings addressed in Update155
+
+1. Follow-up confirmation KPI was explicitly overwritten with native confirmed-order totals. Removed that override; confirmation is now customer workflow-based.
+2. Missing panel counts could overwrite valid summary values with undefined. Only available customer panel counts now override the matching customer metric.
+3. KPI nodes were repositioned by saved layout only after slow list/summary requests finished. Apply saved layout before awaiting those requests; keep initial layout preparation hidden until ready.
+4. Caption text could change from one line to two and change card height. Reserve caption space and use tabular numbers.
+5. Progressive row enrichment repeatedly scanned the entire DOM and row array per row. Build two lookup maps once instead.
+6. An immediately resolved details request could call its renderer before the initial result had rendered. Deliver enrichment on the next task.
+7. Background lease/timestamp-only database touches could mark workspace data changed and cause unnecessary redraws. Ignore those non-business UPDATEs when producing change stamps.
+8. Updating custom status/tag settings did not advance the shared client mutation revision. It now does.
+9. Workspace tool initialization failures could become unhandled promises and leave initial layout preparation hidden. Add a visible retry message and clear the preparation state.
+10. Later page-entry CSS could override the earlier reduced-motion rule. Add a final reduced-motion override.
+11. Agent Report overview still used the old confirmed-order key and could show an undefined total after the new metric names. Use the shared customer/order/booking keys.
+12. Existing saved Processing status could return to Pending after response normalization. Explicit saves now remain Completed; proven historical interactions are repaired.
+
+Validation and limits are in README_Update155.txt. No customer/order/import payload is rewritten as a visual fix.
