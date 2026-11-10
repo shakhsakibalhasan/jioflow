@@ -988,3 +988,39 @@ html[data-mode=light] .layout #view :is(tbody tr,[data-record-row]):hover>td{bac
 html[data-mode=light] .layout #view :is(.search-card135,.customer-mini):hover{background:color-mix(in srgb,var(--accent) 5%,#fff)!important}
 [style*="--fu-tint-light162"]{--fu-tint:var(--fu-tint-light162);--fu-edge:var(--fu-edge-light162);--fu-ink:var(--fu-ink-light162)}
 html[data-mode=dark] [style*="--fu-tint-light162"]{--fu-tint:var(--fu-tint-dark162);--fu-edge:var(--fu-edge-dark162);--fu-ink:var(--fu-ink-dark162)}
+
+/* Final appearance layer. Loaded after workspace-design.css. */
+:root[data-mode][data-palette]{--lime:var(--accent);--green:color-mix(in srgb,var(--accent) 52%,#16352b)}
+:root[data-mode=light][data-palette]{--surface:#fff;--surface-soft:#f6f7f4;--page:#eceee9;--text:#18221a;--text-secondary:#626d60;--edge:#e2e8dc;--accent-soft:color-mix(in srgb,var(--accent) 16%,#fff);--accent-edge:color-mix(in srgb,var(--accent) 30%,#e2e8dc);--workspace-panel:#f6f7f5;--ink:var(--text);--muted:var(--text-secondary);--line:var(--edge);--card:var(--surface);--bg:var(--page);--soft:var(--accent-soft)}
+:root[data-mode=dark][data-palette]{--surface:#090909;--surface-soft:#101010;--page:#000;--bg:#000;--workspace-panel:#0c0c0c;--text:#f2f4f0;--text-secondary:#b3baaf;--edge:#2c302a;--accent-soft:color-mix(in srgb,var(--accent) 8%,#080808);--accent-edge:color-mix(in srgb,var(--accent) 20%,#222);--ink:var(--text);--muted:var(--text-secondary);--line:var(--edge);--card:var(--surface);--soft:var(--accent-soft)}
+/* Stable page backgrounds; no green/ash side gutters in dark mode. */
+:root[data-mode=dark][data-palette] body,:root[data-mode=dark][data-palette] #app,:root[data-mode=dark][data-palette] #app .layout,:root[data-mode=dark][data-palette] #app .layout :is(.main,.content,#view,.original-restored-view,.sidebar,.topbar,.footer,.record-footer106,.record-pagination){background:#000!important;color:var(--text)!important;border-color:#242824!important}
+/* Every ordinary summary card has the original subtle brand tint in light mode. */
+:root[data-mode=light][data-palette] #app .layout #view :is(.metric-tile,.insight-tile,.overview-tile,.stat,.report-metric,.profit-normal158):not(.revenue-dark156){background:linear-gradient(115deg,#fff 20%,color-mix(in srgb,var(--accent) 11%,#f8faf5))!important;border-color:color-mix(in srgb,var(--accent) 25%,#dce5d4)!important;color:#18221a!important;box-shadow:0 1px 2px #1c30120a!important}
+:root[data-mode=light][data-palette] #app .layout #view :is(.metric-tile,.insight-tile,.overview-tile,.profit-normal158):not(.revenue-dark156) :is(strong,.label,.tile-label){color:#18221a!important}
+/* Dark cards carry only a very small amount of the chosen accent. */
+:root[data-mode=dark][data-palette] #app .layout #view :is(.card,.custom-widget,.metric-tile,.insight-tile,.overview-tile,.stat,.report-metric,.profit-normal158):not(.revenue-dark156){background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 5%,#0a0a0a),#090909)!important;border-color:color-mix(in srgb,var(--accent) 12%,#292929)!important;color:#f2f4f0!important;box-shadow:none!important}
+:root[data-mode=dark][data-palette] #app .layout #view :is(.metric-tile,.insight-tile,.overview-tile,.stat,.report-metric):not(.revenue-dark156) :is(strong,.label,.tile-label){color:#f2f4f0!important}
+:root[data-mode=dark][data-palette] #app .layout :is(.metric-context,.previous-line,.muted,.heading p,.business-context small){color:#b3baaf!important}
+:root[data-mode=dark][data-palette] #app .layout #view :is(h1,h2,h3,summary,.followup-chart-toggle){color:#edf2e8!important}
+:root[data-mode=dark][data-palette] #app .layout :is(.table-wrap th,.table-wrap td,.record-toolbar110,.followup-filter-bar){background:#0c0c0c!important;color:#e6ece1!important;border-color:#272b25!important}
+:root[data-mode=dark][data-palette] #app .layout :is(input,select,textarea){background:#090a08!important;color:#edf2e9!important;border-color:#343b2f!important}
+:root[data-mode=dark][data-palette] #app .layout :is(input,textarea)::placeholder{color:#929e8b!important;opacity:1}
+/* Keep Revenue black, Profit regular, in both modes. */
+:root[data-mode][data-palette] #app .layout #view .revenue-dark156{background:#070b07!important;border-color:#303b29!important;color:#fff!important}
+:root[data-mode][data-palette] #app .layout #view .revenue-dark156 :is(strong,span,small,p,b,.label,.tile-label){color:#fff!important}
+/* Selected sidebar stays visibly branded even when other button rules are present. */
+:root[data-mode][data-palette] #app .layout .sidebar .nav :is(button.active,a.active,[aria-current=page]){background:var(--accent)!important;color:var(--accent-ink163,#14200c)!important;border-color:var(--accent)!important}
+:root[data-mode][data-palette] #app .layout .sidebar .nav :is(button.active,a.active,[aria-current=page]) :is(svg,span){color:inherit!important}
+:root[data-mode=dark][data-palette] #app .layout :is(button.primary,a.primary){color:var(--accent-ink163,#14200c)!important}
+:root[data-mode][data-palette] #app .layout .sidebar .appearance-palettes button[data-palette]{background:var(--swatch)!important;background-image:none!important;opacity:1!important;border-color:var(--surface)!important}
+:root[data-mode][data-palette] #app .layout .sidebar .appearance-palettes button[aria-pressed=true]{outline:2px solid var(--text)!important;outline-offset:2px}
+:root[data-mode=light][data-palette] #app .layout #view tbody tr:hover>td{background:color-mix(in srgb,var(--accent) 7%,#fff)!important}
+:root[data-mode=dark][data-palette] #app .layout #view tbody tr:hover>td{background:color-mix(in srgb,var(--accent) 7%,#101010)!important}
+/* Status pills keep their own semantic/configured hue; never recolor all pills as a card. */
+:root[data-mode=dark][data-palette] #app .layout .record-status-completed{background:#102b20!important;color:#83dfb3!important;border-color:#286347!important}
+:root[data-mode=dark][data-palette] #app .layout .record-status-cancelled{background:#30161c!important;color:#f5a1ad!important;border-color:#743746!important}
+:root[data-mode=dark][data-palette] #app .layout .record-status-pending{background:#2d2210!important;color:#eac77e!important;border-color:#685127!important}
+:root[data-mode][data-palette] #app .layout :is(.record-tabs110,.tabs) [data-original-tab]:is(.active,[aria-pressed=true]){box-shadow:inset 0 0 0 1px var(--status-active-edge159,var(--accent)),0 2px 6px #0002!important;font-weight:700}
+
+html[data-mode] #app [data-followup-update].confirm-locked164{background:var(--surface-soft,#f0f2ed)!important;color:var(--muted,#6b7565)!important;border:1px solid var(--edge,#d9dfd3)!important;box-shadow:none!important;cursor:not-allowed!important;opacity:.7!important}
