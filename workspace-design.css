@@ -978,3 +978,13 @@ html[data-mode=dark] .layout :is(.icon-button,.refresh-page,.heading button:not(
 html[data-mode=dark] .layout input::placeholder,html[data-mode=dark] .layout textarea::placeholder{color:#8f998a!important;opacity:1}
 html[data-mode=dark] .layout :is(input,select,textarea):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 html[data-mode=dark] .layout :is(.record-toolbar110,.tabs) button .tab-count{color:inherit!important;opacity:.9}
+/*162: deterministic mode changes; never mutate light styling from dark styles. */
+[style*="--status-color159"]{--status-bg162:var(--status-bg-light162);--status-ink162:var(--status-ink-light162);--status-edge162:var(--status-edge-light162)}
+html[data-mode=dark] [style*="--status-color159"]{--status-bg162:var(--status-bg-dark162);--status-ink162:var(--status-ink-dark162);--status-edge162:var(--status-edge-dark162)}
+html[data-mode] #app .sidebar .nav button.active,html[data-mode] .layout .sidebar .nav button.active{background:var(--accent)!important;color:#11180b!important;border-color:var(--accent)!important}
+html[data-mode] .layout .sidebar .nav button.active svg{color:inherit!important}
+
+html[data-mode=light] .layout #view :is(tbody tr,[data-record-row]):hover>td{background:color-mix(in srgb,var(--accent) 7%,#fff)!important}
+html[data-mode=light] .layout #view :is(.search-card135,.customer-mini):hover{background:color-mix(in srgb,var(--accent) 5%,#fff)!important}
+[style*="--fu-tint-light162"]{--fu-tint:var(--fu-tint-light162);--fu-edge:var(--fu-edge-light162);--fu-ink:var(--fu-ink-light162)}
+html[data-mode=dark] [style*="--fu-tint-light162"]{--fu-tint:var(--fu-tint-dark162);--fu-edge:var(--fu-edge-dark162);--fu-ink:var(--fu-ink-dark162)}
