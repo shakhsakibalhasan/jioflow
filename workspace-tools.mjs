@@ -1,6 +1,6 @@
 import {compactOrdersSummary167} from './workspace-design.mjs';
 import {openPageOptions} from './page-options.mjs';
-import {bindCustomStatusSettings,bindTagSettings,loadTagDefinitions} from './custom-statuses.mjs';
+import {bindFollowupSectionSettings174,loadTagDefinitions} from './custom-statuses.mjs';
 import {bindPerformerHero} from './performer-hero.mjs';
 import {bindSourceReportChart} from './source-report-chart.mjs';
 import {openAssignmentPicker,openUnassignmentPicker153} from './assignment-picker.mjs';
@@ -155,7 +155,7 @@ export async function bindWorkspaceTools({root,context,client,openForm,reload,na
  applyLayout();arrangeDashboardCards156(root);delete root.dataset.layoutPending155;
  await Promise.all([panelReady,summaryRenderTask]);if(!current())return;
  const heroController=bindPerformerHero({root,context,client,openForm,settings,canEdit:permitted('settings'),isCurrent:current});
- if(section==='settings'&&permitted('settings')){const host=root.querySelector('.original-restored-view')||root;const heroCard=root.ownerDocument.createElement('section');heroCard.className='card section-gap';heroCard.innerHTML='<div class="row between"><div><h2>Top Performer Celebrations</h2><p>Daily and Monthly awards, shown at your chosen Bangladesh time.</p></div><button type="button" data-edit-hero-schedule>Edit schedule</button></div>';host.append(heroCard);heroCard.querySelector('button').onclick=()=>heroController.edit();bindCustomStatusSettings({root,client,shop,openForm,canEdit:true,onError:notice});bindCustomStatusSettings({root,client,shop,openForm,canEdit:true,permanent:true,onError:notice});bindTagSettings({root,client,shop,openForm,onError:notice});const layoutHelp=[...host.querySelectorAll(':scope > .card')].find(c=>c.querySelector('h2')?.textContent==='Page layouts');if(layoutHelp){layoutHelp.querySelector('p').textContent='Use ⋯ → Edit layout on a page. Drag within a row, use arrows to move between rows, and hide boxes without deleting records.';host.append(layoutHelp)}}
+ if(section==='settings'&&permitted('settings')){const host=root.querySelector('.original-restored-view')||root;const heroCard=root.ownerDocument.createElement('section');heroCard.className='card section-gap';heroCard.innerHTML='<div class="row between"><div><h2>Top Performer Celebrations</h2><p>Daily and Monthly awards, shown at your chosen Bangladesh time.</p></div><button type="button" data-edit-hero-schedule>Edit schedule</button></div>';host.append(heroCard);heroCard.querySelector('button').onclick=()=>heroController.edit();bindFollowupSectionSettings174({root,client,shop,openForm,onError:notice});const layoutHelp=[...host.querySelectorAll(':scope > .card')].find(c=>c.querySelector('h2')?.textContent==='Page layouts');if(layoutHelp){layoutHelp.querySelector('p').textContent='Use ⋯ → Edit layout on a page. Drag within a row, use arrows to move between rows, and hide boxes without deleting records.';host.append(layoutHelp)}}
 }
 
 

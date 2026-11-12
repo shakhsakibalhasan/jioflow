@@ -1,4 +1,4 @@
-import{bindFollowupTabs171,normalizeFollowup171}from'./custom-statuses.mjs';
+import{bindFollowupTabs171,normalizeFollowup171,loadFollowupSections174}from'./custom-statuses.mjs';
 import {bindFollowupFilters} from './followup-filters.mjs';
 import {loadStatusDefinitions,paintStatusBadges,loadTagDefinitions,renderStatusTabs142} from './custom-statuses.mjs';
 import {stageOrderHandoff} from './order-handoff.mjs';
@@ -179,7 +179,7 @@ export async function bindRecordPanel({root,context,client,openForm,reload,navig
  const keys={followAgentFilter:'agent_id','window.orderAgentFilter':'agent_id',followSourceFilter:'source',orderSourceFilter:'source',followCallFilter:'call',orderCallFilter:'call',followResponseFilter:'response',orderResponseFilter:'response',orderTagFilter:'tag'};
  root.querySelectorAll('[data-original-filter]').forEach(input=>{const key=keys[input.dataset.originalFilter];if(key){input.value=filters[key]||'';input.onchange=()=>navigate(section,{...filters,[key]:input.value})}});
  root.querySelectorAll('[data-workspace-action]').forEach(b=>{const action=b.dataset.workspaceAction;if(action==="tagFilter='';render()"||/^tagFilter=db.settings.tags\[\d+\]/.test(action)){b.disabled=false;b.onclick=()=>navigate(section,{...filters,tag:action.includes("tagFilter=''")?'':b.textContent.trim().replace(/\s+\d+$/,'')})}});
- if(section==='followups'&&!filters._global_search135){const definitions171=await loadStatusDefinitions(client,shop.id),permanent171=await loadStatusDefinitions(client,shop.id,true),tags171=await loadTagDefinitions(client,shop.id);if(!isCurrent())return;followupTabs171=bindFollowupTabs171({root,panel,filters,role:context.accountRole,statuses:definitions171,permanentStatuses:permanent171,tags:tags171,onChange:()=>{page=0;selected.clear();paintSelection();navigate(section,{...filters,_page152:0,search},{inline:true});return load()}});}
+ if(section==='followups'&&!filters._global_search135){const definitions171=await loadStatusDefinitions(client,shop.id),permanent171=await loadStatusDefinitions(client,shop.id,true),tags171=await loadTagDefinitions(client,shop.id);if(!isCurrent())return;followupTabs171=bindFollowupTabs171({root,panel,filters,role:context.accountRole,statuses:definitions171,permanentStatuses:permanent171,tags:tags171,sections174:await loadFollowupSections174(client,shop.id),onChange:()=>{page=0;selected.clear();paintSelection();navigate(section,{...filters,_page152:0,search},{inline:true});return load()}});}
  if(context.accountRole!=='Agent')bindFollowupFilters({root,panel,context,client,filters,navigate});
  await load();
 }
