@@ -1059,3 +1059,6 @@ html #app [data-transition165=pending]{position:absolute;inset:0;visibility:hidd
 .group-avatar169{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:50%;background:var(--accent-soft,#f1f9e8);color:var(--text,#20271c);font-size:12px;font-weight:600}
 .group-person169{display:grid;gap:4px;min-width:0}.group-person169 strong{font-size:13px}.group-person169 small{font-size:11px;color:var(--muted,#72786e);overflow-wrap:anywhere}.group-empty169{padding:16px;font-size:12px;color:var(--muted,#72786e)}
 .group-dialog169 button:disabled{opacity:.5;cursor:not-allowed}.group-search169 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+#app #view .record-table113 .record-actions109:has(.record-unassign170){display:flex;flex-wrap:wrap;gap:5px;width:auto;max-width:100%}
+#app #view .record-table113 .record-unassign170{padding:6px 8px;font-size:11px;line-height:1.3;background:transparent;border:1px solid var(--line,#dce3d4);color:var(--text,#20271c);border-radius:9px}
