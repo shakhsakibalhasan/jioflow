@@ -1,3 +1,4 @@
+import {compactOrdersSummary167} from './workspace-design.mjs';
 const watched132=new WeakSet();
 // Remove cancellation navigation/actions, retaining saved history and dismiss buttons.
 export function removeCancelledUi132(root){
@@ -18,7 +19,7 @@ const supported=new Set(['dashboard','products','customers','followups','permane
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function createOriginalSections({client,navigate,onLiveAction=()=>false,onReady=()=>{},bridge=()=>window.JioFlowOriginalViews}){
  let generation=0,viewContext=null;
- function bind(root,ready=true){
+ function bind(root,ready=true){if(viewContext?.section==='orders')compactOrdersSummary167(root,viewContext.accountRole==='Owner'||viewContext.accountRole==='Creator'||viewContext.members?.some(m=>m.user_id===viewContext.profile.id&&m.shop_id===viewContext.shop.id&&m.permissions?.profit===true));if(!['dashboard','profit','profitdetail','agentreports','agentdetail','orders'].includes(viewContext?.section))root.querySelectorAll('.stats,.section-overview,.overview-charts,.dashboard-metrics,.dashboard-actions,.metric-tile,.insight-tile,.overview-tile').forEach(el=>el.remove());
   const active=bridge().currentSection?.();if(active)viewContext={...viewContext,section:active};
   root.querySelectorAll('[data-original-action]').forEach(b=>b.onclick=()=>{const action=JSON.parse(b.dataset.originalAction);let target=recordTarget(action,viewContext?.section);if(action.name==='openStatus')target={section:'followups',filters:{entity:'customers',status:recordStatus(b.querySelector('span')?.textContent)}};if(action.name==='sourceQueue')target={section:'followups',filters:{entity:'customers',status:'assigned',source:b.querySelector('span')?.textContent||''}};if(target){if(viewContext?.section==='dashboard'&&['orders','followups','customers','permanent','courier'].includes(target.section)){root.ownerDocument.documentElement.dataset.jfRecordScroll=target.section+':'+viewContext.shop.id;root.ownerDocument.documentElement.dataset.jfRecordScrollAt=String(Date.now())}navigate(target.section,{...(target.section==='agentreports'&&viewContext?.recordFilter?.agent_id?{agent_id:viewContext.recordFilter.agent_id}:{}),...target.filters,...(target.filters.entity==='orders'?bridge().reportWindow?.()||{}:{})});return}root.innerHTML=bridge().action(action);bind(root)});
   root.querySelectorAll('[data-original-summary]').forEach(b=>b.onclick=()=>{const target=summaryTarget(b.dataset.originalSummary,viewContext?.section);if(viewContext?.section==='dashboard'&&['orders','followups','customers','permanent','courier'].includes(target.section)){root.ownerDocument.documentElement.dataset.jfRecordScroll=target.section+':'+viewContext.shop.id;root.ownerDocument.documentElement.dataset.jfRecordScrollAt=String(Date.now())}navigate(target.section,target.filters)});
@@ -50,7 +51,7 @@ export function createOriginalSections({client,navigate,onLiveAction=()=>false,o
   root.classList.remove('page-enter');if(['dashboard','followups','customers','permanent'].includes(section))root.dataset.layoutPending155='true';const finishLoading=fullLoading&&!directPanel?showLoading({scope:root}):()=>{};
   try{
    if(directPanel){const original=bridge();if(!original)throw new Error('Screen assets could not be loaded. Refresh to retry.');viewContext={section,shop,profile,shops,profiles,members,records:{},accountRole,recordFilter,fullLoading,workspaceClient,supervisorCanLayout,supervisorCanWork};root.innerHTML=original.render(section,viewContext);root.querySelectorAll('.metric-tile,.insight-tile,.overview-tile').forEach(el=>{const value=el.querySelector('strong');if(value)value.textContent='—';const foot=el.querySelector('.metric-context');if(foot)foot.textContent='Updating totals…';const badge=el.querySelector('.change-badge');if(badge)badge.textContent='—'});bind(root);if(section!=='dashboard')return}
-   if(!directPanel)root.innerHTML='<div class="page-loading-space" aria-busy="true"></div>';
+   if(!directPanel)root.innerHTML='<section class="card workspace-skeleton167" aria-busy="true"><div></div><div></div><div></div><div></div></section>';
    let records={};if(shop&&!['settings','platformsettings','import','profile','shop'].includes(section)){
     records=await cachedWorkspaceRecords(pageClient,{shop:shop.id,finance:canFinance===true},async()=>{
     let records={};const scoped='select=*&shop_id=eq.'+encodeURIComponent(shop.id);

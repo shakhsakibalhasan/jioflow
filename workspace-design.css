@@ -1036,3 +1036,13 @@ html #app [data-transition165=pending]{position:absolute;inset:0;visibility:hidd
 
 /* Update166: saved status is read-only until Edit status is chosen. */
 .followup-status-card .status-summary166{margin-top:18px}.status-summary166 dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:18px 0}.status-summary166 dt{font-size:12px;opacity:.72}.status-summary166 dd{margin:0;text-align:right;overflow-wrap:anywhere}.status-summary166 p{white-space:pre-wrap;overflow-wrap:anywhere}.status-editor166{margin-top:18px}.followup-status-card [data-edit-status166]{margin-top:8px}.followup-status-card [data-cancel-status166]{margin-top:10px}.status-summary166[hidden],.status-editor166[hidden],.order-product-editor[hidden]{display:none!important}
+
+/* Assignment167: always-visible native checkboxes and exact per-Agent split. */
+.assignment-user{cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px}.assignment-user>input{flex:0 0 18px;width:18px;height:18px;accent-color:var(--accent,#b4f449)}.assignment-user[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}.assignment-user [data-assignment-count]{margin-left:auto;font-size:12px;white-space:nowrap}.assignment-user[hidden]{display:none!important}
+
+.agent-devices167{margin-top:24px;border-top:1px solid var(--border);padding-top:18px}.agent-device167{display:grid;gap:6px;padding:14px 0;border-bottom:1px solid var(--border)}.agent-device167 small{opacity:.75}.agent-device167 span{color:var(--text)}
+
+/* Agent Reports: themed top seven summaries; aggregate duplicates removed. */
+.report-overview135>.metric-tile{min-height:125px;padding:20px}.report-overview135>.metric-tile .tile-label{display:block;font-size:12px}.report-overview135>.metric-tile>strong{display:block;margin-top:24px;font-size:26px}
+
+.workspace-skeleton167{min-height:300px;padding:24px;display:grid;gap:20px;align-content:start}.workspace-skeleton167>div{height:22px;border-radius:7px;background:var(--border,#e6ebdf);opacity:.45}.workspace-skeleton167>div:first-child{width:35%;height:30px}.workspace-skeleton167>div:last-child{height:130px}
