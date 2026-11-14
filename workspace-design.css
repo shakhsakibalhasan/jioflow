@@ -1082,3 +1082,11 @@ html #app [data-transition165=pending]{position:absolute;inset:0;visibility:hidd
 .group-card-stats178 span{display:flex;flex-direction:column;gap:5px}.group-card-stats178 strong{font-size:24px}.group-card-stats178 small{color:var(--muted)}
 .group-member-preview178{display:flex;gap:6px;flex-wrap:wrap;min-height:28px}.group-member-preview178 .record-status-pill{max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .group-report178{margin-top:24px}.group-report178 .table-wrap{margin-top:16px}.group-report178 input[type=search]{max-width:320px}.group-report178 .group-report-metrics178{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0}.group-report-metrics178 .metric-tile strong{font-size:26px}.group-report-metrics178 .metric-tile{min-height:110px;padding:18px}
+
+/* Customer cart reuses the established order workbench UI. */
+.customer-cart-inline183 .order-workbench-panels{grid-template-columns:repeat(2,minmax(0,1fr))}
+.customer-cart-inline183 .order-delivery-panel,.customer-cart-inline183 .order-customer-panel{display:none!important}
+.customer-cart-inline183 .order-summary-panel{grid-column:1}.customer-cart-inline183 .order-products-panel{grid-column:2}
+.customer-cart-inline183 .order-save-footer128{position:sticky;bottom:12px;z-index:4}
+.customer-order-workspace183{margin-bottom:24px;min-width:0}
+@media(max-width:760px){.customer-cart-inline183 .order-workbench-panels{grid-template-columns:minmax(0,1fr)}.customer-cart-inline183 .order-products-panel,.customer-cart-inline183 .order-summary-panel{grid-column:1}}
