@@ -1074,3 +1074,11 @@ html #app [data-transition165=pending]{position:absolute;inset:0;visibility:hidd
 .followup-sub-scroll171 i{height:7px;width:7px;flex:0 0 7px;border-radius:50%}.followup-count171{font-size:10px;line-height:1.4;padding:1px 6px;border-radius:999px;background:color-mix(in srgb,currentColor 10%,transparent)}
 :root[data-mode=dark] .followup-main171,:root[data-mode=dark] .followup-tabs171{background:#090909!important;border-color:#292929!important}:root[data-mode=dark] .followup-main-scroll171 button,:root[data-mode=dark] .followup-sub-scroll171 button{color:#e9ece7}
 @media(max-width:650px){#app #view .followup-main171{flex-wrap:wrap}#app #view .followup-main171 .record-search110{flex:1 0 100%}.followup-main-scroll171{flex-basis:100%}}
+
+/* Shop-scoped group cards and reports. */
+.group-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:16px;margin-top:22px}
+.group-card178{padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--surface,var(--card,#fff));display:flex;flex-direction:column;gap:16px}
+.group-card178 h3{margin:0;overflow-wrap:anywhere}.group-card-stats178{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 0;border-block:1px solid var(--line)}
+.group-card-stats178 span{display:flex;flex-direction:column;gap:5px}.group-card-stats178 strong{font-size:24px}.group-card-stats178 small{color:var(--muted)}
+.group-member-preview178{display:flex;gap:6px;flex-wrap:wrap;min-height:28px}.group-member-preview178 .record-status-pill{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.group-report178{margin-top:24px}.group-report178 .table-wrap{margin-top:16px}.group-report178 input[type=search]{max-width:320px}.group-report178 .group-report-metrics178{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0}.group-report-metrics178 .metric-tile strong{font-size:26px}.group-report-metrics178 .metric-tile{min-height:110px;padding:18px}
