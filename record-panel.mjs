@@ -142,7 +142,7 @@ export async function bindRecordPanel({root,context,client,openForm,reload,navig
   if(context.accountRole==='Agent')dialog.querySelector('[data-detail-assign]')?.remove();
   dialog.querySelector('[data-detail-assign]')?.addEventListener('click',()=>assignOne(c));
   dialog.querySelector('[data-detail-followup]')?.addEventListener('click',()=>openRecord?.('followupForm',r.id));bindCustomerNote103({dialog,client,shopId:shop.id,customerId:c.id,reload});
-  dialog.querySelector('[data-detail-orders]').onclick=()=>{dialog.close();navigate('orders',{entity:'orders',status:'all',search:c.phone})};
+  dialog.querySelector('[data-detail-orders]').onclick=()=>{dialog.querySelector('.customer-all-orders103')?.scrollIntoView?.({behavior:'smooth',block:'start'})};
   const newOrderButton=dialog.querySelector('[data-customer-new-order]');
   for(const button of dialog.querySelectorAll('[data-customer-order]')){button.dataset.originalPreview='showOrder';button.dataset.originalId=button.dataset.customerOrder;}
   bindLiveOrders({root:dialog,context:{...context,section:'orders',records:{...records,orders:active}},client,openForm,reload,navigate,canEdit:editable});
