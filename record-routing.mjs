@@ -15,7 +15,7 @@ export function recordTarget(action,section='dashboard'){
  return null;
 }
 export function summaryTarget(label,section='dashboard'){
- const name=String(label||'').toLowerCase();
+ const name=String(label||'').toLowerCase();if(name==='processing')return {section:'followups',filters:{group171:'assigned',sub171:'processing176',status:'all'}};
  const customerStatus={'all customers':'all','total customers':'all','assigned':'assigned','unassigned':'unassigned','completed':'completed','complete':'completed','pending follow-up':'pending','pending follow-ups':'pending','permanent clients':'permanent','connected':'connected','not connected':'not_connected','positive':'positive','negative':'negative','intermediate':'intermediate','attempted':'attempted','not attempted':'not_attempted','never attempted':'not_attempted','failed':'failed','no answer':'no_answer','busy':'busy','due callbacks':'callbacks','overdue callbacks':'callbacks','purchase rate':'buyers'}[name];
  if(customerStatus&&!(['complete','completed'].includes(name)&&['orders','courier'].includes(section)))return {section:'followups',filters:{entity:'customers',status:customerStatus}};
  if(/cod|delivery.*return/.test(name))return {section:'courier',filters:{entity:'orders',status:name.includes('cod')?'delivered':'all'}};

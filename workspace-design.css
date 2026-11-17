@@ -1123,3 +1123,12 @@ html #app [data-transition165=pending]{position:absolute;inset:0;visibility:hidd
 #app #view .customer-cart-inline183 .order-save-footer128 button{flex:1 1 auto!important;align-self:stretch;min-width:0;min-height:52px!important;padding:14px 24px!important;border-radius:999px!important;font-size:15px!important;font-weight:650}
 #app #view .customer-cart-inline183 .order-save-footer128>strong{flex:0 1 auto;align-self:stretch;display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:100px;padding:8px 22px!important;background:transparent!important;color:var(--text,#20271e);border-radius:999px!important;font-size:23px!important;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap}
 @media(max-width:540px){#app #view .customer-cart-inline183 .order-save-footer128>strong{padding:8px 14px!important;min-width:86px;font-size:20px!important}#app #view .customer-cart-inline183 .order-save-footer128 button{padding:12px 18px!important}}
+
+/*188: explicit surface contrast also applies inside a mixed theme. */
+[data-logo-surface=light] .brand-logo-viewport img{content:url('assets/jioflow-logo-light.png')!important}
+[data-logo-surface=dark] .brand-logo-viewport img{content:url('assets/jioflow-logo.png')!important}
+[data-logo-surface=light] .brandmark.supplied-icon{content:url('assets/jioflow-icon-light.png')!important}
+[data-logo-surface=dark] .brandmark.supplied-icon{content:url('assets/jioflow-icon.png')!important}
+[data-agent-dashboard118] .dashboard-metrics{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))!important;gap:16px}
+[data-agent-dashboard118] .dashboard-metrics>.metric-tile{width:auto!important;max-width:none!important;min-width:0;grid-column:auto!important}
+tfoot [data-report-total188]{font-weight:650;background:var(--surface,#fff);border-top:2px solid var(--line,#dde5d5)}
