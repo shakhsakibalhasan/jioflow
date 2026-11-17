@@ -29,6 +29,15 @@ export function createAccountService({env=process.env,fetcher=fetch}={}){
   const p=await call('/rest/v1/jf_profiles?select=id,active,deleted_at&id=eq.'+encodeURIComponent(user.id)+'&limit=1',{token});
   if(!p?.[0]?.active||p[0].deleted_at)throw new RequestError('Your account is inactive.',403);
   const rpc=(name,body)=>call('/rest/v1/rpc/'+name,{method:'POST',token,body});
+  if(input?.action==='agent_email_change191'){
+   if(!uuid.test(input.user_id||''))throw new RequestError('Select an Agent.');
+   const next=String(input.email||'').trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next)||next.length>254)throw new RequestError('Enter a valid login email.');
+   const op=await rpc('jf_prepare_agent_email191',{target_user:input.user_id,new_email:next});
+   if(!uuid.test(op?.user_id||'')||!uuid.test(op?.lease_id||'')||op.email!==next)throw new RequestError('Agent email authorization failed.',403);
+   await call('/auth/v1/admin/users/'+op.user_id,{method:'PUT',key:c.secret,token:c.secret,body:{email:next,email_confirm:true}});
+   try{await call('/rest/v1/rpc/jf_finish_agent_email191',{method:'POST',key:c.secret,token:c.secret,body:{lease_id:op.lease_id}})}catch{throw new RequestError('Login email was updated, but session cleanup could not be confirmed. Refresh Account Access before retrying.',503)}
+   return {message:'Agent login email updated. Sign in with the new email; the new login needs approval.'};
+  }
   if(input?.action==='account_password_set'){
    const password=input.new_password,confirm=input.confirm_password;
    if(typeof password!=='string'||password.length<6||password.length>128||password!==confirm)throw new RequestError('Use 6–128 characters and matching passwords.');

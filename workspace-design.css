@@ -1175,3 +1175,6 @@ tfoot [data-report-total188]{font-weight:650;background:var(--surface,#fff);bord
 .account-edit190 .permission-section120>h3{font-size:12px;font-weight:600;line-height:1.5;margin:16px 0 8px;padding:0;border:0}
 .account-edit190 .account-permission-grid{margin:8px 0 14px;gap:6px 16px}
 .account-edit190 .account-permission-grid label{font-size:11px;line-height:1.5;padding:6px 0}
+
+.account-edit190 .device-card190>footer{display:flex;justify-content:flex-end;margin-top:auto;padding-top:8px;border-top:1px solid var(--line,#e1e7dc)}
+.account-edit190 .device-remove191{font-size:10px;min-height:29px;padding:5px 9px;border-radius:7px;border:1px solid var(--line,#e1e7dc);background:var(--surface,#fff);color:var(--text,#20271e)}

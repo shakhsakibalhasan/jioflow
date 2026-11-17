@@ -783,9 +783,13 @@ function renderOriginal(section,context,reset=true){
   if(noteAction){if(noteAction[1]==='customer'){el.dataset.originalLive='followupForm';el.dataset.originalId=noteAction[2]}else{el.dataset.originalPreview='showOrder';el.dataset.originalId=noteAction[2]}}
   if(assignOrder){const order=db.orders.find(o=>o.id===assignOrder[1]);if(order){el.dataset.originalPreview='showOrder';el.dataset.originalId=order.id}}
   const readAction=parseOriginalReadAction(click);
+  const lifecycle191=click.match(/^(toggleAgent|archiveUser|removeAccount)\('([^']+)'\)$/);let wiredLifecycle191=false;
+  if(lifecycle191){const m=context.members.find(m=>(m.id===lifecycle191[2]||m.user_id===lifecycle191[2])&&m.shop_id===context.shop?.id&&m.role==='agent'&&m.status!=='removed'),p=context.profiles.find(p=>p.id===m?.user_id);const allowed=m&&p&&p.id!==context.profile.id&&p.platform_role!=='creator'&&!context.shops.some(s=>s.owner_id===p.id)&&(['Creator','Owner'].includes(context.accountRole)||context.accountRole==='Admin'&&context.members.some(a=>a.shop_id===m.shop_id&&a.user_id===context.profile.id&&a.role==='admin'&&a.status==='active'));
+   if(allowed&&(lifecycle191[1]!=='archiveUser'||['Creator','Owner'].includes(context.accountRole)||context.members.some(a=>a.user_id===context.profile.id&&a.shop_id===m.shop_id&&a.role==='admin'&&a.status==='active'&&a.permissions?.logout===true))){if(lifecycle191[1]==='toggleAgent'){el.dataset.accountStatus=p.id;el.textContent=p.active===false?'Activate':'Deactivate'}else if(lifecycle191[1]==='removeAccount')el.dataset.accountRemove=p.id;else el.dataset.accountLogout=p.id;el.disabled=false;el.removeAttribute('title');wiredLifecycle191=true}}
+
 
   const navMatch=click.match(/nav\(['"]([^'"]+)['"]\)/),tab=click.match(/subtab='([^']+)'/);
-  if(el.dataset.originalLive||el.dataset.originalPreview){}
+  if(wiredLifecycle191||el.dataset.originalLive||el.dataset.originalPreview){}
   else if(readAction)el.dataset.originalAction=JSON.stringify(readAction);
   else if(/^chartSource='[^']*';render\(\)$/.test(click))el.dataset.originalChart=click.match(/'([^']*)'/)[1];
   else if(navMatch)el.dataset.originalNav=navMatch[1];
