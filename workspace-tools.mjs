@@ -189,7 +189,8 @@ export function arrangeDashboardCards156(root){
 }
 
 export function openGroupPicker169({openForm,group,groups=[],agents=[],profiles=[],onSave}){
- const active=agents.map(m=>({id:m.id,profile:profiles.find(p=>p.id===m.user_id)})).filter(m=>m.profile?.active!==false);
+ const occupied=new Set(groups.filter(g=>g.id!==group?.id).flatMap(g=>g.members||[]));
+ const active=agents.map(m=>({id:m.id,profile:profiles.find(p=>p.id===m.user_id)})).filter(m=>m.profile?.active!==false&&!occupied.has(m.id));
  const allowed=new Set(active.map(m=>m.id));
  const dialog=openForm(group?'Edit group':'Create group',`<section class="group-picker169">
  <p class="group-intro169">Choose the Agents who will belong to this group.</p>
@@ -203,7 +204,7 @@ export function openGroupPicker169({openForm,group,groups=[],agents=[],profiles=
  <p class="group-help169">Select at least one Agent to save this group.</p></section>`,async form=>{
  const name=String(form.get('name')||'').trim(),members=[...new Set(form.getAll('members'))];
  if(!name)throw Error('Enter a group name.');if(groups.some(g=>g.active!==false&&g.id!==group?.id&&String(g.name).trim().toLowerCase()===name.toLowerCase()))throw Error('A group with this name already exists. Edit that group or choose another name.');if(!members.length)throw Error('Select at least one Agent.');if(members.some(id=>!allowed.has(id)))throw Error('Choose active Agents in this business.');
- try{await onSave({id:group?.id||null,name,members})}catch(error){if(error.code==='23505'||String(error.message).includes('jf_groups_shop_id_name_key'))throw Error('A group with this name already exists. Edit that group or choose another name.');throw error}
+ try{await onSave({id:group?.id||null,name,members})}catch(error){if(/another group|jf_one_group_member195/i.test(error.message))throw Error('This Agent already belongs to another group. Refresh and choose another Agent.');if(error.code==='23505'||String(error.message).includes('jf_groups_shop_id_name_key'))throw Error('A group with this name already exists. Edit that group or choose another name.');throw error}
  });
  dialog.classList.add('group-dialog169');const rows=[...dialog.querySelectorAll('[data-group-row169]')],boxes=[...dialog.querySelectorAll('[name=members]')],save=dialog.querySelector('[type=submit]'),input=dialog.querySelector('[name=name]');
  for(const box of boxes)box.checked=!!group?.members?.includes(box.value);if(save)save.textContent=group?'Save changes':'Create group';
