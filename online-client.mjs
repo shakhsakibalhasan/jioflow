@@ -1,5 +1,9 @@
 // Public project configuration. Role checks and data visibility come from Supabase.
-export const LIVE_CONFIG={url:'https://xxsiwglshmqfqvbvxytw.supabase.co',key:'sb_publishable_RlWfxCgcLwHs2ehTnO9VTQ_elTpLAEC'};
+
+export const LIVE_CONFIG = {
+  url: 'https://krsfldvxneoujmpquugr.supabase.co',
+  key: 'sb_publishable_ICeVpDE9iBQU5H8jE6XVPQ_-md5JGTQ'
+};
 export function createLiveClient({fetcher=fetch,storage=globalThis.localStorage||sessionStorage,config=LIVE_CONFIG}={}){
  const storageKey='jioflow.online.session.v1';let session=null,refreshing=null,epoch=0,dataRevision132=0;
  const reads150=new Map();
