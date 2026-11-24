@@ -1289,3 +1289,37 @@ tfoot [data-report-total188]{font-weight:650;background:var(--surface,#fff);bord
 .jioflow-agent-empty-button:disabled{opacity:.55;cursor:not-allowed}
 .jioflow-agent-empty-inner [data-order-pull-message]{font-size:11px;margin:0;min-height:16px}
 @media(max-width:600px){.jioflow-agent-empty{min-height:270px}.jioflow-agent-empty-inner{padding:30px 12px}}
+
+/* 193 — refined Edit Account dialog; scoped to this dialog, preserves other modals */
+dialog.corporate-modal134.account-edit190,
+dialog.corporate-modal134.account-edit190:has(.form-grid),
+.account-edit190.online-dialog {width:min(604px,calc(100vw - 28px))!important;max-width:min(604px,calc(100vw - 28px))!important;max-height:min(92dvh,850px)!important;border-radius:18px!important;box-shadow:0 22px 65px rgba(22,35,20,.17)!important;scrollbar-width:thin}
+.account-edit190 .online-dialog-header{padding:17px 20px!important;gap:10px!important}
+.account-edit190 .online-dialog-header h2{font-size:18px!important;font-weight:730!important;letter-spacing:-.3px!important}
+.account-edit190 .modal-content134{padding:18px 20px!important;gap:13px!important;line-height:1.45!important}
+.account-edit190 .account-section190{border-radius:12px!important;border:1px solid var(--line,#e1e7dc)!important;padding:15px!important;background:var(--surface,#fff)!important}
+.account-edit190 .account-section190>header{margin-bottom:11px!important}
+.account-edit190 .account-section190>header h3{font-size:13px!important;font-weight:750!important}
+.account-edit190 .account-section190 .form-grid{gap:11px!important}
+.account-edit190 .account-section190 .field input:not([type=checkbox]):not([type=file]),.account-edit190 .account-section190 .field select{min-height:39px!important;border-radius:9px!important}
+.account-edit190 .online-dialog-actions{padding:12px 20px!important;gap:9px!important;position:sticky!important;bottom:0!important;background:var(--surface,#fff)!important;z-index:5!important;border-top:1px solid var(--line,#e1e7dc)!important}
+.account-edit190 .online-dialog-actions button{border-radius:9px!important;min-height:38px!important}
+.account-edit190 .account-inline-pull{min-height:0!important;background:var(--surface,#fff)!important}
+.account-edit190 .account-inline-pull [data-pull-inline-body]{min-height:0!important;gap:13px!important}
+.account-edit190 .pull-enable{border:1px solid var(--accent-edge,var(--line,#dde6d8))!important;border-radius:10px!important;font-size:12px!important}
+.account-edit190 .pull-empty-rule{font-size:12px!important;padding:10px 11px!important}
+.account-edit190 .pull-number-grid{gap:11px!important}
+.account-edit190 .pull-number-grid .field{display:flex;flex-direction:column;gap:2px!important;font-size:12px!important}
+.account-edit190 .pull-number-grid .field input{margin-top:2px!important;font-weight:600!important}
+.account-edit190 .pull-number-grid .field small{font-size:10px;color:var(--muted,#697264);font-weight:400}
+.account-edit190 .pull-option-label{display:flex;flex-direction:column;gap:3px;margin:0 0 7px}
+.account-edit190 .pull-option-label strong{font-size:12px;font-weight:700}
+.account-edit190 .pull-option-label small{font-size:10px;color:var(--muted,#697264)}
+.account-edit190 .pull-multiselect{border:1px solid var(--line,#dce4d5);border-radius:10px;overflow:hidden;background:var(--surface,#fff)}
+.account-edit190 .pull-multiselect summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;min-height:39px;padding:9px 12px;font-size:12px;line-height:1.4;color:var(--text,#20271e);user-select:none}
+.account-edit190 .pull-multiselect summary::-webkit-details-marker{display:none}
+.account-edit190 .pull-multiselect[open] summary{border-bottom:1px solid var(--line,#dce4d5);background:var(--surface-soft,#f7faf3)}
+.account-edit190 .pull-multiselect .pull-setting-options{display:grid!important;grid-template-columns:1fr!important;gap:4px!important;max-height:155px!important;overflow-y:auto!important;padding:8px!important;background:var(--surface,#fff)}
+.account-edit190 .pull-multiselect .pull-setting-choice{border:0!important;background:transparent!important;min-height:30px!important;padding:6px 9px!important;font-size:12px!important;border-radius:7px!important}
+.account-edit190 .pull-multiselect .pull-setting-choice:hover{background:var(--surface-soft,#f7faf3)!important}
+@media(max-width:560px){dialog.corporate-modal134.account-edit190,.account-edit190.online-dialog{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important}.account-edit190 .online-dialog-header,.account-edit190 .modal-content134{padding:14px!important}.account-edit190 .account-section190{padding:12px!important}.account-edit190 .form-grid,.account-edit190 .pull-number-grid{grid-template-columns:1fr!important}}
