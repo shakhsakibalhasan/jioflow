@@ -82,7 +82,7 @@ export async function bindWorkspaceTools({root,context,client,openForm,reload,na
      const card=root.ownerDocument.createElement('section');
      card.className='card jioflow-pull-card jioflow-agent-empty';
      card.hidden=true;
-     card.innerHTML=`<div class="jioflow-agent-empty-inner"><span class="jioflow-agent-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5h17l-1.5 10a2 2 0 0 1-2 1.5H7a2 2 0 0 1-2-1.5l-1.5-10Z"/><path d="m4 8.5 3-4.5h10l3 4.5"/><path d="M9 12.5a3 3 0 0 0 6 0"/></svg></span><h3>You're all caught up</h3><p>No pending orders left. Pick an approved status or Customer Tag 1 to take more orders.</p><button type="button" class="primary jioflow-agent-empty-button" data-order-pull disabled>Take More Orders</button><p data-order-pull-message class="small muted" role="status">Checking permission…</p></div>`;
+     card.innerHTML=`<div class="jioflow-agent-empty-inner"><span class="jioflow-agent-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5h17l-1.5 10a2 2 0 0 1-2 1.5H7a2 2 0 0 1-2-1.5l-1.5-10Z"/><path d="m4 8.5 3-4.5h10l3 4.5"/><path d="M9 12.5a3 3 0 0 0 6 0"/></svg></span><h3>You're all caught up</h3><p>No pending orders left. Take more orders from your Admin-approved pools.</p><button type="button" class="primary jioflow-agent-empty-button" data-order-pull disabled>Take More Orders</button><p data-order-pull-message class="small muted" role="status">Checking permission…</p></div>`;
      try{
        // Read the unfiltered Processing queue from the server, not from the active
        // table's visible row count (which may be affected by other filters).
@@ -126,60 +126,35 @@ export async function bindWorkspaceTools({root,context,client,openForm,reload,na
          fetchPullState().then(showPullState).catch(()=>{});
        },15000);
        button.onclick=async()=>{
+         if(button.disabled)return;
          button.disabled=true;
+         message.textContent='Checking your Admin-approved order pools…';
          try{
-           const state=await fetchPullState();if(!current())return;
-           showPullState(state);
-           if(!canTakeMoreOrders(state.cfg,state.choices))return;
-           let shownState=state;
-           let selection=[];
-           const optionHTML=(type,title,choices)=>`<div class="pull-choice-title">${title}</div><div class="pull-setting-options">${choices.filter(c=>c.type===type).map(c=>{
-             const index=shownState.choices.indexOf(c);
-             return `<label class="pull-setting-choice pull-source-choice ${c.disabled?'pull-option-unavailable':''}"><input type="radio" name="pull_choice" value="${index}" ${c.disabled?'disabled aria-disabled="true"':''}><span class="pull-source-name">${esc(c.value)}</span><span class="pull-choice-count">${c.count.toLocaleString('en-US')} available</span></label>`;
-           }).join('')||'<p class="small muted">No approved options</p>'}</div>`;
-           const html=()=>`<section class="pull-settings-panel" data-current-pull-panel>
-             <p>Up to ${Math.min(Number(shownState.cfg.batch_size)||20,Number(shownState.cfg.remaining)||0)} orders. Select one approved option.</p>
-             <div data-live-pull-option-list>${optionHTML('imported_status','By Imported Status',shownState.choices)}${optionHTML('customer_tag1','By Customer Tag 1',shownState.choices)}</div>
-             <p class="small muted" data-pull-status-message role="status"></p></section>`;
-           const dialog=openForm('Take More Orders',html(),async form=>{
-             const picked=shownState.choices[Number(form.get('pull_choice'))];
-             if(!picked||picked.disabled)throw Error('Select an option with available orders.');
-             // Recheck the admin grant and available count before every assignment.
-             const latest=await fetchPullState();
-             if(!isApprovedAvailableChoice(latest.cfg,latest.counts,picked.type,picked.value)){
-               shownState=latest;
-               throw Error('The Admin changed this permission or the selected pool has no orders. Choose an available option.');
-             }
-             const result=await client.rpc('jf_agent_pull_take',{target_shop:shop.id,selection_type:picked.type,selection_value:picked.value});
-             if(!Number(result?.assigned))throw Error('No available orders remained in that pool. Choose another option.');
-             message.textContent=`${result.assigned} assigned · ${result.remaining} remaining today`;
-             invalidateRecordPages(client);await reload();
-           });
-           const paintDialog=next=>{
-             if(!dialog?.isConnected)return;
-             const list=dialog.querySelector('[data-live-pull-option-list]');if(!list)return;
-             const old=shownState.choices[Number(dialog.querySelector('[name=pull_choice]:checked')?.value)];
-             shownState=next;
-             list.innerHTML=optionHTML('imported_status','By Imported Status',next.choices)+optionHTML('customer_tag1','By Customer Tag 1',next.choices);
-             const index=next.choices.findIndex(x=>!x.disabled&&x.type===old?.type&&x.value===old?.value);
-             const radio=index>=0?list.querySelector(`[name="pull_choice"][value="${index}"]`):null;if(radio)radio.checked=true;
-             const note=dialog.querySelector('[data-pull-status-message]');
-             if(note)note.textContent=next.cfg.enabled?'': 'Admin has disabled Order Pull.';
-           };
-           let updating=false;
-           const updateModal=async()=>{
-             if(!dialog?.isConnected||updating)return;
-             updating=true;
-             try{const fresh=await fetchPullState();if(dialog.isConnected)paintDialog(fresh);}
-             catch(error){const note=dialog?.querySelector('[data-pull-status-message]');if(note)note.textContent='Unable to refresh permissions: '+error.message;}
-             finally{updating=false;}
-           };
-           // A background tab may stay open while Admin changes settings.
-           // Refresh on focus AND while the dialog is open; the server remains authoritative.
-           const modalTimer=setInterval(()=>{if(!dialog?.isConnected){clearInterval(modalTimer);return;}updateModal();},10000);
-           dialog?.addEventListener?.('focusin',()=>{updateModal();},{once:true});
-         }catch(error){if(current())message.textContent=error.message;}
-         finally{if(current()&&pullState)button.disabled=!canTakeMoreOrders(pullState.cfg,pullState.choices);}
+           // Always refresh the approved pools just before the action.
+           const latest=await fetchPullState();
+           if(!current())return;
+           showPullState(latest);
+           if(!canTakeMoreOrders(latest.cfg,latest.choices))return;
+           button.disabled=true;
+           message.textContent='Assigning orders from your approved pools…';
+           // Agent supplies only shop ID. Server selects approved pool and applies
+           // quota, empty-queue check, session grant and atomic assignment.
+           const result=await client.rpc('jf_agent_pull_auto',{target_shop:shop.id});
+           if(!current())return;
+           if(!Number(result?.assigned)){
+             message.textContent=result?.message||'No orders are currently available in your approved pools.';
+             return;
+           }
+           message.textContent=`${result.assigned} orders assigned · ${result.remaining} remaining today`;
+           invalidateRecordPages(client);
+           await reload();
+         }catch(error){
+           if(current())message.textContent=error.message;
+         }finally{
+           if(current()){
+             try{showPullState(await fetchPullState());}catch(e){button.disabled=true;}
+           }
+         }
        };
      }catch(error){
        // A failed count check must not conceal the Agent's existing table.
