@@ -68,29 +68,58 @@ export async function bindWorkspaceTools({root,context,client,openForm,reload,na
  let data;try{data=await cachedReadRpc(client,'jf_workspace_tools',{target_shop:shop.id,tool:'load',details:{page:section}})}catch(e){if(current())notice('Some page settings could not load. Refresh to retry.');data={settings:{},layout:{},groups:[]}}if(!current())return;
  const settings=data.settings||{},groups=data.groups||[];let layout=data.layout||{};
  if(section==='followups'&&accountRole==='Agent'&&!context.recordFilter?.workspace_agent){
-   const place=root.querySelector('.original-restored-view')||root;
-   const card=root.ownerDocument.createElement('section');card.className='card jioflow-pull-card';
-   card.innerHTML='<div class="jioflow-pull-header"><div><h3>Take More Orders</h3><p class="small muted">Choose an approved Imported Status or Customer Tag 1 once your Processing queue is empty.</p></div><button type="button" class="primary" data-order-pull disabled>Take More Orders</button></div><p data-order-pull-message class="small muted">Checking Agent permission…</p>';
-   place.prepend(card);
-   try{
-    const cfg=await client.rpc('jf_agent_pull_config',{target_shop:shop.id,target_membership:null,config:null});
-    if(!current())return;
-    const message=card.querySelector('[data-order-pull-message]'),button=card.querySelector('[data-order-pull]');
-    if(!cfg.enabled){message.textContent='Admin has not enabled Order Pull.';return}
-    const statuses=cfg.imported_statuses||[],tags=cfg.customer_tags||[];
-    if(!statuses.length&&!tags.length){message.textContent='Admin must allow at least one Imported Status or Customer Tag 1.';return}
-    button.disabled=cfg.remaining<=0;
-    message.textContent=`${cfg.used_today} / ${cfg.daily_limit} pulled today · ${cfg.remaining} remaining`;
-    button.onclick=()=>{
-     const values=[...statuses.map(x=>({type:'imported_status',value:x})),...tags.map(x=>({type:'customer_tag1',value:x}))];
-     openForm('Take More Orders',`<section class="pull-settings-panel"><p>Maximum ${Math.min(cfg.batch_size,cfg.remaining)} Orders can be assigned to you in this pull. Your current Processing queue must be empty.</p><div class="pull-choice-title">By Imported Status</div><div class="pull-setting-options">${statuses.map((v,i)=>`<label class="pull-setting-choice"><input type="radio" name="pull_choice" value="${i}"><span>${esc(v)}</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div><div class="pull-choice-title">By Customer Tag 1</div><div class="pull-setting-options">${tags.map((v,i)=>`<label class="pull-setting-choice"><input type="radio" name="pull_choice" value="${statuses.length+i}"><span>${esc(v)}</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div></section>`,async f=>{
-       const selected=values[Number(f.get('pull_choice'))];if(!selected)throw Error('Select one approved option.');
-       const result=await client.rpc('jf_agent_pull_take',{target_shop:shop.id,selection_type:selected.type,selection_value:selected.value});
-       message.textContent=`${result.assigned} assigned · ${result.remaining} remaining today`;
-       invalidateRecordPages(client);await reload();
-      });
-    };
-   }catch(error){if(current())card.querySelector('[data-order-pull-message]').textContent=error.message}
+   // Only display the Trackly-style empty state for the actual Processing queue.
+   // A filtered tab that happens to be empty is not proof the Agent has no work.
+   const filter=context.recordFilter||{};
+   const onProcessing=(!filter.sub171||['processing176','processing188','all'].includes(filter.sub171))
+       && (!filter.group171||filter.group171==='assigned')
+       && (!filter.status||['all','processing188','processing176'].includes(filter.status))
+       && !filter.search;
+   if(onProcessing){
+     const place=root.querySelector('.original-restored-view')||root;
+     const card=root.ownerDocument.createElement('section');
+     card.className='card jioflow-pull-card jioflow-agent-empty';
+     card.hidden=true;
+     card.innerHTML=`<div class="jioflow-agent-empty-inner"><span class="jioflow-agent-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5h17l-1.5 10a2 2 0 0 1-2 1.5H7a2 2 0 0 1-2-1.5l-1.5-10Z"/><path d="m4 8.5 3-4.5h10l3 4.5"/><path d="M9 12.5a3 3 0 0 0 6 0"/></svg></span><h3>You're all caught up</h3><p>No pending orders left. Pick an approved status or Customer Tag 1 to take more orders.</p><button type="button" class="primary jioflow-agent-empty-button" data-order-pull disabled>Take More Orders</button><p data-order-pull-message class="small muted" role="status">Checking permission…</p></div>`;
+     try{
+       // Read the unfiltered Processing queue from the server, not from the active
+       // table's visible row count (which may be affected by other filters).
+       const queue=await client.rpc('jf_followup_page171',{
+         target_shop:shop.id,entity:'customers',page_number:0,
+         filters:{group171:'assigned',sub171:'processing176',agent_id:membership?.id||null,_page_size:20}
+       });
+       if(!current())return;
+       if(Number(queue?.total)!==0)return;
+       await panelReady;
+       if(!current())return;
+       const livePanel=root.querySelector('[data-live-record-panel]');
+       if(livePanel){livePanel.hidden=true;livePanel.setAttribute('aria-hidden','true');livePanel.insertAdjacentElement('afterend',card)}
+       else place.append(card);
+       card.hidden=false;
+       const cfg=await client.rpc('jf_agent_pull_config',{target_shop:shop.id,target_membership:null,config:null});
+       if(!current())return;
+       const message=card.querySelector('[data-order-pull-message]'),button=card.querySelector('[data-order-pull]');
+       if(!cfg.enabled){message.textContent='Admin has not enabled Order Pull.';return}
+       const statuses=cfg.imported_statuses||[],tags=cfg.customer_tags||[];
+       if(!statuses.length&&!tags.length){message.textContent='Admin must allow at least one Imported Status or Customer Tag 1.';return}
+       button.disabled=Number(cfg.remaining)<=0;
+       message.textContent=`${cfg.used_today} / ${cfg.daily_limit} pulled today · ${cfg.remaining} remaining`;
+       button.onclick=()=>{
+         const values=[...statuses.map(x=>({type:'imported_status',value:x})),...tags.map(x=>({type:'customer_tag1',value:x}))];
+         openForm('Take More Orders',`<section class="pull-settings-panel"><p>Up to ${Math.min(cfg.batch_size,cfg.remaining)} orders can be assigned. Your Processing queue must be empty.</p><div class="pull-choice-title">By Imported Status</div><div class="pull-setting-options">${statuses.map((v,i)=>`<label class="pull-setting-choice"><input type="radio" name="pull_choice" value="${i}"><span>${esc(v)}</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div><div class="pull-choice-title">By Customer Tag 1</div><div class="pull-setting-options">${tags.map((v,i)=>`<label class="pull-setting-choice"><input type="radio" name="pull_choice" value="${statuses.length+i}"><span>${esc(v)}</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div></section>`,async f=>{
+           const selected=values[Number(f.get('pull_choice'))];if(!selected)throw Error('Select one approved option.');
+           const result=await client.rpc('jf_agent_pull_take',{target_shop:shop.id,selection_type:selected.type,selection_value:selected.value});
+           message.textContent=`${result.assigned} assigned · ${result.remaining} remaining today`;
+           invalidateRecordPages(client);await reload();
+         });
+       };
+     }catch(error){
+       // A failed count check must not conceal the Agent's existing table.
+       const livePanel=root.querySelector('[data-live-record-panel]');if(livePanel){livePanel.hidden=false;livePanel.removeAttribute('aria-hidden')}
+       card.remove();
+       if(current())notice('Unable to verify Processing queue: '+error.message);
+     }
+   }
  }
 loadTagDefinitions(client,shop.id).then(tags=>{settings.tags=tags.filter(t=>t.active).map(t=>t.name)}).catch(()=>{});
  // Repair pre-52 dashboard geometry; keep titles/visibility and all business data.

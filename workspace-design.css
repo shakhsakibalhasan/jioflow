@@ -1260,3 +1260,32 @@ tfoot [data-report-total188]{font-weight:650;background:var(--surface,#fff);bord
 .agent-pull-access-section .agent-pull-settings-button:hover{filter:brightness(.97)}
 .agent-pull-access-section .agent-pull-access-body>.small{margin-top:8px;font-size:12px}
 .agent-pull-access-warning{border-radius:10px;padding:12px;background:var(--surface-soft,#f8faf5);border:1px solid var(--line,#e1e7dc);font-size:12px;line-height:1.5}
+
+/* Account Order Pull configuration is part of the original edit form, not a nested dialog. */
+.account-edit190 .account-inline-pull{display:block;min-height:200px;overflow:visible}
+.account-inline-pull [data-pull-inline-body]{display:grid;gap:12px;min-height:140px}
+.account-inline-pull .pull-enable{background:color-mix(in srgb,var(--accent,#b5f450) 13%,var(--surface,#fff));font-weight:650}
+.account-inline-pull .pull-number-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin:0}
+.account-inline-pull .pull-setting-options{grid-template-columns:repeat(2,minmax(0,1fr));max-height:180px;overflow-y:auto;align-content:start;scrollbar-gutter:stable}
+.account-inline-pull .pull-setting-options .pull-setting-choice{margin:0;padding:9px 10px;min-width:0}
+.account-inline-pull .pull-setting-options .pull-setting-choice span{overflow-wrap:anywhere}
+.account-inline-pull h4{font-size:11px;font-weight:750;text-transform:uppercase;letter-spacing:.05em;margin:8px 0 0}
+@media(max-width:600px){.account-inline-pull .pull-setting-options,.account-inline-pull .pull-number-grid{grid-template-columns:1fr}}
+/* Saved tag colors already belong to the server-supplied status definitions.
+   Disable animated intermediary paints and protect the tab/card geometry. */
+#app #view .record-status-pill,#app #view [data-color171],#app #view [data-color174],#app #view [data-status-color],#app #view [data-tag-color]{transition:none!important;animation:none!important}
+#app #view .followup-main-scroll171,#app #view .followup-sub-scroll171,#app #view .followup-tabs171{contain:layout style;box-sizing:border-box}
+
+/* Agent Processing empty state: centered Trackly-style structure, JioFlow theme */
+.jioflow-agent-empty{min-height:300px;margin:18px 0 26px!important;display:flex;align-items:center;justify-content:center;border:1px solid var(--border,#e1e9dc);border-radius:17px;background:var(--card,#fff);box-shadow:none;}
+.jioflow-agent-empty[hidden]{display:none!important}
+.jioflow-agent-empty-inner{width:min(100%,390px);text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding:35px 15px}
+.jioflow-agent-empty-icon{width:54px;height:54px;border-radius:15px;background:#eaf8d5;color:#59a829;display:flex;align-items:center;justify-content:center}
+.jioflow-agent-empty-icon svg{width:25px;height:25px}
+.jioflow-agent-empty-inner h3{font-size:17px;font-weight:700;letter-spacing:-.025em;margin:3px 0 0;color:var(--text,#18231b)}
+.jioflow-agent-empty-inner>p:not([data-order-pull-message]){font-size:13px;line-height:1.55;color:var(--muted,#6c796b);margin:0;max-width:350px}
+.jioflow-agent-empty-button{min-height:43px;border-radius:11px;padding:0 24px;margin-top:5px;background:#b1f34c;color:#182517;font-weight:700;box-shadow:none}
+.jioflow-agent-empty-button:hover:not(:disabled){background:#a5e63e}
+.jioflow-agent-empty-button:disabled{opacity:.55;cursor:not-allowed}
+.jioflow-agent-empty-inner [data-order-pull-message]{font-size:11px;margin:0;min-height:16px}
+@media(max-width:600px){.jioflow-agent-empty{min-height:270px}.jioflow-agent-empty-inner{padding:30px 12px}}
