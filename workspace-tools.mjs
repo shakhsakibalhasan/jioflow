@@ -1,7 +1,9 @@
 import {simplifyAgentDashboard118} from './agent-workspace.mjs';
 import {compactOrdersSummary167} from './workspace-design.mjs';
+import {pullChoices,canTakeMoreOrders,isApprovedAvailableChoice} from './order-pull-options.mjs';
 import {openPageOptions} from './page-options.mjs';
 import {bindFollowupSectionSettings174,loadTagDefinitions} from './custom-statuses.mjs';
+import {bindEditableFilterLabels} from './filter-labels.mjs';
 import {bindPerformerHero} from './performer-hero.mjs';
 import {bindSourceReportChart} from './source-report-chart.mjs';
 import {openAssignmentPicker,openUnassignmentPicker153} from './assignment-picker.mjs';
@@ -96,26 +98,88 @@ export async function bindWorkspaceTools({root,context,client,openForm,reload,na
        if(livePanel){livePanel.hidden=true;livePanel.setAttribute('aria-hidden','true');livePanel.insertAdjacentElement('afterend',card)}
        else place.append(card);
        card.hidden=false;
-       const cfg=await client.rpc('jf_agent_pull_config',{target_shop:shop.id,target_membership:null,config:null});
+       const message=card.querySelector('[data-order-pull-message]');
+       const button=card.querySelector('[data-order-pull]');
+       let pullState=null;
+       const fetchPullState=async()=>{
+         // Every fetch reads the current settings. Never rely on a cached admin grant.
+         const cfg=await client.rpc('jf_agent_pull_config',{target_shop:shop.id,target_membership:null,config:null});
+         const counts=cfg.enabled?await client.rpc('jf_agent_pull_option_counts',{target_shop:shop.id}):{imported_statuses:[],customer_tags:[]};
+         return {cfg,counts,choices:pullChoices(cfg,counts)};
+       };
+       const showPullState=state=>{
+         if(!current())return;
+         pullState=state;
+         const {cfg,choices}=state;
+         button.disabled=!canTakeMoreOrders(cfg,choices);
+         if(!cfg.enabled)message.textContent='Admin has not enabled Order Pull.';
+         else if(Number(cfg.remaining)<=0)message.textContent='Your daily pull limit has been reached.';
+         else if(!choices.length)message.textContent='Admin must approve at least one Imported Status or Customer Tag 1.';
+         else if(choices.every(c=>c.disabled))message.textContent='There are no available orders in your approved pools.';
+         else message.textContent=`${cfg.used_today} / ${cfg.daily_limit} pulled today · ${cfg.remaining} remaining`;
+       };
+       showPullState(await fetchPullState());
        if(!current())return;
-       const message=card.querySelector('[data-order-pull-message]'),button=card.querySelector('[data-order-pull]');
-       if(!cfg.enabled){message.textContent='Admin has not enabled Order Pull.';return}
-       const statuses=cfg.imported_statuses||[],tags=cfg.customer_tags||[];
-       const poolCounts=await client.rpc('jf_agent_pull_option_counts',{target_shop:shop.id});
-       if(!current())return;
-       const statusCounts=new Map((poolCounts?.imported_statuses||[]).map(x=>[x.value,Math.max(0,Number(x.count)||0)]));
-       const tagCounts=new Map((poolCounts?.customer_tags||[]).map(x=>[x.value,Math.max(0,Number(x.count)||0)]));
-       if(!statuses.length&&!tags.length){message.textContent='Admin must allow at least one Imported Status or Customer Tag 1.';return}
-       button.disabled=Number(cfg.remaining)<=0;
-       message.textContent=`${cfg.used_today} / ${cfg.daily_limit} pulled today · ${cfg.remaining} remaining`;
-       button.onclick=()=>{
-         const values=[...statuses.map(x=>({type:'imported_status',value:x})),...tags.map(x=>({type:'customer_tag1',value:x}))];
-         openForm('Take More Orders',`<section class="pull-settings-panel"><p>Up to ${Math.min(cfg.batch_size,cfg.remaining)} orders can be assigned. Your Processing queue must be empty.</p><div class="pull-choice-title">By Imported Status</div><div class="pull-setting-options">${statuses.map((v,i)=>`<label class="pull-setting-choice pull-source-choice"><input type="radio" name="pull_choice" value="${i}"><span class="pull-source-name">${esc(v)}</span><span class="pull-choice-count">${(statusCounts.get(v)||0).toLocaleString('en-US')} available</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div><div class="pull-choice-title">By Customer Tag 1</div><div class="pull-setting-options">${tags.map((v,i)=>`<label class="pull-setting-choice pull-source-choice"><input type="radio" name="pull_choice" value="${statuses.length+i}"><span class="pull-source-name">${esc(v)}</span><span class="pull-choice-count">${(tagCounts.get(v)||0).toLocaleString('en-US')} available</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div></section>`,async f=>{
-           const selected=values[Number(f.get('pull_choice'))];if(!selected)throw Error('Select one approved option.');
-           const result=await client.rpc('jf_agent_pull_take',{target_shop:shop.id,selection_type:selected.type,selection_value:selected.value});
-           message.textContent=`${result.assigned} assigned · ${result.remaining} remaining today`;
-           invalidateRecordPages(client);await reload();
-         });
+       // Lightweight configuration refresh; no page reload or layout re-render.
+       const cardTimer=setInterval(()=>{
+         if(!current()||!card.isConnected){clearInterval(cardTimer);return;}
+         fetchPullState().then(showPullState).catch(()=>{});
+       },15000);
+       button.onclick=async()=>{
+         button.disabled=true;
+         try{
+           const state=await fetchPullState();if(!current())return;
+           showPullState(state);
+           if(!canTakeMoreOrders(state.cfg,state.choices))return;
+           let shownState=state;
+           let selection=[];
+           const optionHTML=(type,title,choices)=>`<div class="pull-choice-title">${title}</div><div class="pull-setting-options">${choices.filter(c=>c.type===type).map(c=>{
+             const index=shownState.choices.indexOf(c);
+             return `<label class="pull-setting-choice pull-source-choice ${c.disabled?'pull-option-unavailable':''}"><input type="radio" name="pull_choice" value="${index}" ${c.disabled?'disabled aria-disabled="true"':''}><span class="pull-source-name">${esc(c.value)}</span><span class="pull-choice-count">${c.count.toLocaleString('en-US')} available</span></label>`;
+           }).join('')||'<p class="small muted">No approved options</p>'}</div>`;
+           const html=()=>`<section class="pull-settings-panel" data-current-pull-panel>
+             <p>Up to ${Math.min(Number(shownState.cfg.batch_size)||20,Number(shownState.cfg.remaining)||0)} orders. Select one approved option.</p>
+             <div data-live-pull-option-list>${optionHTML('imported_status','By Imported Status',shownState.choices)}${optionHTML('customer_tag1','By Customer Tag 1',shownState.choices)}</div>
+             <p class="small muted" data-pull-status-message role="status"></p></section>`;
+           const dialog=openForm('Take More Orders',html(),async form=>{
+             const picked=shownState.choices[Number(form.get('pull_choice'))];
+             if(!picked||picked.disabled)throw Error('Select an option with available orders.');
+             // Recheck the admin grant and available count before every assignment.
+             const latest=await fetchPullState();
+             if(!isApprovedAvailableChoice(latest.cfg,latest.counts,picked.type,picked.value)){
+               shownState=latest;
+               throw Error('The Admin changed this permission or the selected pool has no orders. Choose an available option.');
+             }
+             const result=await client.rpc('jf_agent_pull_take',{target_shop:shop.id,selection_type:picked.type,selection_value:picked.value});
+             if(!Number(result?.assigned))throw Error('No available orders remained in that pool. Choose another option.');
+             message.textContent=`${result.assigned} assigned · ${result.remaining} remaining today`;
+             invalidateRecordPages(client);await reload();
+           });
+           const paintDialog=next=>{
+             if(!dialog?.isConnected)return;
+             const list=dialog.querySelector('[data-live-pull-option-list]');if(!list)return;
+             const old=shownState.choices[Number(dialog.querySelector('[name=pull_choice]:checked')?.value)];
+             shownState=next;
+             list.innerHTML=optionHTML('imported_status','By Imported Status',next.choices)+optionHTML('customer_tag1','By Customer Tag 1',next.choices);
+             const index=next.choices.findIndex(x=>!x.disabled&&x.type===old?.type&&x.value===old?.value);
+             const radio=index>=0?list.querySelector(`[name="pull_choice"][value="${index}"]`):null;if(radio)radio.checked=true;
+             const note=dialog.querySelector('[data-pull-status-message]');
+             if(note)note.textContent=next.cfg.enabled?'': 'Admin has disabled Order Pull.';
+           };
+           let updating=false;
+           const updateModal=async()=>{
+             if(!dialog?.isConnected||updating)return;
+             updating=true;
+             try{const fresh=await fetchPullState();if(dialog.isConnected)paintDialog(fresh);}
+             catch(error){const note=dialog?.querySelector('[data-pull-status-message]');if(note)note.textContent='Unable to refresh permissions: '+error.message;}
+             finally{updating=false;}
+           };
+           // A background tab may stay open while Admin changes settings.
+           // Refresh on focus AND while the dialog is open; the server remains authoritative.
+           const modalTimer=setInterval(()=>{if(!dialog?.isConnected){clearInterval(modalTimer);return;}updateModal();},10000);
+           dialog?.addEventListener?.('focusin',()=>{updateModal();},{once:true});
+         }catch(error){if(current())message.textContent=error.message;}
+         finally{if(current()&&pullState)button.disabled=!canTakeMoreOrders(pullState.cfg,pullState.choices);}
        };
      }catch(error){
        // A failed count check must not conceal the Agent's existing table.
@@ -216,6 +280,7 @@ loadTagDefinitions(client,shop.id).then(tags=>{settings.tags=tags.filter(t=>t.ac
  applyLayout();if(accountRole!=='Agent'||section!=='dashboard')arrangeDashboardCards156(root);delete root.dataset.layoutPending155;
  await Promise.all([panelReady,summaryRenderTask]);if(!current())return;
  const heroController=bindPerformerHero({root,context,client,openForm,settings,canEdit:permitted('settings'),isCurrent:current});
+ if(section==='settings'&&permitted('settings'))bindEditableFilterLabels({root,client,shop,openForm,onError:notice});
  if(section==='settings'&&permitted('settings')){const host=root.querySelector('.original-restored-view')||root;const heroCard=root.ownerDocument.createElement('section');heroCard.className='card section-gap';heroCard.innerHTML='<div class="row between"><div><h2>Top Performer Celebrations</h2><p>Daily and Monthly awards, shown at your chosen Bangladesh time.</p></div><button type="button" data-edit-hero-schedule>Edit schedule</button></div>';host.append(heroCard);heroCard.querySelector('button').onclick=()=>heroController.edit();bindFollowupSectionSettings174({root,client,shop,openForm,onError:notice});const layoutHelp=[...host.querySelectorAll(':scope > .card')].find(c=>c.querySelector('h2')?.textContent==='Page layouts');if(layoutHelp){layoutHelp.querySelector('p').textContent='Use ⋯ → Edit layout on a page. Drag within a row, use arrows to move between rows, and hide boxes without deleting records.';host.append(layoutHelp)}}
 }
 
