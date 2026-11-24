@@ -16,8 +16,26 @@ export function uniqueStatusDefinitions(items=[]){
  return unique;
 }
 const caches=new WeakMap();
-export async function loadStatusDefinitions(client,shopId,permanent=false){let cache=caches.get(client);if(!cache){cache=new Map();caches.set(client,cache)}const old=cache.get(shopId);if(old&&old.until>Date.now())return old.promise.then(v=>uniqueStatusDefinitions(permanent?v.permanent_statuses:v.statuses));const promise=client.rpc('jf_followup_tags174',{target_shop:shopId}).then(v=>({sections174:v.sections174,statuses:v.statuses||defaultStatusDefinitions,tags:v.tags||[],permanent_statuses:v.permanent_statuses||[{id:'permanent-new',name:'New',color:'#64748b',kind:'processing',days:0,active:true}]})).catch(e=>{cache.delete(shopId);throw e});cache.set(shopId,{until:Date.now()+15000,promise});return promise.then(v=>uniqueStatusDefinitions(permanent?v.permanent_statuses:v.statuses))}
-export function invalidateStatusDefinitions(client,shopId){caches.get(client)?.delete(shopId)}
+const colorSnapshots=new WeakMap();
+const colorStorageKey=shopId=>'jioflow.status.palette.v2:'+shopId;
+export function cachedStatusPalette(client,shopId){
+ const inMemory=colorSnapshots.get(client)?.get(shopId);
+ if(inMemory)return inMemory;
+ try{const item=JSON.parse(globalThis.localStorage?.getItem(colorStorageKey(shopId))||'null');
+  if(item&&Array.isArray(item.statuses)&&Array.isArray(item.tags))return item;
+ }catch{}
+ return null;
+}
+function rememberStatusPalette(client,shopId,data){
+ let map=colorSnapshots.get(client);if(!map){map=new Map();colorSnapshots.set(client,map)}
+ map.set(shopId,data);
+ try{globalThis.localStorage?.setItem(colorStorageKey(shopId),JSON.stringify({
+   statuses:data.statuses,permanent_statuses:data.permanent_statuses,tags:data.tags,sections174:data.sections174
+ }))}catch{}
+}
+
+export async function loadStatusDefinitions(client,shopId,permanent=false){let cache=caches.get(client);if(!cache){cache=new Map();caches.set(client,cache)}const old=cache.get(shopId);if(old&&old.until>Date.now())return old.promise.then(v=>uniqueStatusDefinitions(permanent?v.permanent_statuses:v.statuses));const promise=client.rpc('jf_followup_tags174',{target_shop:shopId}).then(v=>{const resolved={sections174:v.sections174,statuses:v.statuses||defaultStatusDefinitions,tags:v.tags||[],permanent_statuses:v.permanent_statuses||[{id:'permanent-new',name:'New',color:'#64748b',kind:'processing',days:0,active:true}]};rememberStatusPalette(client,shopId,resolved);return resolved}).catch(e=>{cache.delete(shopId);throw e});cache.set(shopId,{until:Date.now()+15000,promise});return promise.then(v=>uniqueStatusDefinitions(permanent?v.permanent_statuses:v.statuses))}
+export function invalidateStatusDefinitions(client,shopId){caches.get(client)?.delete(shopId);colorSnapshots.get(client)?.delete(shopId);try{globalThis.localStorage?.removeItem(colorStorageKey(shopId))}catch{}}
 export function paintStatusColor(el,color,form=false){if(!/^#[a-f\d]{6}$/i.test(color||''))return;const rgb=[1,3,5].map(n=>parseInt(color.slice(n,n+2),16)),dark=el.ownerDocument.documentElement.dataset.mode==='dark';const tint=(base,ratio)=>'#'+rgb.map(c=>Math.round(base*(1-ratio)+c*ratio).toString(16).padStart(2,'0')).join('');const ink=dark?tint(255,.55):tint(0,.62);if(form){el.style.setProperty('--fu-tint-light162',tint(255,.14));el.style.setProperty('--fu-tint-dark162',tint(12,.25));el.style.setProperty('--fu-edge-light162',tint(255,.40));el.style.setProperty('--fu-edge-dark162',tint(24,.40));el.style.setProperty('--fu-ink-light162',tint(0,.62));el.style.setProperty('--fu-ink-dark162',tint(255,.55))}else{el.style.setProperty('--status-color159',color);el.style.setProperty('--status-bg-light162',tint(255,.20));el.style.setProperty('--status-bg-dark162',tint(12,.20));el.style.setProperty('--status-ink-light162',tint(0,.62));el.style.setProperty('--status-ink-dark162',tint(255,.55));el.style.setProperty('--status-edge-light162',tint(255,.40));el.style.setProperty('--status-edge-dark162',tint(24,.40));el.style.setProperty('background','var(--status-active-bg159, var(--status-bg162))','important');el.style.setProperty('color','var(--status-active-ink159, var(--status-ink162))','important');el.style.setProperty('border-color','var(--status-active-edge159, var(--status-edge162))','important')}}
 export function paintStatusBadges(root,statuses){for(const el of root.querySelectorAll('.record-status-pill')){if(el.closest('[data-imported-status144]'))continue;const s=statuses.find(s=>s.name===el.textContent.trim());if(s)paintStatusColor(el,s.color)}}
 export function bindCustomStatusSettings({root,client,shop,openForm,canEdit,permanent=false,onError=()=>{}}){

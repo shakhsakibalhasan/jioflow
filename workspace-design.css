@@ -1185,14 +1185,71 @@ tfoot [data-report-total188]{font-weight:650;background:var(--surface,#fff);bord
 [data-theme="dark"] .report-pending195{color:#f87171!important}
 [data-theme="dark"] .report-completed195{color:#4ade80!important}
 
-/* Saved-color first paint: retain each stored tag/status color without intermediate animations. */
-#app .record-status-pill,
-#app [data-color171],
-#app [data-color174],
-#app [data-status-color],
-#app [data-tag-color],
-#app .followup-tabs171 button,
-#app .followup-main171 button {transition:none!important;animation:none!important}
-#app .followup-main-scroll171,#app .followup-sub-scroll171 {min-height:47px;box-sizing:border-box;scrollbar-gutter:stable}
-#app .followup-tabs171 {min-height:55px;box-sizing:border-box}
-#app #view, #app .content, #app .main {min-width:0;box-sizing:border-box}
+
+/* Order Import polish: keep actions visually grouped and separate diagnostics. */
+.import-workspace .import-card-header h2{font-size:21px;letter-spacing:-.025em;line-height:1.3}
+.import-workspace .import-card-header p{line-height:1.6}
+.import-workspace .import-card-header a{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 12px;border:1px solid var(--line,#dfe7d8);border-radius:10px;background:var(--surface-alt,#f8faf6);font-size:12px;text-decoration:none;transition:border-color .15s ease,background .15s ease}
+.import-workspace .import-card-header a:hover{border-color:#aabf98;background:var(--surface,#fff)}
+.import-workspace .import-dropzone{transition:background .15s ease,border-color .15s ease,box-shadow .15s ease}
+.import-workspace .import-dropzone:not([aria-disabled="true"]):hover{border-color:#8eb76a;box-shadow:inset 0 0 0 1px rgba(128,169,79,.09)}
+.import-workspace .import-card{border-color:var(--line,#e0e7db);box-shadow:0 10px 30px rgba(23,41,27,.035)}
+.import-workspace .import-card-actions{display:flex;align-items:center;justify-content:space-between;gap:16px 24px;margin-top:22px;padding-top:22px}
+.import-workspace .import-action-buttons{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+.import-workspace .import-action-buttons button{min-height:42px;min-width:96px;padding:10px 20px;border-radius:11px;font-weight:600;white-space:nowrap;transition:background .15s ease,border-color .15s ease,box-shadow .15s ease}
+.import-workspace .import-action-buttons [data-upload-import]{background:#adf34c;color:#182819;border:1px solid #a2e641}
+.import-workspace .import-action-buttons [data-upload-import]:not(:disabled):hover{background:#9ee43c;box-shadow:0 4px 14px rgba(133,190,60,.16)}
+.import-workspace .import-action-buttons [data-upload-import]:disabled{opacity:.56;box-shadow:none;cursor:not-allowed}
+.import-workspace .import-action-buttons [data-clear-import]{background:var(--surface,#fff);color:var(--text,#263127);border:1px solid var(--line,#d9e3d5)}
+.import-workspace .import-action-buttons [data-clear-import]:not(:disabled):hover{background:var(--surface-alt,#f5f8f3);border-color:#aaba9b}
+.import-workspace .import-file-state{flex:0 1 auto;max-width:100%;margin:0;padding:7px 12px;border:1px solid var(--line,#e2e9df);border-radius:9px;background:var(--surface-alt,#f8faf6);font-size:12px;line-height:1.35;color:var(--muted,#68746a);text-align:right;overflow-wrap:anywhere}
+.import-workspace .import-rejection-row:not([hidden]){margin-top:14px}
+.import-workspace .import-rejection-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:9px 15px;border:1px solid var(--line,#d9e3d5);border-radius:10px;background:var(--surface,#fff);color:var(--text,#38483a);font-size:12px;font-weight:600;line-height:1.45;cursor:pointer;transition:background .15s ease,border-color .15s ease}
+.import-workspace .import-rejection-button:hover{background:var(--surface-alt,#f5f8f2);border-color:#afc5a4}
+.import-workspace .import-rejection-button span{font-size:14px;color:#729352}
+.import-workspace .import-action-buttons button:focus-visible,.import-workspace .import-rejection-button:focus-visible{outline:2px solid #78aa38;outline-offset:3px}
+.import-workspace .import-last146{margin-top:22px;padding:23px 24px;border-radius:17px;box-shadow:0 5px 20px rgba(20,40,24,.025)}
+.import-workspace .import-last146 h3{font-size:15px;letter-spacing:-.01em;margin-bottom:18px}
+.import-workspace .import-summary-grid146>div{background:var(--surface-alt,#f8faf6);border-radius:12px;padding:17px 16px}
+@media(max-width:760px){.import-workspace .import-card-actions{align-items:stretch;gap:14px}.import-workspace .import-file-state{width:100%;text-align:left}.import-workspace .import-action-buttons{width:100%;gap:10px}.import-workspace .import-action-buttons button{flex:1 1 110px;min-width:0}}
+@media(max-width:420px){.import-workspace .import-card-actions{padding-top:17px}.import-workspace .import-action-buttons{gap:10px}.import-workspace .import-action-buttons button{padding:10px 13px}.import-workspace .import-last146{padding:18px}}
+
+/* Customer activity timeline: independent of the status palette. */
+.jf-customer-activity{margin-top:14px;min-width:0}
+.jf-customer-activity h3{margin:0 0 16px;font-size:15px;font-weight:700}
+.jf-activity-feed{position:relative;display:grid;gap:0;max-height:440px;overflow-y:auto}
+.jf-activity-item{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:10px;padding:0 0 19px;color:var(--text,#283128)}
+.jf-activity-item:not(:last-child):before{content:'';position:absolute;left:11px;top:24px;bottom:0;border-left:1px solid var(--line,#dce3d9)}
+.jf-activity-icon{height:23px;width:23px;display:grid;place-items:center;border:1px solid #b9dfc6;border-radius:50%;background:#edf7f0;color:#15794a;font-size:12px;font-weight:800}
+.jf-activity-status_changed .jf-activity-icon{color:#5171bd;background:#eff2ff;border-color:#d6dff5}
+.jf-activity-unassigned .jf-activity-icon{color:#be7a36;background:#fff5e9;border-color:#f1d9ba}
+.jf-activity-left .jf-activity-icon{color:#6e7b83;background:#f0f3f5;border-color:#dce2e5}
+.jf-activity-item strong{display:block;font-size:12px;font-weight:650;line-height:1.5;overflow-wrap:anywhere}
+.jf-activity-item p{font-size:11px;line-height:1.55;margin:4px 0;color:var(--muted,#66716c);overflow-wrap:anywhere}
+.jf-activity-item small{display:block;color:var(--muted,#7b8580);font-size:10px;margin-top:3px}
+/* Keep tag hue fixed while switching tabs or refreshing counts. */
+#app #view .followup-sub-scroll171 button[data-color171][aria-selected=true]{outline-color:var(--status-color159,var(--accent));background:var(--status-bg162,var(--accent-soft))!important;border-color:var(--status-edge162,var(--accent))!important;color:var(--status-ink162,var(--text))!important}
+
+/* Stable page geometry: imported status colors are ready before tabs become interactive. */
+#app .main,#app .content,#app #view,#app #original-section{min-width:0;box-sizing:border-box}
+#app .followup-main-scroll171,#app .followup-sub-scroll171{min-height:47px;box-sizing:border-box;scrollbar-gutter:stable}
+#app .followup-tabs171{min-height:55px;box-sizing:border-box}
+#app .record-status-pill,[data-color171],[data-color174],[data-status-color],[data-tag-color]{transition:none!important;animation:none!important}
+#app .followup-main171 button[role=tab],#app .followup-tabs171 button[role=tab]{transition:none!important}
+@media (prefers-reduced-motion: reduce){#app .workspace-transition165{animation:none!important;transition:none!important}}
+
+/* Order Pull cards — JioFlow light/dark palette, no animated color changes. */
+.jioflow-pull-card{margin:0 0 18px;padding:20px;border-radius:16px}
+.jioflow-pull-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.jioflow-pull-header h3{margin:0 0 4px;font-size:17px}
+.jioflow-pull-header p{margin:0}.jioflow-pull-header button{min-height:42px;border-radius:11px}
+.pull-settings-panel{display:grid;gap:12px}.pull-setting-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:8px}
+.pull-setting-choice{display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid var(--edge,#dce4d5);border-radius:11px;background:var(--surface-soft,#f8faf5);font-size:13px}
+.pull-setting-choice input{accent-color:var(--accent,#b5f450);flex:none}
+.pull-choice-title{font-weight:650;font-size:13px;color:var(--text)}
+.agent-pull-settings-button{display:block;width:100%;margin:16px 0;border-radius:12px;padding:12px}
+@media(max-width:650px){.pull-setting-options{grid-template-columns:1fr}.jioflow-pull-header button{width:100%}}
+
+/* Freeze old page's geometry until the replacement data is fully rendered. */
+.workspace-transition165>.workspace-preview165{position:absolute;left:0;right:0;top:0;z-index:1;max-height:100%;overflow:hidden;contain:layout paint}
+.workspace-transition165>[data-transition165=pending]{visibility:hidden}

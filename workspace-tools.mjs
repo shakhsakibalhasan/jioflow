@@ -66,7 +66,33 @@ export async function bindWorkspaceTools({root,context,client,openForm,reload,na
 
  const previousRenderTask=previousTask?previousTask.then(async result=>{await summaryRenderTask;if(!current()||result.error)return;const old=result.value;root.querySelectorAll('.metric-tile,.insight-tile,.overview-tile').forEach(tile=>{const label=tile.querySelector('.label,.tile-label')?.textContent.replace('↗','').trim(),metric=metrics[label],line=tile.querySelector('.previous-line');if(metric?.[2]==='orders'){if(line)line.textContent=old[metric[0]]==null?'Previous comparison unavailable':'Previous: '+Number(old[metric[0]]).toLocaleString('en-BD');paintMetricTrend(tile,currentSummary?.[metric[0]],old[metric[0]])}})}):null;
  let data;try{data=await cachedReadRpc(client,'jf_workspace_tools',{target_shop:shop.id,tool:'load',details:{page:section}})}catch(e){if(current())notice('Some page settings could not load. Refresh to retry.');data={settings:{},layout:{},groups:[]}}if(!current())return;
- const settings=data.settings||{},groups=data.groups||[];let layout=data.layout||{};loadTagDefinitions(client,shop.id).then(tags=>{settings.tags=tags.filter(t=>t.active).map(t=>t.name)}).catch(()=>{});
+ const settings=data.settings||{},groups=data.groups||[];let layout=data.layout||{};
+ if(section==='followups'&&accountRole==='Agent'&&!context.recordFilter?.workspace_agent){
+   const place=root.querySelector('.original-restored-view')||root;
+   const card=root.ownerDocument.createElement('section');card.className='card jioflow-pull-card';
+   card.innerHTML='<div class="jioflow-pull-header"><div><h3>Take More Orders</h3><p class="small muted">Choose an approved Imported Status or Customer Tag 1 once your Processing queue is empty.</p></div><button type="button" class="primary" data-order-pull disabled>Take More Orders</button></div><p data-order-pull-message class="small muted">Checking Agent permission…</p>';
+   place.prepend(card);
+   try{
+    const cfg=await client.rpc('jf_agent_pull_config',{target_shop:shop.id,target_membership:null,config:null});
+    if(!current())return;
+    const message=card.querySelector('[data-order-pull-message]'),button=card.querySelector('[data-order-pull]');
+    if(!cfg.enabled){message.textContent='Admin has not enabled Order Pull.';return}
+    const statuses=cfg.imported_statuses||[],tags=cfg.customer_tags||[];
+    if(!statuses.length&&!tags.length){message.textContent='Admin must allow at least one Imported Status or Customer Tag 1.';return}
+    button.disabled=cfg.remaining<=0;
+    message.textContent=`${cfg.used_today} / ${cfg.daily_limit} pulled today · ${cfg.remaining} remaining`;
+    button.onclick=()=>{
+     const values=[...statuses.map(x=>({type:'imported_status',value:x})),...tags.map(x=>({type:'customer_tag1',value:x}))];
+     openForm('Take More Orders',`<section class="pull-settings-panel"><p>Maximum ${Math.min(cfg.batch_size,cfg.remaining)} Orders can be assigned to you in this pull. Your current Processing queue must be empty.</p><div class="pull-choice-title">By Imported Status</div><div class="pull-setting-options">${statuses.map((v,i)=>`<label class="pull-setting-choice"><input type="radio" name="pull_choice" value="${i}"><span>${esc(v)}</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div><div class="pull-choice-title">By Customer Tag 1</div><div class="pull-setting-options">${tags.map((v,i)=>`<label class="pull-setting-choice"><input type="radio" name="pull_choice" value="${statuses.length+i}"><span>${esc(v)}</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div></section>`,async f=>{
+       const selected=values[Number(f.get('pull_choice'))];if(!selected)throw Error('Select one approved option.');
+       const result=await client.rpc('jf_agent_pull_take',{target_shop:shop.id,selection_type:selected.type,selection_value:selected.value});
+       message.textContent=`${result.assigned} assigned · ${result.remaining} remaining today`;
+       invalidateRecordPages(client);await reload();
+      });
+    };
+   }catch(error){if(current())card.querySelector('[data-order-pull-message]').textContent=error.message}
+ }
+loadTagDefinitions(client,shop.id).then(tags=>{settings.tags=tags.filter(t=>t.active).map(t=>t.name)}).catch(()=>{});
  // Repair pre-52 dashboard geometry; keep titles/visibility and all business data.
  if(section==='dashboard'&&layout.dashboard_layout_version!==52){layout={...layout,dashboard_layout_version:52,groups:[],items:Object.fromEntries(Object.entries(layout.items||{}).map(([id,cfg])=>[id,{title:cfg.title,hidden:cfg.hidden}]))};}
  const save=async(tool,details)=>{await run(tool,details);invalidateRecordPages(client);if(tool==='save_layout')layout=details.value;await reload()};
