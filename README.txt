@@ -1,9 +1,14 @@
-JioFlow Update122 - requires Update120 files.
-1. Run included Database121.sql if not already applied.
-2. Replace all four included JS/MJS/CSS root files; deploy and hard refresh.
+JioFlow Unassignment + Staff Activity Fix
 
-Top business/search/account bar and bottom bar stay outside scrolling content across workspace pages. Record pages retain page-size/pagination footer; other pages use matching footer. Header search beside business name submits name/phone to Follow-ups; on Orders/Couriers searches that page, including order IDs. Existing per-page search remains. Creator selects a business first. Agent scoping retained.
+Database changes were already applied to Supabase project krsfldvxneoujmpquugr; do NOT rerun the migration just to deploy the frontend.
 
-Includes Update121 permission/KPI fix: backend accepts sidebar permission keys orders/permanent/courier; boolean validation/caller restrictions retained. Management Follow-ups first confirmation tile now explicitly counts all active confirmed-flow business orders, including Agents, matching Dashboard order counts. Customer workflow tabs retain customer counts.
+Frontend files to merge or replace in repository ROOT:
+- online-client.mjs: adds jf_unassigned_activity RPC to allowlist
+- record-panel.mjs: logs open action and shows Last update (staff name, action, Dhaka date/time); refreshes after status save
+- assignment-picker.mjs: corrects unassignment confirmation wording
 
-Validated: frame DOM/search destinations, real database permission saves/denials and shop-Agent order summary agreement, UI order KPI2 vs customer count0, action/retry/tab tests, syntax/build. Not deployed; browser visual QA not performed.
+GitHub branch: make a test branch and merge changes rather than overwrite more recent edits.
+Test: visit Unassigned -> a tag -> View customer as Owner/Admin. Last update should display name, Viewed, Dhaka time. Edit status or customer info and re-open: action should be Edited.
+Status reset: assign customer, then Unassign using a chosen tag. Workflow status should become Processing and tag remain selected.
+Note: views before the frontend is deployed are not logged retroactively. This is only for Unassigned records and authorized Creator/Owner/Admin.
+No production frontend deploy has been performed by this package.
