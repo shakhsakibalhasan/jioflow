@@ -1323,3 +1323,26 @@ dialog.corporate-modal134.account-edit190:has(.form-grid),
 .account-edit190 .pull-multiselect .pull-setting-choice{border:0!important;background:transparent!important;min-height:30px!important;padding:6px 9px!important;font-size:12px!important;border-radius:7px!important}
 .account-edit190 .pull-multiselect .pull-setting-choice:hover{background:var(--surface-soft,#f7faf3)!important}
 @media(max-width:560px){dialog.corporate-modal134.account-edit190,.account-edit190.online-dialog{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important}.account-edit190 .online-dialog-header,.account-edit190 .modal-content134{padding:14px!important}.account-edit190 .account-section190{padding:12px!important}.account-edit190 .form-grid,.account-edit190 .pull-number-grid{grid-template-columns:1fr!important}}
+
+/* 194: Premium Trackly-style admin pull source rows, honoring existing JioFlow theme. */
+.account-edit190 .account-inline-pull .pull-category-heading{font-size:12px;font-weight:750;color:var(--text,#20271e);margin:3px 0 0;display:flex;flex-direction:column;gap:3px}
+.account-edit190 .account-inline-pull .pull-category-heading small{font-size:10px;font-weight:450;color:var(--muted,#697264)}
+.account-edit190 .pull-option-field{min-width:0}
+.account-edit190 .pull-premium-select{border:1px solid var(--line,#dce4d5)!important;border-radius:11px!important;background:var(--surface,#fff);overflow:hidden!important}
+.account-edit190 .pull-premium-select summary{min-height:43px!important;padding:11px 13px!important;font-size:12px!important;font-weight:590;outline-offset:-3px}
+.account-edit190 .pull-premium-select[open] summary{background:var(--surface-soft,#f7faf3)!important;border-bottom:1px solid var(--line,#dce4d5)!important}
+.account-edit190 .pull-premium-select .pull-option-list{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:6px!important;max-height:230px!important;overflow-y:auto!important;overscroll-behavior:contain;padding:10px!important;scrollbar-gutter:stable}
+.account-edit190 .pull-choice-row{display:grid!important;grid-template-columns:18px minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;padding:10px 11px!important;margin:0!important;min-height:42px!important;width:100%!important;box-sizing:border-box!important;border:1px solid var(--line,#e1e7dc)!important;border-radius:9px!important;background:var(--surface,#fff)!important;cursor:pointer;transition:none!important}
+.account-edit190 .pull-choice-row:hover{border-color:var(--accent,#b5f450)!important;background:var(--surface-soft,#f7faf3)!important}
+.account-edit190 .pull-choice-row:has(input:checked){border-color:var(--accent,#b5f450)!important;background:var(--accent-soft,#eff8e7)!important}
+.account-edit190 .pull-choice-row input[type=checkbox]{width:15px!important;height:15px!important;margin:0!important;accent-color:var(--accent,#b5f450)}
+.account-edit190 .pull-choice-name{min-width:0!important;font-size:12px!important;line-height:1.4!important;overflow-wrap:anywhere;color:var(--text,#20271e);font-weight:550}
+.account-edit190 .pull-choice-count{display:inline-flex;align-items:center;justify-content:center;min-width:32px;max-width:110px;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted,#697264);background:var(--surface-soft,#f2f5ee);white-space:nowrap}
+.account-edit190 .pull-options-empty{padding:15px;border-radius:9px;background:var(--surface-soft,#f7faf3);font-size:11px;line-height:1.5;color:var(--muted,#697264)}
+.account-edit190 .pull-dropdown-chevron{font-size:16px;color:var(--muted,#697264)}
+
+/* 194: Show count beside each Agent Take More Orders option. */
+.pull-settings-panel .pull-source-choice{display:grid!important;grid-template-columns:18px minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;min-width:0!important;transition:none!important}
+.pull-settings-panel .pull-source-choice .pull-source-name{min-width:0;overflow-wrap:anywhere}
+.pull-settings-panel .pull-source-choice .pull-choice-count{font-size:10px!important;white-space:nowrap!important;font-weight:650!important;letter-spacing:0;max-width:140px}
+@media(max-width:400px){.pull-settings-panel .pull-source-choice .pull-choice-count{font-size:9px!important}}

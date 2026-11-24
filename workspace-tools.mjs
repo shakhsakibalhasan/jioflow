@@ -101,12 +101,16 @@ export async function bindWorkspaceTools({root,context,client,openForm,reload,na
        const message=card.querySelector('[data-order-pull-message]'),button=card.querySelector('[data-order-pull]');
        if(!cfg.enabled){message.textContent='Admin has not enabled Order Pull.';return}
        const statuses=cfg.imported_statuses||[],tags=cfg.customer_tags||[];
+       const poolCounts=await client.rpc('jf_agent_pull_option_counts',{target_shop:shop.id});
+       if(!current())return;
+       const statusCounts=new Map((poolCounts?.imported_statuses||[]).map(x=>[x.value,Math.max(0,Number(x.count)||0)]));
+       const tagCounts=new Map((poolCounts?.customer_tags||[]).map(x=>[x.value,Math.max(0,Number(x.count)||0)]));
        if(!statuses.length&&!tags.length){message.textContent='Admin must allow at least one Imported Status or Customer Tag 1.';return}
        button.disabled=Number(cfg.remaining)<=0;
        message.textContent=`${cfg.used_today} / ${cfg.daily_limit} pulled today · ${cfg.remaining} remaining`;
        button.onclick=()=>{
          const values=[...statuses.map(x=>({type:'imported_status',value:x})),...tags.map(x=>({type:'customer_tag1',value:x}))];
-         openForm('Take More Orders',`<section class="pull-settings-panel"><p>Up to ${Math.min(cfg.batch_size,cfg.remaining)} orders can be assigned. Your Processing queue must be empty.</p><div class="pull-choice-title">By Imported Status</div><div class="pull-setting-options">${statuses.map((v,i)=>`<label class="pull-setting-choice"><input type="radio" name="pull_choice" value="${i}"><span>${esc(v)}</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div><div class="pull-choice-title">By Customer Tag 1</div><div class="pull-setting-options">${tags.map((v,i)=>`<label class="pull-setting-choice"><input type="radio" name="pull_choice" value="${statuses.length+i}"><span>${esc(v)}</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div></section>`,async f=>{
+         openForm('Take More Orders',`<section class="pull-settings-panel"><p>Up to ${Math.min(cfg.batch_size,cfg.remaining)} orders can be assigned. Your Processing queue must be empty.</p><div class="pull-choice-title">By Imported Status</div><div class="pull-setting-options">${statuses.map((v,i)=>`<label class="pull-setting-choice pull-source-choice"><input type="radio" name="pull_choice" value="${i}"><span class="pull-source-name">${esc(v)}</span><span class="pull-choice-count">${(statusCounts.get(v)||0).toLocaleString('en-US')} available</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div><div class="pull-choice-title">By Customer Tag 1</div><div class="pull-setting-options">${tags.map((v,i)=>`<label class="pull-setting-choice pull-source-choice"><input type="radio" name="pull_choice" value="${statuses.length+i}"><span class="pull-source-name">${esc(v)}</span><span class="pull-choice-count">${(tagCounts.get(v)||0).toLocaleString('en-US')} available</span></label>`).join('')||'<p class="small muted">Not allowed</p>'}</div></section>`,async f=>{
            const selected=values[Number(f.get('pull_choice'))];if(!selected)throw Error('Select one approved option.');
            const result=await client.rpc('jf_agent_pull_take',{target_shop:shop.id,selection_type:selected.type,selection_value:selected.value});
            message.textContent=`${result.assigned} assigned · ${result.remaining} remaining today`;
