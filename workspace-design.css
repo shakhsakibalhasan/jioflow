@@ -1185,50 +1185,14 @@ tfoot [data-report-total188]{font-weight:650;background:var(--surface,#fff);bord
 [data-theme="dark"] .report-pending195{color:#f87171!important}
 [data-theme="dark"] .report-completed195{color:#4ade80!important}
 
-
-/* Order Import polish: keep actions visually grouped and separate diagnostics. */
-.import-workspace .import-card-header h2{font-size:21px;letter-spacing:-.025em;line-height:1.3}
-.import-workspace .import-card-header p{line-height:1.6}
-.import-workspace .import-card-header a{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 12px;border:1px solid var(--line,#dfe7d8);border-radius:10px;background:var(--surface-alt,#f8faf6);font-size:12px;text-decoration:none;transition:border-color .15s ease,background .15s ease}
-.import-workspace .import-card-header a:hover{border-color:#aabf98;background:var(--surface,#fff)}
-.import-workspace .import-dropzone{transition:background .15s ease,border-color .15s ease,box-shadow .15s ease}
-.import-workspace .import-dropzone:not([aria-disabled="true"]):hover{border-color:#8eb76a;box-shadow:inset 0 0 0 1px rgba(128,169,79,.09)}
-.import-workspace .import-card{border-color:var(--line,#e0e7db);box-shadow:0 10px 30px rgba(23,41,27,.035)}
-.import-workspace .import-card-actions{display:flex;align-items:center;justify-content:space-between;gap:16px 24px;margin-top:22px;padding-top:22px}
-.import-workspace .import-action-buttons{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
-.import-workspace .import-action-buttons button{min-height:42px;min-width:96px;padding:10px 20px;border-radius:11px;font-weight:600;white-space:nowrap;transition:background .15s ease,border-color .15s ease,box-shadow .15s ease}
-.import-workspace .import-action-buttons [data-upload-import]{background:#adf34c;color:#182819;border:1px solid #a2e641}
-.import-workspace .import-action-buttons [data-upload-import]:not(:disabled):hover{background:#9ee43c;box-shadow:0 4px 14px rgba(133,190,60,.16)}
-.import-workspace .import-action-buttons [data-upload-import]:disabled{opacity:.56;box-shadow:none;cursor:not-allowed}
-.import-workspace .import-action-buttons [data-clear-import]{background:var(--surface,#fff);color:var(--text,#263127);border:1px solid var(--line,#d9e3d5)}
-.import-workspace .import-action-buttons [data-clear-import]:not(:disabled):hover{background:var(--surface-alt,#f5f8f3);border-color:#aaba9b}
-.import-workspace .import-file-state{flex:0 1 auto;max-width:100%;margin:0;padding:7px 12px;border:1px solid var(--line,#e2e9df);border-radius:9px;background:var(--surface-alt,#f8faf6);font-size:12px;line-height:1.35;color:var(--muted,#68746a);text-align:right;overflow-wrap:anywhere}
-.import-workspace .import-rejection-row:not([hidden]){margin-top:14px}
-.import-workspace .import-rejection-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:9px 15px;border:1px solid var(--line,#d9e3d5);border-radius:10px;background:var(--surface,#fff);color:var(--text,#38483a);font-size:12px;font-weight:600;line-height:1.45;cursor:pointer;transition:background .15s ease,border-color .15s ease}
-.import-workspace .import-rejection-button:hover{background:var(--surface-alt,#f5f8f2);border-color:#afc5a4}
-.import-workspace .import-rejection-button span{font-size:14px;color:#729352}
-.import-workspace .import-action-buttons button:focus-visible,.import-workspace .import-rejection-button:focus-visible{outline:2px solid #78aa38;outline-offset:3px}
-.import-workspace .import-last146{margin-top:22px;padding:23px 24px;border-radius:17px;box-shadow:0 5px 20px rgba(20,40,24,.025)}
-.import-workspace .import-last146 h3{font-size:15px;letter-spacing:-.01em;margin-bottom:18px}
-.import-workspace .import-summary-grid146>div{background:var(--surface-alt,#f8faf6);border-radius:12px;padding:17px 16px}
-@media(max-width:760px){.import-workspace .import-card-actions{align-items:stretch;gap:14px}.import-workspace .import-file-state{width:100%;text-align:left}.import-workspace .import-action-buttons{width:100%;gap:10px}.import-workspace .import-action-buttons button{flex:1 1 110px;min-width:0}}
-@media(max-width:420px){.import-workspace .import-card-actions{padding-top:17px}.import-workspace .import-action-buttons{gap:10px}.import-workspace .import-action-buttons button{padding:10px 13px}.import-workspace .import-last146{padding:18px}}
-
-/* Customer activity timeline: independent of the status palette. */
-.jf-customer-activity{margin-top:14px;min-width:0}
-.jf-customer-activity h3{margin:0 0 16px;font-size:15px;font-weight:700}
-.jf-activity-feed{position:relative;display:grid;gap:0;max-height:440px;overflow-y:auto}
-.jf-activity-item{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:10px;padding:0 0 19px;color:var(--text,#283128)}
-.jf-activity-item:not(:last-child):before{content:'';position:absolute;left:11px;top:24px;bottom:0;border-left:1px solid var(--line,#dce3d9)}
-.jf-activity-icon{height:23px;width:23px;display:grid;place-items:center;border:1px solid #b9dfc6;border-radius:50%;background:#edf7f0;color:#15794a;font-size:12px;font-weight:800}
-.jf-activity-status_changed .jf-activity-icon{color:#5171bd;background:#eff2ff;border-color:#d6dff5}
-.jf-activity-unassigned .jf-activity-icon{color:#be7a36;background:#fff5e9;border-color:#f1d9ba}
-.jf-activity-left .jf-activity-icon{color:#6e7b83;background:#f0f3f5;border-color:#dce2e5}
-.jf-activity-item strong{display:block;font-size:12px;font-weight:650;line-height:1.5;overflow-wrap:anywhere}
-.jf-activity-item p{font-size:11px;line-height:1.55;margin:4px 0;color:var(--muted,#66716c);overflow-wrap:anywhere}
-.jf-activity-item small{display:block;color:var(--muted,#7b8580);font-size:10px;margin-top:3px}
-/* Keep tag hue fixed while switching tabs or refreshing counts. */
-#app #view .followup-sub-scroll171 button[data-color171][aria-selected=true]{outline-color:var(--status-color159,var(--accent));background:var(--status-bg162,var(--accent-soft))!important;border-color:var(--status-edge162,var(--accent))!important;color:var(--status-ink162,var(--text))!important}
-
-/* Activity Timeline: preserve complete status notes, including multiline notes. */
-.jf-activity-note{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;margin:.35rem 0;color:var(--text,#1f2937)}
+/* Saved-color first paint: retain each stored tag/status color without intermediate animations. */
+#app .record-status-pill,
+#app [data-color171],
+#app [data-color174],
+#app [data-status-color],
+#app [data-tag-color],
+#app .followup-tabs171 button,
+#app .followup-main171 button {transition:none!important;animation:none!important}
+#app .followup-main-scroll171,#app .followup-sub-scroll171 {min-height:47px;box-sizing:border-box;scrollbar-gutter:stable}
+#app .followup-tabs171 {min-height:55px;box-sizing:border-box}
+#app #view, #app .content, #app .main {min-width:0;box-sizing:border-box}
