@@ -1213,3 +1213,22 @@ tfoot [data-report-total188]{font-weight:650;background:var(--surface,#fff);bord
 .import-workspace .import-summary-grid146>div{background:var(--surface-alt,#f8faf6);border-radius:12px;padding:17px 16px}
 @media(max-width:760px){.import-workspace .import-card-actions{align-items:stretch;gap:14px}.import-workspace .import-file-state{width:100%;text-align:left}.import-workspace .import-action-buttons{width:100%;gap:10px}.import-workspace .import-action-buttons button{flex:1 1 110px;min-width:0}}
 @media(max-width:420px){.import-workspace .import-card-actions{padding-top:17px}.import-workspace .import-action-buttons{gap:10px}.import-workspace .import-action-buttons button{padding:10px 13px}.import-workspace .import-last146{padding:18px}}
+
+/* Customer activity timeline: independent of the status palette. */
+.jf-customer-activity{margin-top:14px;min-width:0}
+.jf-customer-activity h3{margin:0 0 16px;font-size:15px;font-weight:700}
+.jf-activity-feed{position:relative;display:grid;gap:0;max-height:440px;overflow-y:auto}
+.jf-activity-item{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:10px;padding:0 0 19px;color:var(--text,#283128)}
+.jf-activity-item:not(:last-child):before{content:'';position:absolute;left:11px;top:24px;bottom:0;border-left:1px solid var(--line,#dce3d9)}
+.jf-activity-icon{height:23px;width:23px;display:grid;place-items:center;border:1px solid #b9dfc6;border-radius:50%;background:#edf7f0;color:#15794a;font-size:12px;font-weight:800}
+.jf-activity-status_changed .jf-activity-icon{color:#5171bd;background:#eff2ff;border-color:#d6dff5}
+.jf-activity-unassigned .jf-activity-icon{color:#be7a36;background:#fff5e9;border-color:#f1d9ba}
+.jf-activity-left .jf-activity-icon{color:#6e7b83;background:#f0f3f5;border-color:#dce2e5}
+.jf-activity-item strong{display:block;font-size:12px;font-weight:650;line-height:1.5;overflow-wrap:anywhere}
+.jf-activity-item p{font-size:11px;line-height:1.55;margin:4px 0;color:var(--muted,#66716c);overflow-wrap:anywhere}
+.jf-activity-item small{display:block;color:var(--muted,#7b8580);font-size:10px;margin-top:3px}
+/* Keep tag hue fixed while switching tabs or refreshing counts. */
+#app #view .followup-sub-scroll171 button[data-color171][aria-selected=true]{outline-color:var(--status-color159,var(--accent));background:var(--status-bg162,var(--accent-soft))!important;border-color:var(--status-edge162,var(--accent))!important;color:var(--status-ink162,var(--text))!important}
+
+/* Activity Timeline: preserve complete status notes, including multiline notes. */
+.jf-activity-note{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;margin:.35rem 0;color:var(--text,#1f2937)}

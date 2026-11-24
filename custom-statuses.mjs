@@ -63,7 +63,24 @@ export function bindFollowupTabs171({root,panel,filters,role,statuses=[],permane
  const subCount=key=>key==='processing176'?secondary.processing176:key==='completed188'?secondary.completed188:filters.group171==='unassigned'?key==='never'?secondary.never_assigned171:key==='all'?secondary.all:secondary.tags171?.[key]??(Object.keys(secondary).length?0:null):key==='all'?secondary.all:secondary[statusKey142(key)]??(Object.keys(secondary).length?0:null);
  const render=()=>{main.innerHTML=mainFollowupTabs171.filter(([id])=>role!=='Agent'||id!=='unassigned').map(([id,name,icon])=>`<button type="button" role="tab" data-main171="${id}" aria-selected="${filters.group171===id}" ${role==='Agent'&&id==='unassigned'?'disabled':''}>${icon171(id)}${name}<span class="followup-count171">${badge(primary[id])}</span></button>`).join('');subnav.innerHTML=options().map(s=>`<button type="button" role="tab" data-sub171="${esc(s.key)}" aria-selected="${filters.sub171===s.key}" ${s.color?`data-color171="${esc(s.color)}"`:''}>${s.color?`<i style="background:${esc(s.color)}" aria-hidden="true"></i>`:''}${esc(s.name)}<span class="followup-count171">${badge(subCount(s.key))}</span></button>`).join('');for(const b of subnav.querySelectorAll('[data-color171]'))paintStatusColor(b,b.dataset.color171);
  for(const b of main.querySelectorAll('[data-main171]'))b.onclick=()=>{if(b.disabled)return;filters.group171=b.dataset.main171;filters.sub171=filters.group171==='unassigned'?'never':filters.group171==='permanent'?'New':'all';if(!options().some(s=>s.key===filters.sub171))filters.sub171='all';secondary={};render();onChange()};for(const b of subnav.querySelectorAll('[data-sub171]'))b.onclick=()=>{filters.sub171=b.dataset.sub171;render();onChange()};sub.querySelector('[data-history-note171]').hidden=!(filters.group171==='unassigned'&&filters.sub171==='never'&&Number(secondary.history_unknown171)>0);};
- render();return {paint(result){if(result.primary_counts171)primary={...result.primary_counts171,all:result.primary_counts171.all};if(result.sub_counts171)secondary=result.sub_counts171;const x=main.scrollLeft,y=subnav.scrollLeft;render();main.scrollLeft=x;subnav.scrollLeft=y;}};
+ render();let paintedGroup=filters.group171,paintedSub=filters.sub171;
+  return {paint(result){
+    if(result.primary_counts171)primary={...result.primary_counts171,all:result.primary_counts171.all};
+    if(result.sub_counts171)secondary=result.sub_counts171;
+    // Rebuild only when the selected group changes, otherwise preserve the DOM and colors.
+    if(paintedGroup!==filters.group171||paintedSub!==filters.sub171){
+      const x=main.scrollLeft,y=subnav.scrollLeft;render();main.scrollLeft=x;subnav.scrollLeft=y;
+      paintedGroup=filters.group171;paintedSub=filters.sub171;
+    }
+    for(const btn of main.querySelectorAll('[data-main171]')){
+      btn.querySelector('.followup-count171').textContent=badge(primary[btn.dataset.main171]);
+      btn.setAttribute('aria-selected',String(filters.group171===btn.dataset.main171));
+    }
+    for(const btn of subnav.querySelectorAll('[data-sub171]')){
+      btn.querySelector('.followup-count171').textContent=badge(subCount(btn.dataset.sub171));
+      btn.setAttribute('aria-selected',String(filters.sub171===btn.dataset.sub171));
+    }
+  }};
 }
 
 export async function loadFollowupSections174(client,shopId){await loadStatusDefinitions(client,shopId);return (await caches.get(client).get(shopId).promise).sections174||null;}
