@@ -1253,3 +1253,10 @@ tfoot [data-report-total188]{font-weight:650;background:var(--surface,#fff);bord
 /* Freeze old page's geometry until the replacement data is fully rendered. */
 .workspace-transition165>.workspace-preview165{position:absolute;left:0;right:0;top:0;z-index:1;max-height:100%;overflow:hidden;contain:layout paint}
 .workspace-transition165>[data-transition165=pending]{visibility:hidden}
+
+/* Order Pull config: visible near Workspace Access instead of hidden below Permissions. */
+.account-edit190 .agent-pull-access-section{margin:0;padding:18px;border:1px solid var(--line,#e1e7dc);border-radius:15px;background:var(--surface,#fff)}
+.agent-pull-access-section .agent-pull-settings-button{display:flex;align-items:center;justify-content:center;min-height:44px;width:100%;font-weight:650;margin:0;border:1px solid var(--edge,#dce4d5);background:var(--accent,#b5f450);color:var(--accent-ink163,#10170b)}
+.agent-pull-access-section .agent-pull-settings-button:hover{filter:brightness(.97)}
+.agent-pull-access-section .agent-pull-access-body>.small{margin-top:8px;font-size:12px}
+.agent-pull-access-warning{border-radius:10px;padding:12px;background:var(--surface-soft,#f8faf5);border:1px solid var(--line,#e1e7dc);font-size:12px;line-height:1.5}

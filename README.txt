@@ -1,14 +1,20 @@
-JioFlow Unassignment + Staff Activity Fix
+JioFlow Agent Order Pull — Visible Admin Configuration Fix
 
-Database changes were already applied to Supabase project krsfldvxneoujmpquugr; do NOT rerun the migration just to deploy the frontend.
+This package updates the prior Combined Order Pull release.
 
-Frontend files to merge or replace in repository ROOT:
-- online-client.mjs: adds jf_unassigned_activity RPC to allowlist
-- record-panel.mjs: logs open action and shows Last update (staff name, action, Dhaka date/time); refreshes after status save
-- assignment-picker.mjs: corrects unassignment confirmation wording
+Updated files:
+- account-actions.mjs: Always display a Take More Orders section directly under Workspace access when editing an Agent, with a Configure button if an active membership is available. If not, show a descriptive membership warning instead of hiding the control.
+- workspace-design.css: Size, spacing, and visual treatment for the new section.
 
-GitHub branch: make a test branch and merge changes rather than overwrite more recent edits.
-Test: visit Unassigned -> a tag -> View customer as Owner/Admin. Last update should display name, Viewed, Dhaka time. Edit status or customer info and re-open: action should be Edited.
-Status reset: assign customer, then Unassign using a chosen tag. Workflow status should become Processing and tag remain selected.
-Note: views before the frontend is deployed are not logged retroactively. This is only for Unassigned records and authorized Creator/Owner/Admin.
-No production frontend deploy has been performed by this package.
+Installation:
+1. Update these individual files at the repository root, preserving all other files. Do not upload the ZIP file itself to the repository.
+2. Confirm the files are committed to the branch that Vercel builds for Production.
+3. Vercel build should run node build.mjs. Compare deployment commit and domain.
+4. Open Account Access > Edit Agent. Look for the Take More Orders section immediately after Workspace access.
+5. If the section indicates no active Agent membership, complete membership setup first. Do not grant access manually in SQL.
+6. Configure 20 per pull, 50 daily, require empty queue, allow Imported Status and Customer Tag 1 as needed, then save and test with an approved Agent session.
+
+Database Pull Settings start disabled by design. Do not force-enable an Agent without authorization.
+
+Node syntax check, build, unit and upgrade tests passed in the local source snapshot.
+This does NOT change the live website until the files are committed and Vercel is redeployed.

@@ -22,7 +22,41 @@ export function createAccountActions({client,openForm,reload,profiles,current,sh
  const email=String(f.get('email')||p.email).trim().toLowerCase();if(oldRole==='agent'&&!own&&(email!==p.email.toLowerCase()||p.pending_email)){const result=await client.manage({action:'agent_email_change191',user_id:p.id,email});message+=' '+result.message;}else if(email!==p.email.toLowerCase()&&email!==String(p.pending_email||'').toLowerCase()){try{if(own){await client.changeEmail(email);message+=' Email change confirmation requested. Check both inboxes.'}else{const result=await client.manage({action:'account_email_change',user_id:p.id,email});message+=' '+result.message}}catch(error){message+=' Email was not changed: '+error.message}}
  await reload();notice(message);
  });
- organizeAccountPopup190(dialog);if(own&&oldRole==='agent'){const mail=dialog?.querySelector('[name=email]');if(mail)mail.readOnly=true;}if(oldRole==='agent')bindAgentDevices167(dialog,client,p.id,{openForm});
+ organizeAccountPopup190(dialog);
+ if(oldRole==='agent'&&access){
+  // This control belongs to Workspace access, not at the bottom of the long Permissions list.
+  // Always render a clear state, including when an account has no active shop membership yet.
+  const body=dialog.querySelector('.modal-content134,.workspace-page-body')||dialog.querySelector('form');
+  const accessSection=body?.querySelector('[name=shop_id]')?.closest('.account-section190');
+  const pullSection=dialog.ownerDocument.createElement('section');
+  pullSection.className='account-section190 agent-pull-access-section';
+  pullSection.innerHTML='<header><h3>Take More Orders</h3><p class="small muted">Admin-controlled Order Pull permissions for this Agent.</p></header><div class="agent-pull-access-body"></div>';
+  if(accessSection)accessSection.insertAdjacentElement('afterend',pullSection);
+  else (body||dialog.querySelector('form')).prepend(pullSection);
+  const host=pullSection.querySelector('.agent-pull-access-body');
+  if(!m?.id||!oldShop){
+    host.innerHTML='<p class="agent-pull-access-warning" role="status">Save this Agent with an active Workspace membership first, then reopen Edit Account to configure Order Pull.</p>';
+  }else{
+  const configure=dialog.ownerDocument.createElement('button');configure.type='button';configure.className='agent-pull-settings-button';configure.textContent='Configure Take More Orders';
+  const hint=dialog.ownerDocument.createElement('p');hint.className='small muted';hint.textContent='Batch: 20 · Daily limit: 50 · By Imported Status / Customer Tag 1';
+  host.append(configure,hint);
+  configure.onclick=async()=>{
+   configure.disabled=true;
+   try{
+    const initial=await client.rpc('jf_agent_pull_config',{target_shop:oldShop,target_membership:m.id,config:null});
+    const statuses=[...new Set([...(initial.available_statuses||[]),...(initial.imported_statuses||[]),'Delivered'])];
+    const tags=[...new Set([...(initial.available_tags||[]),...(initial.customer_tags||[]),'Delivered','Return'])];
+    const checkboxes=(values,chosen,prefix)=>values.map((v,i)=>`<label class="pull-setting-choice"><input type="checkbox" name="${prefix}_${i}" value="${esc(v)}" ${chosen.includes(v)?'checked':''}><span>${esc(v)}</span></label>`).join('');
+    openForm('Agent · Take More Orders',`<section class="pull-settings-panel"><p class="small muted">Only authorized Imported Status or Customer Tag 1 values may be pulled. Agent's current Processing queue must be empty.</p><label class="pull-setting-choice"><input type="checkbox" name="pull_enabled" ${initial.enabled?'checked':''}> Enable Agent Order Pull</label><div class="form-grid"><label class="field">Orders per Pull<input name="pull_batch" type="number" min="1" max="500" required value="${Number(initial.batch_size)||20}"></label><label class="field">Max per Day<input name="pull_daily" type="number" min="1" max="1000" required value="${Number(initial.daily_limit)||50}"></label></div><label class="pull-setting-choice"><input type="checkbox" name="pull_require_empty" ${initial.require_empty?'checked':''}> Require empty Processing queue</label><h4>By Imported Status</h4><div class="pull-setting-options">${checkboxes(statuses,initial.imported_statuses||[],'status')}</div><h4>By Customer Tag 1</h4><div class="pull-setting-options">${checkboxes(tags,initial.customer_tags||[],'tag')}</div></section>`,async f=>{
+      const chosen=(prefix,values)=>values.filter((_,i)=>f.get(`${prefix}_${i}`));
+      await client.rpc('jf_agent_pull_config',{target_shop:oldShop,target_membership:m.id,config:{enabled:!!f.get('pull_enabled'),batch_size:Number(f.get('pull_batch')),daily_limit:Number(f.get('pull_daily')),require_empty:!!f.get('pull_require_empty'),imported_statuses:chosen('status',statuses),customer_tags:chosen('tag',tags)}});
+      notice('Agent Order Pull settings saved.');
+    });
+   }catch(error){notice(error.message)}finally{configure.disabled=false}
+  };
+  }
+ }
+ if(own&&oldRole==='agent'){const mail=dialog?.querySelector('[name=email]');if(mail)mail.readOnly=true;}if(oldRole==='agent')bindAgentDevices167(dialog,client,p.id,{openForm});
  if(dialog?.querySelector&&access){const roleInput=dialog.querySelector('[name=role]');const update=()=>{const role=roleInput.value;permissionKeys.forEach(k=>{const input=dialog.querySelector('[name=permission_'+k+']');input.disabled=role==='owner'})};roleInput.onchange=update;update();if(me.platform_role!=='creator'){roleInput.disabled=true;dialog.querySelector('[name=shop_id]').disabled=true}}
  }
  function ownPassword(){const me=current();if(me&&(shops().some(s=>s.owner_id===me.id)||members().some(m=>m.user_id===me.id&&m.role==='owner'&&m.status!=='removed')))return openForm('Change Owner password','<p>Verify your registered email before choosing a new password. Your current password stays valid until you finish.</p>',async()=>{await client.resetPassword(me.email,globalThis.location.origin);notice('Verification email requested. Open the link in your inbox to change your password.');});if(!me||me.managed_agent||members().some(m=>m.user_id===me.id&&m.role==='agent'&&m.status!=='removed'))throw Error('Agent password changes require administrator approval.');const d=openForm('Change my password',`<label class="field">Current password<input name="current_password" type="password" required autocomplete="current-password"></label><label class="field">New password<input name="new_password" type="password" required minlength="6" maxlength="128" autocomplete="new-password"></label><label class="field">Confirm new password<input name="confirm_password" type="password" required minlength="6" maxlength="128" autocomplete="new-password"></label><label><input type="checkbox" data-show-profile-password> Show passwords</label>`,async f=>{if(f.get('new_password')!==f.get('confirm_password')){d?.querySelector('[name=confirm_password]')?.setAttribute('aria-invalid','true');throw Error('The new passwords do not match.');}try{await client.changeOwnPassword(String(f.get('current_password')||''),String(f.get('new_password')||''));}catch(error){if(/current password|credentials|password.*incorrect/i.test(error.message))d?.querySelector('[name=current_password]')?.setAttribute('aria-invalid','true');throw error}d?.querySelector('form')?.reset();notice('Your password was changed. Use the new password on other devices.');});d?.classList.add('profile-password141');d?.querySelectorAll('input[type=password]').forEach(input=>input.addEventListener('input',()=>input.removeAttribute('aria-invalid')));d?.querySelector('[data-show-profile-password]')?.addEventListener('change',e=>d.querySelectorAll('input[name$="password"]').forEach(input=>input.type=e.target.checked?'text':'password'));}
