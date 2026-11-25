@@ -4,7 +4,8 @@ export function createHandler(options={}){return async function handler(req,res)
  if(req.method!=='POST'){res.setHeader('Allow','POST');return res.status(405).json({error:'Method not allowed.'})}
  try{
   const service=createAccountService(options);
-  if(req.headers.origin!==service.origin)throw new RequestError('This request origin is not allowed.',403);
+  const trustedOrigins=new Set([service.origin,'https://jioflowbd.com']);
+  if(!trustedOrigins.has(req.headers.origin))throw new RequestError('This request origin is not allowed.',403);
   if(!String(req.headers['content-type']||'').startsWith('application/json'))throw new RequestError('Use a JSON request.',415);
   const raw=req.body;if(typeof raw==='string'&&Buffer.byteLength(raw)>8192)throw new RequestError('Request too large.',413);
   let input;try{input=typeof raw==='string'?JSON.parse(raw):raw}catch{throw new RequestError('Invalid JSON.')}
